@@ -171,12 +171,12 @@ ShellRoot {
                     test.showHover(); break;
                 case 1: test.hold("Control_L"); break;
                 case 2:
-                    test.check(keys.ready && test.panel.hoverOpened && test.panel.mapped, "Ctrl held on passive panel");
-                    test.check(test.named("windowFocusPointer").needsCompositor, "hover has no keyboard focus");
-                    test.clickRow(Qt.NoModifier); break;
+                    test.check(keys.ready && test.panel.hoverOpened && test.panel.mapped, "Ctrl held on hover panel");
+                    test.check(test.panel.body.controlHeld && test.panel.surface.keyboardActive, "Ctrl enables hover keyboard shortcuts");
+                    test.clickRow(test.named("windowFocusPointer").needsCompositor ? Qt.NoModifier : Qt.ControlModifier); break;
                 case 4:
                     test.check(test.panel.destinationMenu.opened && !test.panel.opened && test.panel.body.mode === "windows",
-                        "real Ctrl with empty Qt modifiers opens a small menu without expanding");
+                        "real Ctrl opens a small menu without expanding");
                     test.check(!actions.moved && !actions.brings && !actions.focused, "opening menu cannot act on a window");
                     keys.running = false; break;
                 case 5: events.keyClick(Qt.Key_4, Qt.NoModifier, 0); break;
@@ -200,14 +200,16 @@ ShellRoot {
                     test.showHover(); break;
                 case 15: test.hold("Control_R", "Shift_R"); break;
                 case 16:
-                    test.check(keys.ready && test.named("windowFocusPointer").needsCompositor, "right Ctrl+Shift on unfocused hover");
-                    test.clickRow(Qt.NoModifier); break;
+                    test.check(keys.ready && test.panel.body.controlHeld, "right Ctrl+Shift on hover");
+                    test.clickRow(test.named("windowFocusPointer").needsCompositor ? Qt.NoModifier
+                        : Qt.ControlModifier | Qt.ShiftModifier); break;
                 case 19:
                     test.check(actions.brings === 2 && actions.released === 2 && !test.panel.mapped, "physical Ctrl+Shift brings from hover");
                     keys.running = false; test.showHover(); break;
                 case 21: test.hold("Control_R"); break;
                 case 22:
-                    test.check(keys.ready, "right Ctrl ready"); test.clickRow(Qt.NoModifier); break;
+                    test.check(keys.ready, "right Ctrl ready");
+                    test.clickRow(test.named("windowFocusPointer").needsCompositor ? Qt.NoModifier : Qt.ControlModifier); break;
                 case 24:
                     test.check(test.panel.destinationMenu.opened && test.panel.hoverOpened, "right Ctrl alone also opens the small menu");
                     keys.running = false; break;
@@ -229,9 +231,17 @@ ShellRoot {
                     var card = test.find(owner.windowPreview.contentItem, "windowThumbnailPointer", []);
                     var point = owner.windowPreview.menuPosition(Qt.point(card.width / 2, card.height / 2));
                     test.moveCursor(point.x, point.y); break;
-                case 38: test.hold("Control_L"); break;
+                case 38:
+                    console.info("PREVIEW_BEFORE_CTRL " + JSON.stringify({visible: owner.windowPreview.visible,
+                        pointer: owner.windowPreview.pointerOnCard, keyboard: test.panel.surface.keyboardActive}));
+                    test.hold("Control_L"); break;
                 case 39:
-                    test.check(keys.ready && owner.windowPreview.visible && owner.windowPreview.pointerOnCard, "Ctrl keeps hovered preview clickable");
+                    test.check(keys.ready && owner.windowPreview.visible && owner.windowPreview.pointerOnCard,
+                        "Ctrl keeps hovered preview clickable: " + JSON.stringify({keys: keys.ready,
+                            visible: owner.windowPreview.visible, pointer: owner.windowPreview.pointerOnCard,
+                            shiftKnown: owner.windowPreview.modifierState.known,
+                            shiftDown: owner.windowPreview.modifierState.shiftDown,
+                            keyboard: test.panel.surface.keyboardActive}));
                     test.retainedAnchor = owner.windowPreview.anchorItem;
                     test.retainedCapture = test.find(owner.windowPreview.contentItem, "windowThumbnailCapture", []).item;
                     test.check(!!test.retainedCapture, "capture exists before opening the move menu");

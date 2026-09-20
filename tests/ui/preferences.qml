@@ -27,6 +27,7 @@ ShellRoot {
             "next process loads the last completed write");
           suite.check(preferences.values.includeSpecial && preferences.values.barLabel === "name", "WindowPeek choices restored");
           suite.check(preferences.values.scrollBounce === false, "disabled springy scrolling survives restart");
+          suite.check(preferences.values.shortcutNumbersRight === true, "shortcut number alignment survives restart");
           suite.check(preferences.values.windowPreviews === false, "disabled window previews survive restart");
           suite.check(preferences.values.labelStyle === "custom" && preferences.values.customLabels.barText === "Okna {count}",
             "custom text survives a process restart");
@@ -36,7 +37,7 @@ ShellRoot {
         } else {
           suite.check(!preferences.failed, "first start without file works");
           suite.check(preferences.save({id:"sarr.windowpeek",language:"de",hintsUsed:199,hintsMode:"auto"}), "first save");
-          suite.check(preferences.save({id:"sarr.windowpeek",language:"pl",hintsUsed:200,hintsMode:"on",includeSpecial:true,barLabel:"name",scrollBounce:false,windowPreviews:false,
+          suite.check(preferences.save({id:"sarr.windowpeek",language:"pl",hintsUsed:200,hintsMode:"on",includeSpecial:true,barLabel:"name",scrollBounce:false,windowPreviews:false,shortcutNumbersRight:true,
             labelStyle:"custom",customLabels:{barText:"Okna {count}"}}), "rapid second save");
         }
         console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();

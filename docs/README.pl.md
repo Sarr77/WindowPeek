@@ -4,8 +4,8 @@ Znajdź okno i od razu do niego przejdź.
 
 WindowPeek zbiera otwarte okna na jednej liście dostępnej z paska Omarchy.
 Możesz szukać na wszystkich workspace’ach i monitorach, podejrzeć okno przed
-przełączeniem albo przenieść je w inne miejsce. Zakładki w grupach okien
-Hyprlanda są widoczne osobno.
+przełączeniem albo przenieść je w inne miejsce. Już nigdy nie zgubisz zakładki
+w grupach okien Hyprlanda.
 
 [English](../README.md) · [Instrukcja (EN)](GUIDE.md) · [Historia zmian (EN)](../CHANGELOG.md)
 
@@ -35,16 +35,23 @@ przewijać. Kolejne kliknięcie nazwy na pasku zamyka panel.
 | Kliknięcie okna lub jego podglądu | Przejdź do okna lub zakładki na dotychczasowym monitorze |
 | **Ctrl + klik** | Otwórz małe menu wyboru workspace’u |
 | **Ctrl + Shift + klik** | Przenieś okno na bieżący workspace tego monitora i aktywuj je |
-| Przytrzymanie **Ctrl** | Ukryj podglądy zawartości podczas przeglądania listy |
+| Przytrzymanie **Shift** | Ukryj podglądy zawartości podczas przeglądania listy |
+| Przytrzymanie **Ctrl** | Pokaż cyfry skrótów przy widocznych oknach i tabach |
+| **Ctrl + 1–9 / 0** | Przejdź do okna lub tabu z tą cyfrą; 0 wybiera dziesiąty element |
 | Prawy klik w głównym panelu | Zamknij WindowPeek wraz z podglądem |
 
-Przytrzymaj **Ctrl**, żeby przeglądać listę bez pokazywania podglądów zawartości —
+Przytrzymaj **Shift**, żeby przeglądać listę bez pokazywania podglądów zawartości —
 przydatne podczas streamowania lub udostępniania ekranu. Tytuły okien nadal są
 widoczne.
 
 Rozwinięty panel ma też przyciski **Przenieś** i obsługę klawiatury. Strzałki ↑ / ↓
 wybierają okno, ← / → przechodzą między oknem a przyciskiem Przenieś, a Enter
-wykonuje wybraną akcję. **Sterowanie** w ustawieniach opisuje wszystkie gesty i skróty.
+wykonuje wybraną akcję. Przytrzymaj **Ctrl**, żeby zobaczyć cyfry przy widocznych
+oknach i tabach, i naciśnij **1–9 / 0**, żeby przejść do wybranego elementu.
+Działa to również w hoverze i z Ctrl trzymanym przed otwarciem. Numeracja zmienia
+się przy przewijaniu. W **Ustawienia → Lista okien** można wyrównać cyfry do prawej;
+wtedy oznaczenie aktywnego okna przesuwa się obok nich. **Sterowanie** w ustawieniach opisuje
+wszystkie gesty i skróty.
 Opcjonalny skrót **Super + Alt + P** możesz dodać według
 [instrukcji konfiguracji (EN)](GUIDE.md#keyboard-controls).
 

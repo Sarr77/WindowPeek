@@ -38,7 +38,7 @@ Ui.Panel {
         && hostWidget.windowPreview.visible && hostWidget.windowPreview.anchorWindow === panel
     readonly property bool available: !!hostWidget && (!bar || !bar.activePopout || bar.activePopout === root)
     readonly property bool canHideHover: !hoverRequested && !pointer.hovered && !panel.barBridgeHovered
-        && !content.interacting && !childPreviewVisible && !moveMenu.visible
+        && !content.controlHeld && !content.interacting && !childPreviewVisible && !moveMenu.visible
     readonly property real expansion: expansionMotion.value
     Native.PopupMotion {
         id: expansionMotion
@@ -229,13 +229,17 @@ Ui.Panel {
         bar: root.bar
         open: root.opened
         hoverOpen: root.hoverRetained
+        shortcutKeyboard: content.shortcutsAvailable && content.controlHeld
+        pointerPreviewVisible: root.childPreviewVisible
+        pointerOnPreview: root.childPreviewVisible && root.hostWidget.windowPreview.containsPointer
         transientOpen: moveMenu.visible
         keyboardSuppressed: moveMenu.visible
         onTransientCloseRequested: moveMenu.close()
         animationsEnabled: root.animationsEnabled
         onBackgroundClicked: root.toggleExpanded()
         onBackRequested: content.navigateBack()
-        focusTarget: content.mode === "windows" ? content.searchField : null
+        focusTarget: content.mode !== "windows" ? null : root.opened ? content.searchField
+            : content.controlHeld ? content : null
         padding: Style.space(16) * root.uiScale
         contentWidth: fittedContentWidth(Style.space((content.compact ? 360 : 420)
             + (500 - (content.compact ? 360 : 420)) * root.expansion) * root.uiScale)

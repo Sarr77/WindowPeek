@@ -136,6 +136,13 @@ Column {
             isSwitch: true; checked: !!root.hostWidget && root.hostWidget.scrollBounce
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({scrollBounce: !checked})
         }
+        SettingsRow {
+            objectName: "shortcutNumbersRightToggle"
+            width: parent.width; text: root.words.shortcutNumbersRight; accent: root.accent
+            description: I18n.format(root.words.defaultValue, {value: root.words.shortcutNumbersInline})
+            isSwitch: true; checked: !!root.hostWidget && root.hostWidget.shortcutNumbersRight
+            onClicked: if (root.hostWidget) root.hostWidget.persistSettings({shortcutNumbersRight: !checked})
+        }
     }
     SettingsSection {
         id: personalizationSection; objectName: "settingsPersonalizationSection"

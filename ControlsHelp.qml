@@ -14,7 +14,7 @@ Column {
                 root.words.chooseMoveHint, root.words.bringHint, root.words.controlsPrivacy,
                 root.words.controlsBlank, root.words.controlsClose, root.words.controlsWheel]},
             {title: root.words.controlsKeyboard, entries: [root.words.searchWindows + "\n" + root.words.keyboardHint,
-                root.words.controlsWindowKeys, root.words.controlsTab, root.words.controlsActivate, root.words.controlsDropdown,
+                root.words.controlsWindowKeys, root.words.controlsWindowShortcuts, root.words.controlsTab, root.words.controlsActivate, root.words.controlsDropdown,
                 root.words.controlsColor, root.words.controlsShortcut]}
         ]
         delegate: Column {

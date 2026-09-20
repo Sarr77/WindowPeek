@@ -24,6 +24,10 @@ FocusScope {
     readonly property bool rtl: hostWidget && hostWidget.language === "ar"
     readonly property bool compact: hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     property alias searchField: search
+    // A preview popup can own the active window while the source keeps local
+    // focus. Follow that control so typing and successive arrows stay together.
+    readonly property Item previewKeyTarget: !expanded ? root
+        : search.focus ? search : list.focusedAction || root
     property string mode: "windows"
     property string settingsReturnMode: ""
     property real settingsScrollY: 0
@@ -32,6 +36,11 @@ FocusScope {
     property real expansion: expanded ? 1 : 0
     property bool showHint: !!hostWidget && hostWidget.hints.enabled
     property string orderAddress: ""
+    readonly property bool controlHeld: shortcutModifiers.known && shortcutModifiers.controlDown
+    readonly property var shortcutModifierState: shortcutModifiers
+    readonly property bool shortcutsAvailable: opened && mode === "windows" && !busy
+        && !confirmation.opened && !!hostWidget && !hostWidget.moveMenuOpen
+    readonly property var shortcutAddresses: list.shortcutAddresses
     readonly property bool interacting: list.interacting
     readonly property bool backgroundToggleAllowed: opened && mode === "windows" && !busy && !interacting && !confirmation.opened
     readonly property real listContentHeight: list.contentHeight
@@ -62,6 +71,7 @@ FocusScope {
         : Style.space(540)
     signal closeRequested()
     signal backgroundClicked()
+    ShortcutModifiers { id: shortcutModifiers; active: root.shortcutsAvailable }
     property var activateWindow: function(address, bringHere) {
         if (!opened || !hostWidget || busy || !matches.some(function(window) { return window.address === address; })) return;
         if (bringHere) hostWidget.bringWindow(address); else hostWidget.focusWindow(address);
@@ -76,6 +86,8 @@ FocusScope {
     function begin(takeFocus) {
         if (takeFocus === undefined) takeFocus = true;
         opened = true;
+        shortcutModifiers.reset();
+        if (!takeFocus) { search.focus = false; focus = false; }
         mode = "windows"; search.text = ""; selectedAddress = "";
         var first = inventory.windows.find(function(window) { return window.active; });
         orderAddress = first ? first.address : "";
@@ -159,6 +171,8 @@ FocusScope {
         list.ensureRowVisible(row);
     }
     function handleSearchKey(event) {
+        updateControl(event, true);
+        if (handleWindowShortcut(event)) return;
         var towardMove = event.key === (rtl ? Qt.Key_Left : Qt.Key_Right);
         var atTextEdge = search.cursorPosition === (rtl ? 0 : search.text.length);
         if (towardMove && event.modifiers === Qt.NoModifier && atTextEdge && !search.selectedText) {
@@ -174,6 +188,21 @@ FocusScope {
             }
             event.accepted = true;
         } else if (event.key === Qt.Key_Escape) { closeRequested(); event.accepted = true; }
+    }
+    function handleWindowShortcut(event) {
+        if (!opened || mode !== "windows" || confirmation.opened
+                || !hostWidget || hostWidget.moveMenuOpen) return false;
+        var modifiers = event.modifiers & ~Qt.KeypadModifier;
+        if (modifiers !== Qt.ControlModifier || event.key < Qt.Key_0 || event.key > Qt.Key_9) return false;
+        event.accepted = true;
+        if (busy || event.isAutoRepeat) return true;
+        var index = event.key === Qt.Key_0 ? 9 : event.key - Qt.Key_1;
+        var address = list.visibleWindowAddresses()[index];
+        if (address) hostWidget.focusWindow(address);
+        return true;
+    }
+    function updateControl(event, pressed) {
+        shortcutModifiers.key(event, pressed);
     }
     function ensureVisible(item) {
         editorColumn.forceLayout();
@@ -198,6 +227,8 @@ FocusScope {
         }
     }
     Keys.onEscapePressed: function(event) { if (mode === "windows") closeRequested(); else back(); event.accepted = true; }
+    Keys.onPressed: function(event) { updateControl(event, true); handleWindowShortcut(event); }
+    Keys.onReleased: function(event) { updateControl(event, false); }
     Connections { target: root.hostWidget; function onMoveCompleted() { if (root.mode === "move") root.back(); } }
     LayoutMirroring.enabled: rtl
     LayoutMirroring.childrenInherit: true
@@ -261,6 +292,7 @@ FocusScope {
                     list.cancelFlick(); list.positionViewAtBeginning();
                 }
                 Keys.onPressed: function(event) { root.handleSearchKey(event); }
+                Keys.onReleased: function(event) { root.updateControl(event, false); }
             }
         }
     }
@@ -271,6 +303,7 @@ FocusScope {
         rows: root.rows
         expanded: root.expanded; expansion: root.expansion
         opened: root.opened; selectedAddress: root.selectedAddress
+        showShortcuts: root.controlHeld && root.shortcutsAvailable
         previewBoundsItem: root.previewBoundsItem
         scrollbarGutter: root.scrollbarGutter
         anchors.top: header.bottom; anchors.topMargin: Style.space(10)

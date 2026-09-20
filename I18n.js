@@ -83,6 +83,9 @@ function options(code, detected) {
 
 var catalogs = {
   "en": {
+    "shortcutNumbersRight": "Shortcut numbers on the right",
+    "shortcutNumbersInline": "After the app or tab label",
+    "controlsWindowShortcuts": "Hold Ctrl to see numbers beside visible windows and tabs. Ctrl + 1–9 / 0 switches to one; 0 means tenth. Numbers update as you scroll.",
     "controls": "Controls",
     "controlsMouse": "Mouse",
     "controlsKeyboard": "Keyboard",
@@ -90,7 +93,7 @@ var catalogs = {
     "controlsBlank": "Click empty space in the list to expand or collapse it. Available when hover mode is enabled.",
     "controlsClose": "Right-click or Esc: go back in menus; close the main panel and its previews.",
     "controlsWheel": "Scroll with the mouse wheel or drag the scrollbar.",
-    "controlsPrivacy": "Hold Ctrl to hide previews, except the preview under the pointer or the one whose move menu is open.",
+    "controlsPrivacy": "Hold Shift to hide previews, except the preview under the pointer or the one whose move menu is open.",
     "controlsTab": "Tab / Shift+Tab: move focus between visible controls.",
     "controlsActivate": "Enter / Space: activate the focused control. ← / →: expand or collapse a category.",
     "controlsDropdown": "Lists: ↑ / ↓ to select, Enter to confirm. In dropdowns without a search field, j / k also work.",
@@ -214,6 +217,9 @@ var catalogs = {
     "enabledByDefault": "Enabled by default"
   },
   "pl": {
+    "shortcutNumbersRight": "Cyfry skrótów po prawej",
+    "shortcutNumbersInline": "Za nazwą aplikacji lub oznaczeniem tabu",
+    "controlsWindowShortcuts": "Przytrzymaj Ctrl, aby zobaczyć cyfry przy widocznych oknach i tabach. Ctrl + 1–9 / 0 przechodzi do wybranego elementu; 0 oznacza dziesiąty. Numeracja zmienia się przy przewijaniu.",
     "controls": "Sterowanie",
     "controlsMouse": "Mysz",
     "controlsKeyboard": "Klawiatura",
@@ -221,7 +227,7 @@ var catalogs = {
     "controlsBlank": "Kliknij puste miejsce na liście, aby ją rozwinąć lub zwinąć. Działa przy włączonym trybie hover.",
     "controlsClose": "Prawy klik lub Esc: cofnij w menu; zamknij główny panel wraz z podglądami.",
     "controlsWheel": "Przewijaj kółkiem myszy lub przeciągaj pasek przewijania.",
-    "controlsPrivacy": "Przytrzymaj Ctrl, aby ukryć podglądy, z wyjątkiem podglądu pod kursorem lub tego, którego menu przenoszenia jest otwarte.",
+    "controlsPrivacy": "Przytrzymaj Shift, aby ukryć podglądy, z wyjątkiem podglądu pod kursorem lub tego, którego menu przenoszenia jest otwarte.",
     "controlsTab": "Tab / Shift+Tab: przechodź między widocznymi kontrolkami.",
     "controlsActivate": "Enter / Spacja: aktywuj wybraną kontrolkę. ← / →: rozwiń lub zwiń kategorię.",
     "controlsDropdown": "Listy: ↑ / ↓ wybiera, Enter zatwierdza. W dropdownach bez pola wyszukiwania działają też j / k.",
@@ -345,6 +351,9 @@ var catalogs = {
     "enabledByDefault": "Domyślnie włączone"
   },
   "de": {
+    "shortcutNumbersRight": "Nummern für Tastenkürzel rechts",
+    "shortcutNumbersInline": "Nach der App- oder Tab-Bezeichnung",
+    "controlsWindowShortcuts": "Strg gedrückt halten, um Nummern neben sichtbaren Fenstern und Tabs zu sehen. Strg + 1–9 / 0 wechselt zum Eintrag; 0 steht für den zehnten. Beim Scrollen werden die Nummern angepasst.",
     "controls": "Bedienung",
     "controlsMouse": "Maus",
     "controlsKeyboard": "Tastatur",
@@ -352,7 +361,7 @@ var catalogs = {
     "controlsBlank": "Klicke auf eine freie Stelle der Liste, um sie zu erweitern oder einzuklappen. Erfordert den Hover-Modus.",
     "controlsClose": "Rechtsklick oder Esc: im Menü zurückgehen; das Hauptpanel samt Vorschauen schließen.",
     "controlsWheel": "Mit dem Mausrad scrollen oder die Bildlaufleiste ziehen.",
-    "controlsPrivacy": "Ctrl gedrückt halten blendet Vorschauen aus, außer der unter dem Zeiger oder der mit geöffnetem Verschiebemenü.",
+    "controlsPrivacy": "Shift gedrückt halten blendet Vorschauen aus, außer der unter dem Zeiger oder der mit geöffnetem Verschiebemenü.",
     "controlsTab": "Tab / Shift+Tab: zwischen sichtbaren Steuerelementen wechseln.",
     "controlsActivate": "Enter / Leertaste: fokussiertes Element aktivieren. ← / →: Kategorie auf- oder zuklappen.",
     "controlsDropdown": "Listen: ↑ / ↓ auswählen, Enter bestätigen. In Auswahllisten ohne Suchfeld funktionieren auch j / k.",
@@ -476,6 +485,9 @@ var catalogs = {
     "enabledByDefault": "Standardmäßig aktiviert"
   },
   "fr": {
+    "shortcutNumbersRight": "Numéros des raccourcis à droite",
+    "shortcutNumbersInline": "Après le nom de l’application ou de l’onglet",
+    "controlsWindowShortcuts": "Maintenez Ctrl pour afficher les numéros des fenêtres et onglets visibles. Ctrl + 1–9 / 0 ouvre l’élément correspondant ; 0 est le dixième. Les numéros changent lors du défilement.",
     "controls": "Commandes",
     "controlsMouse": "Souris",
     "controlsKeyboard": "Clavier",
@@ -483,7 +495,7 @@ var catalogs = {
     "controlsBlank": "Cliquez sur une zone vide de la liste pour la développer ou la réduire. Nécessite le mode au survol.",
     "controlsClose": "Clic droit ou Échap : revenir dans les menus ; fermer le panneau principal et ses aperçus.",
     "controlsWheel": "Faites défiler avec la molette ou en faisant glisser la barre de défilement.",
-    "controlsPrivacy": "Maintenez Ctrl pour masquer les aperçus, sauf celui sous le pointeur ou celui dont le menu de déplacement est ouvert.",
+    "controlsPrivacy": "Maintenez Shift pour masquer les aperçus, sauf celui sous le pointeur ou celui dont le menu de déplacement est ouvert.",
     "controlsTab": "Tab / Maj+Tab : passer entre les commandes visibles.",
     "controlsActivate": "Entrée / Espace : activer la commande ciblée. ← / → : développer ou réduire une catégorie.",
     "controlsDropdown": "Listes : ↑ / ↓ pour choisir, Entrée pour valider. j / k fonctionne aussi dans les listes déroulantes sans champ de recherche.",
@@ -607,6 +619,9 @@ var catalogs = {
     "enabledByDefault": "Activé par défaut"
   },
   "es": {
+    "shortcutNumbersRight": "Números de atajos a la derecha",
+    "shortcutNumbersInline": "Después del nombre de la aplicación o pestaña",
+    "controlsWindowShortcuts": "Mantén Ctrl para ver números junto a las ventanas y pestañas visibles. Ctrl + 1–9 / 0 cambia al elemento correspondiente; 0 es el décimo. Los números cambian al desplazarte.",
     "controls": "Controles",
     "controlsMouse": "Ratón",
     "controlsKeyboard": "Teclado",
@@ -614,7 +629,7 @@ var catalogs = {
     "controlsBlank": "Haz clic en un espacio vacío de la lista para ampliarla o contraerla. Requiere el modo al pasar el cursor.",
     "controlsClose": "Clic derecho o Esc: volver en los menús; cerrar el panel principal y sus vistas previas.",
     "controlsWheel": "Desplázate con la rueda del ratón o arrastrando la barra de desplazamiento.",
-    "controlsPrivacy": "Mantén Ctrl para ocultar las vistas previas, excepto la situada bajo el cursor o aquella cuyo menú de traslado esté abierto.",
+    "controlsPrivacy": "Mantén Shift para ocultar las vistas previas, excepto la situada bajo el cursor o aquella cuyo menú de traslado esté abierto.",
     "controlsTab": "Tab / Mayús+Tab: recorrer los controles visibles.",
     "controlsActivate": "Intro / Espacio: activar el control enfocado. ← / →: ampliar o contraer una categoría.",
     "controlsDropdown": "Listas: ↑ / ↓ para elegir, Intro para confirmar. En desplegables sin buscador también funcionan j / k.",
@@ -738,6 +753,9 @@ var catalogs = {
     "enabledByDefault": "Activado por defecto"
   },
   "pt-BR": {
+    "shortcutNumbersRight": "Números dos atalhos à direita",
+    "shortcutNumbersInline": "Após o nome do aplicativo ou da aba",
+    "controlsWindowShortcuts": "Segure Ctrl para ver números ao lado das janelas e abas visíveis. Ctrl + 1–9 / 0 alterna para o item; 0 é o décimo. A numeração muda ao rolar.",
     "controls": "Controles",
     "controlsMouse": "Mouse",
     "controlsKeyboard": "Teclado",
@@ -745,7 +763,7 @@ var catalogs = {
     "controlsBlank": "Clique em uma área vazia da lista para expandir ou recolher. Requer o modo ao passar o mouse.",
     "controlsClose": "Clique direito ou Esc: voltar nos menus; fechar o painel principal e suas prévias.",
     "controlsWheel": "Role com a roda do mouse ou arraste a barra de rolagem.",
-    "controlsPrivacy": "Segure Ctrl para ocultar as prévias, exceto a que estiver sob o cursor ou com o menu de movimentação aberto.",
+    "controlsPrivacy": "Segure Shift para ocultar as prévias, exceto a que estiver sob o cursor ou com o menu de movimentação aberto.",
     "controlsTab": "Tab / Shift+Tab: navegar entre os controles visíveis.",
     "controlsActivate": "Enter / Espaço: ativar o controle em foco. ← / →: expandir ou recolher uma categoria.",
     "controlsDropdown": "Listas: ↑ / ↓ para selecionar, Enter para confirmar. Em listas suspensas sem busca, j / k também funcionam.",
@@ -869,6 +887,9 @@ var catalogs = {
     "enabledByDefault": "Ativado por padrão"
   },
   "pt-PT": {
+    "shortcutNumbersRight": "Números dos atalhos à direita",
+    "shortcutNumbersInline": "Após o nome da aplicação ou do separador",
+    "controlsWindowShortcuts": "Mantenha Ctrl premido para ver números junto das janelas e separadores visíveis. Ctrl + 1–9 / 0 muda para o item; 0 é o décimo. A numeração muda ao deslocar a lista.",
     "controls": "Controlos",
     "controlsMouse": "Rato",
     "controlsKeyboard": "Teclado",
@@ -876,7 +897,7 @@ var catalogs = {
     "controlsBlank": "Clique numa área vazia da lista para expandir ou recolher. Requer o modo ao passar o rato.",
     "controlsClose": "Clique direito ou Esc: recuar nos menus; fechar o painel principal e as pré-visualizações.",
     "controlsWheel": "Desloque-se com a roda do rato ou arraste a barra de deslocamento.",
-    "controlsPrivacy": "Mantenha Ctrl premido para ocultar pré-visualizações, exceto a que está sob o cursor ou cujo menu de movimentação está aberto.",
+    "controlsPrivacy": "Mantenha Shift premido para ocultar pré-visualizações, exceto a que está sob o cursor ou cujo menu de movimentação está aberto.",
     "controlsTab": "Tab / Shift+Tab: percorrer os controlos visíveis.",
     "controlsActivate": "Enter / Espaço: ativar o controlo focado. ← / →: expandir ou recolher uma categoria.",
     "controlsDropdown": "Listas: ↑ / ↓ para escolher, Enter para confirmar. Nas listas pendentes sem pesquisa, j / k também funcionam.",
@@ -1000,6 +1021,9 @@ var catalogs = {
     "enabledByDefault": "Ativado por predefinição"
   },
   "it": {
+    "shortcutNumbersRight": "Numeri delle scorciatoie a destra",
+    "shortcutNumbersInline": "Dopo il nome dell’app o della scheda",
+    "controlsWindowShortcuts": "Tieni premuto Ctrl per vedere i numeri accanto alle finestre e schede visibili. Ctrl + 1–9 / 0 passa all’elemento; 0 indica il decimo. I numeri cambiano scorrendo l’elenco.",
     "controls": "Comandi",
     "controlsMouse": "Mouse",
     "controlsKeyboard": "Tastiera",
@@ -1007,7 +1031,7 @@ var catalogs = {
     "controlsBlank": "Fai clic su uno spazio vuoto della lista per espanderla o ridurla. Richiede la modalità al passaggio.",
     "controlsClose": "Clic destro o Esc: torna indietro nei menu; chiudi il pannello principale e le anteprime.",
     "controlsWheel": "Scorri con la rotellina o trascina la barra di scorrimento.",
-    "controlsPrivacy": "Tieni premuto Ctrl per nascondere le anteprime, tranne quella sotto il puntatore o con il menu di spostamento aperto.",
+    "controlsPrivacy": "Tieni premuto Shift per nascondere le anteprime, tranne quella sotto il puntatore o con il menu di spostamento aperto.",
     "controlsTab": "Tab / Maiusc+Tab: passa tra i controlli visibili.",
     "controlsActivate": "Invio / Spazio: attiva il controllo selezionato. ← / →: espandi o riduci una categoria.",
     "controlsDropdown": "Liste: ↑ / ↓ per scegliere, Invio per confermare. Nei menu a discesa senza ricerca funzionano anche j / k.",
@@ -1131,6 +1155,9 @@ var catalogs = {
     "enabledByDefault": "Attivo per impostazione predefinita"
   },
   "nl": {
+    "shortcutNumbersRight": "Sneltoetsnummers rechts",
+    "shortcutNumbersInline": "Na het app- of tabbladlabel",
+    "controlsWindowShortcuts": "Houd Ctrl ingedrukt om nummers naast zichtbare vensters en tabbladen te zien. Ctrl + 1–9 / 0 gaat naar het item; 0 is het tiende. De nummers veranderen bij het scrollen.",
     "controls": "Bediening",
     "controlsMouse": "Muis",
     "controlsKeyboard": "Toetsenbord",
@@ -1138,7 +1165,7 @@ var catalogs = {
     "controlsBlank": "Klik op lege ruimte in de lijst om deze uit of in te vouwen. Vereist de aanwijsmodus.",
     "controlsClose": "Rechtsklik of Esc: terug in menu’s; het hoofdpaneel en de voorbeelden sluiten.",
     "controlsWheel": "Scroll met het muiswiel of versleep de schuifbalk.",
-    "controlsPrivacy": "Houd Ctrl ingedrukt om voorbeelden te verbergen, behalve dat onder de aanwijzer of met een geopend verplaatsmenu.",
+    "controlsPrivacy": "Houd Shift ingedrukt om voorbeelden te verbergen, behalve dat onder de aanwijzer of met een geopend verplaatsmenu.",
     "controlsTab": "Tab / Shift+Tab: wisselen tussen zichtbare bedieningselementen.",
     "controlsActivate": "Enter / Spatie: het actieve element bedienen. ← / →: een categorie uit- of invouwen.",
     "controlsDropdown": "Lijsten: ↑ / ↓ om te kiezen, Enter om te bevestigen. In keuzelijsten zonder zoekveld werken ook j / k.",
@@ -1262,6 +1289,9 @@ var catalogs = {
     "enabledByDefault": "Standaard ingeschakeld"
   },
   "sv": {
+    "shortcutNumbersRight": "Kortkommandonummer till höger",
+    "shortcutNumbersInline": "Efter appens eller flikens etikett",
+    "controlsWindowShortcuts": "Håll Ctrl för att visa nummer vid synliga fönster och flikar. Ctrl + 1–9 / 0 växlar till posten; 0 är den tionde. Numren ändras när du rullar.",
     "controls": "Kontroller",
     "controlsMouse": "Mus",
     "controlsKeyboard": "Tangentbord",
@@ -1269,7 +1299,7 @@ var catalogs = {
     "controlsBlank": "Klicka på en tom yta i listan för att utöka eller fälla ihop den. Kräver hovringsläget.",
     "controlsClose": "Högerklick eller Esc: gå tillbaka i menyer; stäng huvudpanelen och förhandsvisningarna.",
     "controlsWheel": "Rulla med mushjulet eller dra rullningslisten.",
-    "controlsPrivacy": "Håll Ctrl för att dölja förhandsvisningar, utom den under pekaren eller den vars flyttmeny är öppen.",
+    "controlsPrivacy": "Håll Shift för att dölja förhandsvisningar, utom den under pekaren eller den vars flyttmeny är öppen.",
     "controlsTab": "Tab / Shift+Tab: gå mellan synliga kontroller.",
     "controlsActivate": "Enter / Mellanslag: aktivera vald kontroll. ← / →: öppna eller fäll ihop en kategori.",
     "controlsDropdown": "Listor: ↑ / ↓ väljer, Enter bekräftar. I rullgardinslistor utan sökfält fungerar även j / k.",
@@ -1393,6 +1423,9 @@ var catalogs = {
     "enabledByDefault": "Aktiverat som standard"
   },
   "da": {
+    "shortcutNumbersRight": "Genvejstal til højre",
+    "shortcutNumbersInline": "Efter appens eller fanens navn",
+    "controlsWindowShortcuts": "Hold Ctrl nede for at se numre ved synlige vinduer og faner. Ctrl + 1–9 / 0 skifter til elementet; 0 er det tiende. Numrene ændres, når du ruller.",
     "controls": "Betjening",
     "controlsMouse": "Mus",
     "controlsKeyboard": "Tastatur",
@@ -1400,7 +1433,7 @@ var catalogs = {
     "controlsBlank": "Klik på et tomt område i listen for at udvide eller folde den sammen. Kræver svævetilstand.",
     "controlsClose": "Højreklik eller Esc: gå tilbage i menuer; luk hovedpanelet og forhåndsvisningerne.",
     "controlsWheel": "Rul med musehjulet, eller træk i rullepanelet.",
-    "controlsPrivacy": "Hold Ctrl for at skjule forhåndsvisninger, undtagen den under markøren eller den med en åben flyttemenu.",
+    "controlsPrivacy": "Hold Shift for at skjule forhåndsvisninger, undtagen den under markøren eller den med en åben flyttemenu.",
     "controlsTab": "Tab / Shift+Tab: flyt mellem synlige kontroller.",
     "controlsActivate": "Enter / Mellemrum: aktivér den fokuserede kontrol. ← / →: åbn eller fold en kategori sammen.",
     "controlsDropdown": "Lister: ↑ / ↓ vælger, Enter bekræfter. I rullemenuer uden søgefelt virker også j / k.",
@@ -1524,6 +1557,9 @@ var catalogs = {
     "enabledByDefault": "Aktiveret som standard"
   },
   "nb": {
+    "shortcutNumbersRight": "Snarveitall til høyre",
+    "shortcutNumbersInline": "Etter appens eller fanens navn",
+    "controlsWindowShortcuts": "Hold Ctrl for å se tall ved synlige vinduer og faner. Ctrl + 1–9 / 0 bytter til elementet; 0 er det tiende. Tallene endres når du ruller.",
     "controls": "Betjening",
     "controlsMouse": "Mus",
     "controlsKeyboard": "Tastatur",
@@ -1531,7 +1567,7 @@ var catalogs = {
     "controlsBlank": "Klikk på et tomt område i listen for å utvide eller trekke den sammen. Krever svevemodus.",
     "controlsClose": "Høyreklikk eller Esc: gå tilbake i menyer; lukk hovedpanelet og forhåndsvisningene.",
     "controlsWheel": "Rull med musehjulet eller dra rullefeltet.",
-    "controlsPrivacy": "Hold Ctrl for å skjule forhåndsvisninger, unntatt den under pekeren eller den med en åpen flyttemeny.",
+    "controlsPrivacy": "Hold Shift for å skjule forhåndsvisninger, unntatt den under pekeren eller den med en åpen flyttemeny.",
     "controlsTab": "Tab / Shift+Tab: gå mellom synlige kontroller.",
     "controlsActivate": "Enter / Mellomrom: aktiver kontrollen med fokus. ← / →: åpne eller trekk sammen en kategori.",
     "controlsDropdown": "Lister: ↑ / ↓ velger, Enter bekrefter. I nedtrekkslister uten søkefelt virker også j / k.",
@@ -1655,6 +1691,9 @@ var catalogs = {
     "enabledByDefault": "Aktivert som standard"
   },
   "fi": {
+    "shortcutNumbersRight": "Pikanäppäinten numerot oikealla",
+    "shortcutNumbersInline": "Sovelluksen tai välilehden nimen jälkeen",
+    "controlsWindowShortcuts": "Pidä Ctrl painettuna nähdäksesi numerot näkyvien ikkunoiden ja välilehtien vieressä. Ctrl + 1–9 / 0 siirtyy kohteeseen; 0 on kymmenes. Numerointi muuttuu vierittäessä.",
     "controls": "Ohjaus",
     "controlsMouse": "Hiiri",
     "controlsKeyboard": "Näppäimistö",
@@ -1662,7 +1701,7 @@ var catalogs = {
     "controlsBlank": "Napsauta listan tyhjää kohtaa laajentaaksesi tai supistaaksesi sen. Edellyttää osoitintilaa.",
     "controlsClose": "Hiiren oikea painike tai Esc: palaa valikoissa; sulje pääpaneeli ja esikatselut.",
     "controlsWheel": "Vieritä hiiren rullalla tai vedä vierityspalkkia.",
-    "controlsPrivacy": "Pidä Ctrl painettuna piilottaaksesi esikatselut, paitsi osoittimen alla olevan tai sen, jonka siirtovalikko on auki.",
+    "controlsPrivacy": "Pidä Shift painettuna piilottaaksesi esikatselut, paitsi osoittimen alla olevan tai sen, jonka siirtovalikko on auki.",
     "controlsTab": "Tab / Shift+Tab: siirry näkyvien ohjainten välillä.",
     "controlsActivate": "Enter / Välilyönti: aktivoi kohdistettu ohjain. ← / →: avaa tai sulje luokka.",
     "controlsDropdown": "Listat: ↑ / ↓ valitsee, Enter vahvistaa. Ilman hakukenttää olevissa pudotusvalikoissa toimivat myös j / k.",
@@ -1786,6 +1825,9 @@ var catalogs = {
     "enabledByDefault": "Oletuksena käytössä"
   },
   "cs": {
+    "shortcutNumbersRight": "Čísla zkratek vpravo",
+    "shortcutNumbersInline": "Za názvem aplikace nebo karty",
+    "controlsWindowShortcuts": "Podržte Ctrl pro zobrazení čísel u viditelných oken a karet. Ctrl + 1–9 / 0 přepne na položku; 0 je desátá. Čísla se při posouvání mění.",
     "controls": "Ovládání",
     "controlsMouse": "Myš",
     "controlsKeyboard": "Klávesnice",
@@ -1793,7 +1835,7 @@ var catalogs = {
     "controlsBlank": "Kliknutím na prázdné místo v seznamu jej rozbalíte nebo sbalíte. Vyžaduje režim při najetí.",
     "controlsClose": "Pravé tlačítko nebo Esc: zpět v nabídkách; zavřít hlavní panel a náhledy.",
     "controlsWheel": "Posouvejte kolečkem myši nebo tažením posuvníku.",
-    "controlsPrivacy": "Podržením Ctrl skryjete náhledy kromě náhledu pod kurzorem nebo s otevřenou nabídkou přesunu.",
+    "controlsPrivacy": "Podržením Shift skryjete náhledy kromě náhledu pod kurzorem nebo s otevřenou nabídkou přesunu.",
     "controlsTab": "Tab / Shift+Tab: přechod mezi viditelnými ovládacími prvky.",
     "controlsActivate": "Enter / Mezerník: aktivovat vybraný prvek. ← / →: rozbalit nebo sbalit kategorii.",
     "controlsDropdown": "Seznamy: ↑ / ↓ vybírá, Enter potvrzuje. V rozbalovacích seznamech bez hledání fungují i j / k.",
@@ -1917,6 +1959,9 @@ var catalogs = {
     "enabledByDefault": "Ve výchozím stavu zapnuto"
   },
   "sk": {
+    "shortcutNumbersRight": "Čísla skratiek vpravo",
+    "shortcutNumbersInline": "Za názvom aplikácie alebo karty",
+    "controlsWindowShortcuts": "Podržte Ctrl na zobrazenie čísel pri viditeľných oknách a kartách. Ctrl + 1–9 / 0 prepne na položku; 0 je desiata. Čísla sa pri posúvaní menia.",
     "controls": "Ovládanie",
     "controlsMouse": "Myš",
     "controlsKeyboard": "Klávesnica",
@@ -1924,7 +1969,7 @@ var catalogs = {
     "controlsBlank": "Kliknutím na prázdne miesto v zozname ho rozbalíte alebo zbalíte. Vyžaduje režim pri prejdení kurzorom.",
     "controlsClose": "Pravé tlačidlo alebo Esc: späť v ponukách; zavrieť hlavný panel a náhľady.",
     "controlsWheel": "Posúvajte kolieskom myši alebo ťahaním posuvníka.",
-    "controlsPrivacy": "Podržaním Ctrl skryjete náhľady okrem náhľadu pod kurzorom alebo s otvorenou ponukou presunu.",
+    "controlsPrivacy": "Podržaním Shift skryjete náhľady okrem náhľadu pod kurzorom alebo s otvorenou ponukou presunu.",
     "controlsTab": "Tab / Shift+Tab: prechod medzi viditeľnými ovládacími prvkami.",
     "controlsActivate": "Enter / Medzerník: aktivovať vybraný prvok. ← / →: rozbaliť alebo zbaliť kategóriu.",
     "controlsDropdown": "Zoznamy: ↑ / ↓ vyberá, Enter potvrdzuje. V rozbaľovacích zoznamoch bez vyhľadávania fungujú aj j / k.",
@@ -2048,6 +2093,9 @@ var catalogs = {
     "enabledByDefault": "Predvolene zapnuté"
   },
   "uk": {
+    "shortcutNumbersRight": "Цифри скорочень праворуч",
+    "shortcutNumbersInline": "Після назви програми або вкладки",
+    "controlsWindowShortcuts": "Утримуйте Ctrl, щоб побачити цифри біля видимих вікон і вкладок. Ctrl + 1–9 / 0 переходить до елемента; 0 — десятий. Нумерація змінюється під час прокручування.",
     "controls": "Керування",
     "controlsMouse": "Миша",
     "controlsKeyboard": "Клавіатура",
@@ -2055,7 +2103,7 @@ var catalogs = {
     "controlsBlank": "Натисніть порожнє місце у списку, щоб розгорнути або згорнути його. Потрібен режим наведення.",
     "controlsClose": "Права кнопка або Esc: назад у меню; закрити головну панель і перегляди.",
     "controlsWheel": "Прокручуйте коліщатком миші або перетягуйте смугу прокручування.",
-    "controlsPrivacy": "Утримуйте Ctrl, щоб приховати перегляди, крім того, що під вказівником або має відкрите меню переміщення.",
+    "controlsPrivacy": "Утримуйте Shift, щоб приховати перегляди, крім того, що під вказівником або має відкрите меню переміщення.",
     "controlsTab": "Tab / Shift+Tab: перехід між видимими елементами керування.",
     "controlsActivate": "Enter / Пробіл: активувати вибраний елемент. ← / →: розгорнути або згорнути категорію.",
     "controlsDropdown": "Списки: ↑ / ↓ для вибору, Enter для підтвердження. У списках без поля пошуку також працюють j / k.",
@@ -2179,6 +2227,9 @@ var catalogs = {
     "enabledByDefault": "Типово ввімкнено"
   },
   "ru": {
+    "shortcutNumbersRight": "Цифры сочетаний справа",
+    "shortcutNumbersInline": "После названия приложения или вкладки",
+    "controlsWindowShortcuts": "Удерживайте Ctrl, чтобы увидеть цифры у видимых окон и вкладок. Ctrl + 1–9 / 0 переходит к элементу; 0 — десятый. Нумерация меняется при прокрутке.",
     "controls": "Управление",
     "controlsMouse": "Мышь",
     "controlsKeyboard": "Клавиатура",
@@ -2186,7 +2237,7 @@ var catalogs = {
     "controlsBlank": "Нажмите на пустое место в списке, чтобы развернуть или свернуть его. Требуется режим наведения.",
     "controlsClose": "Правая кнопка или Esc: назад в меню; закрыть главную панель и предпросмотры.",
     "controlsWheel": "Прокручивайте колёсиком мыши или перетаскивайте полосу прокрутки.",
-    "controlsPrivacy": "Удерживайте Ctrl, чтобы скрыть предпросмотры, кроме того, что под указателем или с открытым меню перемещения.",
+    "controlsPrivacy": "Удерживайте Shift, чтобы скрыть предпросмотры, кроме того, что под указателем или с открытым меню перемещения.",
     "controlsTab": "Tab / Shift+Tab: переход между видимыми элементами управления.",
     "controlsActivate": "Enter / Пробел: активировать выбранный элемент. ← / →: развернуть или свернуть категорию.",
     "controlsDropdown": "Списки: ↑ / ↓ для выбора, Enter для подтверждения. В списках без поиска также работают j / k.",
@@ -2310,6 +2361,9 @@ var catalogs = {
     "enabledByDefault": "Включено по умолчанию"
   },
   "tr": {
+    "shortcutNumbersRight": "Kısayol numaraları sağda",
+    "shortcutNumbersInline": "Uygulama veya sekme etiketinden sonra",
+    "controlsWindowShortcuts": "Görünen pencere ve sekmelerin yanındaki numaralar için Ctrl tuşunu basılı tutun. Ctrl + 1–9 / 0 ilgili öğeye geçer; 0 onuncudur. Kaydırırken numaralar değişir.",
     "controls": "Kontroller",
     "controlsMouse": "Fare",
     "controlsKeyboard": "Klavye",
@@ -2317,7 +2371,7 @@ var catalogs = {
     "controlsBlank": "Listeyi genişletmek veya daraltmak için boş bir alana tıklayın. Üzerine gelme modu açık olmalıdır.",
     "controlsClose": "Sağ tık veya Esc: menülerde geri dön; ana paneli ve önizlemeleri kapat.",
     "controlsWheel": "Fare tekerleğiyle kaydırın veya kaydırma çubuğunu sürükleyin.",
-    "controlsPrivacy": "İşaretçinin altındaki veya taşıma menüsü açık olan hariç önizlemeleri gizlemek için Ctrl tuşunu basılı tutun.",
+    "controlsPrivacy": "İşaretçinin altındaki veya taşıma menüsü açık olan hariç önizlemeleri gizlemek için Shift tuşunu basılı tutun.",
     "controlsTab": "Tab / Shift+Tab: görünür kontroller arasında dolaşın.",
     "controlsActivate": "Enter / Boşluk: odaktaki kontrolü etkinleştirin. ← / →: kategoriyi açın veya kapatın.",
     "controlsDropdown": "Listeler: ↑ / ↓ seçer, Enter onaylar. Arama alanı olmayan açılır listelerde j / k de çalışır.",
@@ -2441,6 +2495,9 @@ var catalogs = {
     "enabledByDefault": "Varsayılan olarak açık"
   },
   "ro": {
+    "shortcutNumbersRight": "Numerele scurtăturilor în dreapta",
+    "shortcutNumbersInline": "După numele aplicației sau al filei",
+    "controlsWindowShortcuts": "Ține Ctrl apăsat pentru numerele ferestrelor și filelor vizibile. Ctrl + 1–9 / 0 trece la element; 0 este al zecelea. Numerele se schimbă la derulare.",
     "controls": "Comenzi",
     "controlsMouse": "Mouse",
     "controlsKeyboard": "Tastatură",
@@ -2448,7 +2505,7 @@ var catalogs = {
     "controlsBlank": "Faceți clic pe un spațiu gol din listă pentru a o extinde sau restrânge. Necesită modul la trecerea cursorului.",
     "controlsClose": "Clic dreapta sau Esc: revenire în meniuri; închiderea panoului principal și a previzualizărilor.",
     "controlsWheel": "Derulați cu rotița mouse-ului sau trageți bara de derulare.",
-    "controlsPrivacy": "Țineți Ctrl pentru a ascunde previzualizările, cu excepția celei de sub cursor sau cu meniul de mutare deschis.",
+    "controlsPrivacy": "Țineți Shift pentru a ascunde previzualizările, cu excepția celei de sub cursor sau cu meniul de mutare deschis.",
     "controlsTab": "Tab / Shift+Tab: deplasare între comenzile vizibile.",
     "controlsActivate": "Enter / Spațiu: activați comanda selectată. ← / →: extindeți sau restrângeți o categorie.",
     "controlsDropdown": "Liste: ↑ / ↓ pentru selecție, Enter pentru confirmare. În listele fără câmp de căutare funcționează și j / k.",
@@ -2572,6 +2629,9 @@ var catalogs = {
     "enabledByDefault": "Activat implicit"
   },
   "hu": {
+    "shortcutNumbersRight": "Gyorsbillentyűk számai jobb oldalon",
+    "shortcutNumbersInline": "Az alkalmazás vagy lap neve után",
+    "controlsWindowShortcuts": "Tartsd lenyomva a Ctrl billentyűt a látható ablakok és lapok számaihoz. A Ctrl + 1–9 / 0 az adott elemre vált; a 0 a tizedik. Görgetéskor a számozás változik.",
     "controls": "Vezérlés",
     "controlsMouse": "Egér",
     "controlsKeyboard": "Billentyűzet",
@@ -2579,7 +2639,7 @@ var catalogs = {
     "controlsBlank": "A lista üres részére kattintva kinyithatod vagy összecsukhatod. Ehhez az egérmutatós megnyitásnak bekapcsolva kell lennie.",
     "controlsClose": "Jobb kattintás vagy Esc: vissza a menükben; a főpanel és az előnézetek bezárása.",
     "controlsWheel": "Görgess az egér görgőjével, vagy húzd a görgetősávot.",
-    "controlsPrivacy": "Tartsd nyomva a Ctrl billentyűt az előnézetek elrejtéséhez, kivéve a mutató alattit vagy azt, amelynek áthelyezési menüje nyitva van.",
+    "controlsPrivacy": "Tartsd nyomva a Shift billentyűt az előnézetek elrejtéséhez, kivéve a mutató alattit vagy azt, amelynek áthelyezési menüje nyitva van.",
     "controlsTab": "Tab / Shift+Tab: léptetés a látható vezérlők között.",
     "controlsActivate": "Enter / Szóköz: a kijelölt vezérlő aktiválása. ← / →: kategória kinyitása vagy összecsukása.",
     "controlsDropdown": "Listák: ↑ / ↓ kiválaszt, Enter jóváhagy. Keresőmező nélküli legördülő listákban a j / k is működik.",
@@ -2703,6 +2763,9 @@ var catalogs = {
     "enabledByDefault": "Alapértelmezés szerint bekapcsolva"
   },
   "el": {
+    "shortcutNumbersRight": "Αριθμοί συντομεύσεων δεξιά",
+    "shortcutNumbersInline": "Μετά το όνομα εφαρμογής ή καρτέλας",
+    "controlsWindowShortcuts": "Κρατήστε Ctrl για τους αριθμούς δίπλα στα ορατά παράθυρα και καρτέλες. Ctrl + 1–9 / 0 μεταβαίνει στο στοιχείο· το 0 είναι το δέκατο. Οι αριθμοί αλλάζουν με την κύλιση.",
     "controls": "Χειρισμός",
     "controlsMouse": "Ποντίκι",
     "controlsKeyboard": "Πληκτρολόγιο",
@@ -2710,7 +2773,7 @@ var catalogs = {
     "controlsBlank": "Πατήστε σε κενό σημείο της λίστας για ανάπτυξη ή σύμπτυξη. Απαιτεί τη λειτουργία αιώρησης.",
     "controlsClose": "Δεξί κλικ ή Esc: επιστροφή στα μενού· κλείσιμο του κύριου πάνελ και των προεπισκοπήσεων.",
     "controlsWheel": "Κυλήστε με τη ροδέλα ή σύρετε τη γραμμή κύλισης.",
-    "controlsPrivacy": "Κρατήστε Ctrl για απόκρυψη προεπισκοπήσεων, εκτός από αυτή κάτω από τον δείκτη ή με ανοιχτό μενού μετακίνησης.",
+    "controlsPrivacy": "Κρατήστε Shift για απόκρυψη προεπισκοπήσεων, εκτός από αυτή κάτω από τον δείκτη ή με ανοιχτό μενού μετακίνησης.",
     "controlsTab": "Tab / Shift+Tab: μετακίνηση μεταξύ ορατών στοιχείων.",
     "controlsActivate": "Enter / Διάστημα: ενεργοποίηση επιλεγμένου στοιχείου. ← / →: ανάπτυξη ή σύμπτυξη κατηγορίας.",
     "controlsDropdown": "Λίστες: ↑ / ↓ για επιλογή, Enter για επιβεβαίωση. Στις αναπτυσσόμενες λίστες χωρίς αναζήτηση λειτουργούν και τα j / k.",
@@ -2834,6 +2897,9 @@ var catalogs = {
     "enabledByDefault": "Ενεργό από προεπιλογή"
   },
   "ar": {
+    "shortcutNumbersRight": "أرقام الاختصارات على اليمين",
+    "shortcutNumbersInline": "بعد اسم التطبيق أو علامة التبويب",
+    "controlsWindowShortcuts": "اضغط مطولاً على Ctrl لإظهار أرقام النوافذ وعلامات التبويب المرئية. Ctrl + 1–9 / 0 ينتقل إلى العنصر؛ 0 هو العاشر. تتغير الأرقام عند التمرير.",
     "controls": "عناصر التحكم",
     "controlsMouse": "الفأرة",
     "controlsKeyboard": "لوحة المفاتيح",
@@ -2841,7 +2907,7 @@ var catalogs = {
     "controlsBlank": "انقر على مساحة فارغة في القائمة لتوسيعها أو طيّها. يتطلب ذلك تفعيل وضع المرور.",
     "controlsClose": "النقر بالزر الأيمن أو Esc: الرجوع داخل القوائم؛ إغلاق اللوحة الرئيسية ومعايناتها.",
     "controlsWheel": "مرّر بعجلة الفأرة أو اسحب شريط التمرير.",
-    "controlsPrivacy": "اضغط باستمرار على Ctrl لإخفاء المعاينات، باستثناء المعاينة تحت المؤشر أو التي تكون قائمة نقلها مفتوحة.",
+    "controlsPrivacy": "اضغط باستمرار على Shift لإخفاء المعاينات، باستثناء المعاينة تحت المؤشر أو التي تكون قائمة نقلها مفتوحة.",
     "controlsTab": "Tab / Shift+Tab: التنقل بين عناصر التحكم الظاهرة.",
     "controlsActivate": "Enter / مسافة: تفعيل العنصر المحدد. ← / →: توسيع الفئة أو طيّها.",
     "controlsDropdown": "القوائم: ↑ / ↓ للاختيار وEnter للتأكيد. تعمل j / k أيضًا في القوائم المنسدلة دون حقل بحث.",
@@ -2965,6 +3031,9 @@ var catalogs = {
     "enabledByDefault": "مفعّل افتراضيًا"
   },
   "hi": {
+    "shortcutNumbersRight": "शॉर्टकट के अंक दाईं ओर",
+    "shortcutNumbersInline": "ऐप या टैब के नाम के बाद",
+    "controlsWindowShortcuts": "दिखाई देने वाली विंडो और टैब के पास अंक देखने के लिए Ctrl दबाए रखें। Ctrl + 1–9 / 0 उस आइटम पर जाता है; 0 दसवाँ है। स्क्रॉल करने पर अंक बदलते हैं।",
     "controls": "नियंत्रण",
     "controlsMouse": "माउस",
     "controlsKeyboard": "कीबोर्ड",
@@ -2972,7 +3041,7 @@ var catalogs = {
     "controlsBlank": "सूची को फैलाने या समेटने के लिए उसकी खाली जगह पर क्लिक करें। इसके लिए होवर मोड चालू होना चाहिए।",
     "controlsClose": "दायाँ क्लिक या Esc: मेनू में वापस जाएँ; मुख्य पैनल और उसके पूर्वावलोकन बंद करें।",
     "controlsWheel": "माउस व्हील से स्क्रॉल करें या स्क्रॉलबार खींचें।",
-    "controlsPrivacy": "पूर्वावलोकन छिपाने के लिए Ctrl दबाए रखें। माउस के नीचे वाला या खुले स्थानांतरण मेनू वाला पूर्वावलोकन दिखता रहेगा।",
+    "controlsPrivacy": "पूर्वावलोकन छिपाने के लिए Shift दबाए रखें। माउस के नीचे वाला या खुले स्थानांतरण मेनू वाला पूर्वावलोकन दिखता रहेगा।",
     "controlsTab": "Tab / Shift+Tab: दिखाई दे रहे नियंत्रणों के बीच जाएँ।",
     "controlsActivate": "Enter / Space: चुना गया नियंत्रण चलाएँ। ← / →: श्रेणी खोलें या समेटें।",
     "controlsDropdown": "सूचियाँ: ↑ / ↓ से चुनें, Enter से पुष्टि करें। खोज क्षेत्र रहित ड्रॉपडाउन में j / k भी काम करते हैं।",
@@ -3096,6 +3165,9 @@ var catalogs = {
     "enabledByDefault": "डिफ़ॉल्ट रूप से चालू"
   },
   "id": {
+    "shortcutNumbersRight": "Nomor pintasan di kanan",
+    "shortcutNumbersInline": "Setelah label aplikasi atau tab",
+    "controlsWindowShortcuts": "Tahan Ctrl untuk melihat nomor di samping jendela dan tab yang terlihat. Ctrl + 1–9 / 0 beralih ke item; 0 adalah yang kesepuluh. Nomor berubah saat menggulir.",
     "controls": "Kontrol",
     "controlsMouse": "Mouse",
     "controlsKeyboard": "Keyboard",
@@ -3103,7 +3175,7 @@ var catalogs = {
     "controlsBlank": "Klik area kosong dalam daftar untuk memperluas atau menciutkannya. Memerlukan mode hover.",
     "controlsClose": "Klik kanan atau Esc: kembali dalam menu; tutup panel utama dan pratinjaunya.",
     "controlsWheel": "Gulir dengan roda mouse atau seret bilah gulir.",
-    "controlsPrivacy": "Tahan Ctrl untuk menyembunyikan pratinjau, kecuali yang di bawah penunjuk atau yang menu pemindahannya terbuka.",
+    "controlsPrivacy": "Tahan Shift untuk menyembunyikan pratinjau, kecuali yang di bawah penunjuk atau yang menu pemindahannya terbuka.",
     "controlsTab": "Tab / Shift+Tab: berpindah di antara kontrol yang terlihat.",
     "controlsActivate": "Enter / Spasi: aktifkan kontrol yang dipilih. ← / →: buka atau ciutkan kategori.",
     "controlsDropdown": "Daftar: ↑ / ↓ untuk memilih, Enter untuk mengonfirmasi. Pada dropdown tanpa pencarian, j / k juga berfungsi.",
@@ -3227,6 +3299,9 @@ var catalogs = {
     "enabledByDefault": "Aktif secara bawaan"
   },
   "vi": {
+    "shortcutNumbersRight": "Số phím tắt ở bên phải",
+    "shortcutNumbersInline": "Sau nhãn ứng dụng hoặc thẻ",
+    "controlsWindowShortcuts": "Giữ Ctrl để hiện số bên cạnh các cửa sổ và thẻ đang thấy. Ctrl + 1–9 / 0 chuyển đến mục tương ứng; 0 là mục thứ mười. Số thay đổi khi cuộn.",
     "controls": "Điều khiển",
     "controlsMouse": "Chuột",
     "controlsKeyboard": "Bàn phím",
@@ -3234,7 +3309,7 @@ var catalogs = {
     "controlsBlank": "Nhấp vào vùng trống trong danh sách để mở rộng hoặc thu gọn. Cần bật chế độ di chuột.",
     "controlsClose": "Nhấp phải hoặc Esc: quay lại trong menu; đóng bảng chính và các bản xem trước.",
     "controlsWheel": "Cuộn bằng con lăn chuột hoặc kéo thanh cuộn.",
-    "controlsPrivacy": "Giữ Ctrl để ẩn bản xem trước, trừ bản dưới con trỏ hoặc bản có menu di chuyển đang mở.",
+    "controlsPrivacy": "Giữ Shift để ẩn bản xem trước, trừ bản dưới con trỏ hoặc bản có menu di chuyển đang mở.",
     "controlsTab": "Tab / Shift+Tab: di chuyển giữa các điều khiển đang hiển thị.",
     "controlsActivate": "Enter / Dấu cách: kích hoạt điều khiển được chọn. ← / →: mở rộng hoặc thu gọn danh mục.",
     "controlsDropdown": "Danh sách: ↑ / ↓ để chọn, Enter để xác nhận. Danh sách thả xuống không có ô tìm kiếm cũng hỗ trợ j / k.",
@@ -3358,6 +3433,9 @@ var catalogs = {
     "enabledByDefault": "Bật theo mặc định"
   },
   "th": {
+    "shortcutNumbersRight": "หมายเลขทางลัดทางขวา",
+    "shortcutNumbersInline": "หลังชื่อแอปหรือแท็บ",
+    "controlsWindowShortcuts": "กด Ctrl ค้างเพื่อแสดงตัวเลขข้างหน้าต่างและแท็บที่มองเห็น Ctrl + 1–9 / 0 สลับไปยังรายการนั้น โดย 0 คือลำดับที่สิบ ตัวเลขจะเปลี่ยนเมื่อเลื่อนรายการ",
     "controls": "การควบคุม",
     "controlsMouse": "เมาส์",
     "controlsKeyboard": "แป้นพิมพ์",
@@ -3365,7 +3443,7 @@ var catalogs = {
     "controlsBlank": "คลิกพื้นที่ว่างในรายการเพื่อขยายหรือยุบ ต้องเปิดโหมดโฮเวอร์ไว้",
     "controlsClose": "คลิกขวาหรือ Esc: ย้อนกลับในเมนู หรือปิดแผงหลักพร้อมภาพตัวอย่าง",
     "controlsWheel": "เลื่อนด้วยล้อเมาส์หรือลากแถบเลื่อน",
-    "controlsPrivacy": "กด Ctrl ค้างเพื่อซ่อนภาพตัวอย่าง ยกเว้นภาพใต้ตัวชี้หรือภาพที่เปิดเมนูย้ายอยู่",
+    "controlsPrivacy": "กด Shift ค้างเพื่อซ่อนภาพตัวอย่าง ยกเว้นภาพใต้ตัวชี้หรือภาพที่เปิดเมนูย้ายอยู่",
     "controlsTab": "Tab / Shift+Tab: ย้ายโฟกัสระหว่างตัวควบคุมที่มองเห็น",
     "controlsActivate": "Enter / Space: ใช้งานตัวควบคุมที่เลือก ← / →: ขยายหรือยุบหมวดหมู่",
     "controlsDropdown": "รายการ: ↑ / ↓ เพื่อเลือก Enter เพื่อยืนยัน ในรายการแบบเลื่อนลงที่ไม่มีช่องค้นหา ใช้ j / k ได้ด้วย",
@@ -3489,6 +3567,9 @@ var catalogs = {
     "enabledByDefault": "เปิดใช้งานโดยค่าเริ่มต้น"
   },
   "ja": {
+    "shortcutNumbersRight": "ショートカット番号を右に表示",
+    "shortcutNumbersInline": "アプリ名またはタブの表示の後",
+    "controlsWindowShortcuts": "Ctrlを押し続けると、見えているウィンドウやタブの横に番号が表示されます。Ctrl + 1–9 / 0でその項目に切り替えます。0は10番目で、スクロールすると番号が変わります。",
     "controls": "操作方法",
     "controlsMouse": "マウス",
     "controlsKeyboard": "キーボード",
@@ -3496,7 +3577,7 @@ var catalogs = {
     "controlsBlank": "一覧の空白部分をクリックすると展開・折りたたみができます。ホバー表示が有効な場合のみ使えます。",
     "controlsClose": "右クリックまたはEsc：メニューでは戻り、メイン一覧ではパネルとプレビューを閉じます。",
     "controlsWheel": "マウスホイールまたはスクロールバーのドラッグでスクロールします。",
-    "controlsPrivacy": "Ctrlを押している間はプレビューを隠します。ただし、ポインターが重なっているものや移動メニューが開いているものは表示を保ちます。",
+    "controlsPrivacy": "Shiftを押している間はプレビューを隠します。ただし、ポインターが重なっているものや移動メニューが開いているものは表示を保ちます。",
     "controlsTab": "Tab / Shift+Tab：表示中の操作項目間でフォーカスを移動します。",
     "controlsActivate": "Enter / Space：選択中の項目を実行します。← / →：カテゴリを展開・折りたたみます。",
     "controlsDropdown": "一覧では↑ / ↓で選択し、Enterで確定します。検索欄のないドロップダウンではj / kも使えます。",
@@ -3620,6 +3701,9 @@ var catalogs = {
     "enabledByDefault": "初期設定では有効"
   },
   "ko": {
+    "shortcutNumbersRight": "단축키 번호를 오른쪽에 표시",
+    "shortcutNumbersInline": "앱 또는 탭 이름 뒤",
+    "controlsWindowShortcuts": "Ctrl을 누르면 보이는 창과 탭 옆에 번호가 표시됩니다. Ctrl + 1–9 / 0으로 해당 항목에 전환합니다. 0은 열 번째이며 스크롤하면 번호가 바뀝니다.",
     "controls": "조작 방법",
     "controlsMouse": "마우스",
     "controlsKeyboard": "키보드",
@@ -3627,7 +3711,7 @@ var catalogs = {
     "controlsBlank": "목록의 빈 공간을 클릭하면 펼치거나 접습니다. 호버 모드가 켜져 있어야 합니다.",
     "controlsClose": "우클릭 또는 Esc: 메뉴에서 뒤로 이동하거나 메인 패널과 미리보기를 닫습니다.",
     "controlsWheel": "마우스 휠 또는 스크롤바 드래그로 스크롤합니다.",
-    "controlsPrivacy": "Ctrl을 누르면 미리보기가 숨겨집니다. 포인터 아래에 있거나 이동 메뉴가 열린 미리보기는 유지됩니다.",
+    "controlsPrivacy": "Shift을 누르면 미리보기가 숨겨집니다. 포인터 아래에 있거나 이동 메뉴가 열린 미리보기는 유지됩니다.",
     "controlsTab": "Tab / Shift+Tab: 표시된 컨트롤 사이에서 포커스를 이동합니다.",
     "controlsActivate": "Enter / Space: 선택한 컨트롤을 실행합니다. ← / →: 카테고리를 펼치거나 접습니다.",
     "controlsDropdown": "목록: ↑ / ↓로 선택하고 Enter로 확인합니다. 검색창 없는 드롭다운에서는 j / k도 사용할 수 있습니다.",
@@ -3751,6 +3835,9 @@ var catalogs = {
     "enabledByDefault": "기본으로 켜짐"
   },
   "zh-CN": {
+    "shortcutNumbersRight": "快捷键编号显示在右侧",
+    "shortcutNumbersInline": "应用或标签页名称之后",
+    "controlsWindowShortcuts": "按住 Ctrl 可在可见窗口和标签页旁显示编号。Ctrl + 1–9 / 0 切换到对应项；0 表示第十项。滚动时编号会更新。",
     "controls": "操作说明",
     "controlsMouse": "鼠标",
     "controlsKeyboard": "键盘",
@@ -3758,7 +3845,7 @@ var catalogs = {
     "controlsBlank": "点击列表空白处可展开或收起列表。需要启用悬停模式。",
     "controlsClose": "右键或 Esc：在菜单中返回；在主列表中关闭面板及其预览。",
     "controlsWheel": "使用鼠标滚轮或拖动滚动条来滚动。",
-    "controlsPrivacy": "按住 Ctrl 可隐藏预览，但鼠标下方的预览或已打开移动菜单的预览会保持显示。",
+    "controlsPrivacy": "按住 Shift 可隐藏预览，但鼠标下方的预览或已打开移动菜单的预览会保持显示。",
     "controlsTab": "Tab / Shift+Tab：在可见控件之间切换焦点。",
     "controlsActivate": "Enter / 空格：激活当前控件。← / →：展开或收起分类。",
     "controlsDropdown": "列表：↑ / ↓ 选择，Enter 确认。没有搜索框的下拉列表也支持 j / k。",
@@ -3882,6 +3969,9 @@ var catalogs = {
     "enabledByDefault": "默认开启"
   },
   "zh-TW": {
+    "shortcutNumbersRight": "快捷鍵編號顯示於右側",
+    "shortcutNumbersInline": "應用程式或分頁名稱之後",
+    "controlsWindowShortcuts": "按住 Ctrl 可在可見的視窗和分頁旁顯示編號。Ctrl + 1–9 / 0 切換至對應項目；0 表示第十項。捲動時編號會更新。",
     "controls": "操作說明",
     "controlsMouse": "滑鼠",
     "controlsKeyboard": "鍵盤",
@@ -3889,7 +3979,7 @@ var catalogs = {
     "controlsBlank": "點擊清單空白處可展開或收合清單。需要啟用懸停模式。",
     "controlsClose": "右鍵或 Esc：在選單中返回；在主清單中關閉面板及其預覽。",
     "controlsWheel": "使用滑鼠滾輪或拖曳捲動軸來捲動。",
-    "controlsPrivacy": "按住 Ctrl 可隱藏預覽，但滑鼠下方的預覽或已開啟移動選單的預覽會保持顯示。",
+    "controlsPrivacy": "按住 Shift 可隱藏預覽，但滑鼠下方的預覽或已開啟移動選單的預覽會保持顯示。",
     "controlsTab": "Tab / Shift+Tab：在可見控制項之間切換焦點。",
     "controlsActivate": "Enter / 空白鍵：啟用目前控制項。← / →：展開或收合分類。",
     "controlsDropdown": "清單：↑ / ↓ 選取，Enter 確認。沒有搜尋欄的下拉式清單也支援 j / k。",

@@ -13,6 +13,7 @@ WindowIcon 1.0 WindowIcon.qml
 WindowCapture 1.0 WindowCapture.qml
 WindowThumbnail 1.0 WindowThumbnail.qml
 PreviewModifiers 1.0 PreviewModifiers.qml
+ShortcutModifiers 1.0 ShortcutModifiers.qml
 WindowPreviewTarget 1.0 WindowPreviewTarget.qml
 WindowState 1.0 WindowState.qml
 WindowActions 1.0 WindowActions.qml

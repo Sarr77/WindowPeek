@@ -16,11 +16,11 @@ before checking the installed widget. A plugin rescan can retain old QML
 components as well as singletons. A passing test in a fresh process and
 `ready: true` from the installed widget do not establish that both run the same code.
 
-For Ctrl preview checks, `omarchy-shell sarr.windowpeek status` must include
+For Shift preview checks, `omarchy-shell sarr.windowpeek status` must include
 `preview.supported: true` for every instance; `preview.enabled` reflects the
 saved Window previews switch. While enabled and a row owns the preview,
-`watching` and `controlKnown` should be true. Holding Ctrl outside the preview
-card should report `controlDown: true` with `visible` and `mapped` false.
+`watching` and `shiftKnown` should be true. Holding Shift outside the preview
+card should report `shiftDown: true` with `visible` and `mapped` false.
 The status contains only preview-state flags, without window titles or key logs.
 
 Native thumbnail checks use two disposable windows with fictional colored
@@ -103,6 +103,14 @@ change. It uses the production capture component, without changing its behavior.
   hover, wheel and clicks passing through a visible hint, plus scaled placement.
   Preview checks cover active-window priority,
   all windows/workspaces, hint independence and height bounds in 30 locales.
+- Number shortcut tests cover Ctrl+1–9/0 at 100% and 200%, displayed window/tab
+  ordering, filtering, named and special workspaces, numeric keypad input,
+  missing positions, repeated keys and blocking in settings, menus and
+  busy states. Both hover and search accept shortcuts, including Ctrl held before
+  opening. Tests check Ctrl press/release hints, scrolling with a partly clipped
+  first row, matching labels and activation, and exclusion of offscreen targets.
+  Workspace headings do not count as positions. Right-aligned numbers are checked
+  alongside Active in English and Arabic; the option persists across restarts.
 - The scrolling regression case refreshes window titles every 35 ms during
   stationary hover and consecutive wheel events in both the preview and search
   panel. It checks persistent row controls, continuous highlighting and no
@@ -125,12 +133,12 @@ change. It uses the production capture component, without changing its behavior.
 - Delay controls cover keyboard entry, independent values, failed saves and
   cross-monitor synchronization. Preference failure/restart tests retain zero
   delay and disabled animations. `privacy` covers immediate thumbnail opening,
-  changes to a pending delay, cancellation, unknown Ctrl state and Ctrl+Shift+click.
+  changes to a pending delay, cancellation, unknown Shift state and Ctrl+Shift+click.
 
 `python3 tools/test_ui.py timing-native --desktop` checks the production bar
 button and panel with zero and positive delays, immediate expansion, interrupted
 fades, unmap callbacks and rapid reopening. It also checks the unanimated preview
-layer, placement at either edge, pointer handoff and Ctrl. Repeat with `--scale 2`. This moves
+layer, placement at either edge, pointer handoff and Shift. Repeat with `--scale 2`. This moves
 the desktop cursor and requires idle input; the runner restores its position.
 
 Run a particular case with `python3 tools/test_ui.py panel`. The panel accepts
@@ -172,22 +180,23 @@ Use `privacy` (also with `--scale 2`) for preview suppression in both views,
 fresh dwell on release, the card-only exception, capture unloading, retained
 Ctrl+Shift+click actions, Ctrl-only preview clicks that request the chooser, and late replies. It also checks the Window previews setting:
 disabled hover, closing an open card, stopping capture and modifier observation,
-reenabling with stationary hover or held Ctrl, and retaining row actions.
+reenabling with stationary hover or held Shift, and retaining row actions.
 `panel` checks the Settings switch, `widget` checks monitor synchronization and
 `preferences` checks disabled previews after a process restart.
-This offscreen case supplies Ctrl-state
+This offscreen case supplies Shift-state
 samples explicitly and sends real Qt pointer events. It does not establish
 compositor keyboard-state observation.
 `test_capture.py --privacy-only` checks that separately with disposable windows
-and a test-only Wayland virtual keyboard: left/right Ctrl, stationary
+and a test-only Wayland virtual keyboard: left/right Shift, stationary
 press/release, real capture release,
 card and row Ctrl+Shift+click, and leaving the card through the gap. Run it on an idle
-desktop; it briefly takes keyboard focus and generates Ctrl key events.
+desktop; it briefly takes keyboard focus and generates Shift and Ctrl key events.
+It also checks that either Ctrl key alone leaves the preview visible.
 Keyboard state is read through the compositor; pointer events come from QtTest.
 Action assertions use FakeHost and do not move the user's windows.
 The helper needs `cc`, `wayland-scanner`, `pkg-config`, `wayland-client` and
 `xkbcommon`. It is compiled in the temporary profile and uses standard evdev
-Ctrl codes, so Hyprland sees the same symbols in its binding keymap. The key is
+modifier codes, so Hyprland sees the same symbols in its binding keymap. The key is
 released when the test closes stdin, on termination, or after a ten-second limit.
 The protocol in `tests/protocols/virtual-keyboard-unstable-v1.xml` comes from
 [wtype](https://github.com/atx/wtype/blob/master/protocol/virtual-keyboard-unstable-v1.xml)
@@ -217,14 +226,34 @@ python3 tools/test_ui.py borders-native --desktop --scale 2
 python3 tools/test_ui.py hover
 python3 tools/test_ui.py hover --scale 2
 python3 tools/test_live.py
+python3 tools/test_live.py --window-shortcuts
+python3 tools/test_live.py --held-shortcuts
 ```
+
+The shortcut-only native run sends Ctrl+digit Qt key events through the
+production panel at 100% and 200%. It verifies exact window and group-tab focus,
+including named workspaces, scratchpad, repeated selection and another monitor.
+It uses disposable windows, checks that existing windows and groups were not
+changed, and restores monitor workspaces, focus and cursor. It requires idle input.
+
+`--held-shortcuts` uses a native virtual keyboard for both Ctrl keys and digits.
+It holds Ctrl before opening hover or search, matches the visible number to the
+activated window or group tab, and checks both scales. It also presses Ctrl after
+hover opens and verifies that releasing it returns keyboard focus without
+expanding or closing the list. With a real pointer over a row, it checks digits
+with Ctrl pressed before and after the content preview opens. Key delivery waits
+for native window activation, not just the QML focus item. It uses the same
+disposable windows and cleanup.
 
 The bar-return fixture uses the production Widget and bar button with a fictional
 inventory. It moves the compositor cursor and delivers matching Qt mouse events through
 the label, gap and card three times, checking that opacity never falls, the native surface never remaps, and
 scroll, row identity and hint count remain unchanged. The first opening still
 waits for dwell, and clicking the label expands the same surface. It restores
-the cursor afterward and requires idle input. Cursor warps alone can leave
+the cursor afterward and requires idle input. A native virtual keyboard holds
+Ctrl with the pointer stationary on the bar, both before and after hover opens;
+the fixture checks for repeated mapping, fading, hint consumption and scroll resets.
+Releasing Ctrl and leaving the bar must close hover normally. Cursor warps alone can leave
 Qt hover coordinates stale within one native surface; this test is not a
 hardware mouse-event simulation.
 
@@ -413,10 +442,10 @@ settings. Run it at both scales when changing the bar-close lifecycle.
 
 `python3 tools/test_ui.py gestures-native --desktop` checks the small destination
 menu in hover, expanded and preview-card views. A test-only virtual keyboard holds
-left/right Ctrl and Ctrl+Shift while Qt clicks carry **no modifier flags** on
-passive surfaces. This exercises Hyprland sampling rather than bypassing it.
+left/right Ctrl and Ctrl+Shift. Focused lists receive matching Qt click modifiers;
+passive preview surfaces receive none, exercising the Hyprland sampling fallback.
 Checks include unchanged list mode, search focus, selection, Escape, released
-keys, Ctrl preview privacy and waiting for both surfaces before a bring action.
+keys, Ctrl preview interactions and waiting for both surfaces before a bring action.
 It also retains the originating preview in both list modes, with animations on
 and off. A real cursor move verifies that the menu receives hover above the native
 preview; right-click cancels the menu and releases retention.
@@ -441,7 +470,7 @@ and that primary clicks and hover still work. `background` checks main-list
 right-click dismissal routing in both modes; `gestures-native` also checks that
 the list and preview unmap after it. Repeat with `--scale 2`.
 `privacy` also checks retained previews after leaving the card, blocked retargeting,
-Ctrl privacy after closing the menu, and disabling previews while a menu owns one.
+Shift privacy after closing the menu, and disabling previews while a menu owns one.
 
 `dropdowns` reproduces trigger-click dismissal for both dropdown types, including
 rapid clicks, outside clicks and Escape, without changing the selected value.
@@ -463,6 +492,9 @@ narrow width in all 30 languages. Run with `--scale 2` as well.
 `row-navigation` checks Left/Right between a window and Move, Up/Down in either
 column across workspace headings, scrolling into view, RTL, query cursor movement,
 text selection, busy actions and removal of the focused window. Repeat with `--scale 2`.
+`preview-keys` activates the preview popup and checks that Ctrl+digits, search
+input, Right and Enter reach the source list's current control. It catches keys
+sent to a stale search field after focus has moved to a row's Move button.
 `hints` checks that display 200 remains readable, 201 stays hidden, and the help
 button enables unlimited hints until turned off. `widget` checks the shared
 budget across monitors; `preferences` checks manual on/off across process restarts.

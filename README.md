@@ -4,7 +4,7 @@ Find a window and go straight to it.
 
 WindowPeek puts your open windows in one list on Omarchy’s bar. Search across
 workspaces and monitors, peek at a window before switching to it, or move it
-somewhere else. Tabs in Hyprland window groups appear separately.
+somewhere else. You'll never lose a tab in Hyprland window groups again.
 
 [Polski](docs/README.pl.md) · [User guide](docs/GUIDE.md) · [Changelog](CHANGELOG.md)
 
@@ -34,15 +34,21 @@ list. Click the bar label again to close it.
 | Click a window or its preview | Switch to that window or tab on its original monitor |
 | **Ctrl + click** | Open a small menu to choose its workspace |
 | **Ctrl + Shift + click** | Bring it to this monitor’s current workspace and focus it |
-| Hold **Ctrl** | Hide content previews while browsing the list |
+| Hold **Shift** | Hide content previews while browsing the list |
+| Hold **Ctrl** | Show shortcut numbers beside the visible windows and tabs |
+| **Ctrl + 1–9 / 0** | Switch to that numbered window or tab; 0 selects the tenth |
 | Right-click the main panel | Close WindowPeek and its preview |
 
-Hold **Ctrl** to browse without showing window previews — useful while streaming
+Hold **Shift** to browse without showing window previews — useful while streaming
 or sharing your screen. Window titles remain visible.
 
 The expanded panel also has **Move** buttons and keyboard navigation. Use ↑ / ↓
 to select a window, ← / → to switch between the window and Move, and Enter to
-activate it. **Controls** in Settings lists all gestures and shortcuts.
+activate it. Hold **Ctrl** to see numbers beside visible windows and tabs, then
+press **1–9 / 0** to switch to one. This also works in hover and when Ctrl is held
+before opening. Numbers follow the list as you scroll. **Settings → Window list**
+can align them on the right, with **Active** beside them.
+**Controls** in Settings lists all gestures and shortcuts.
 To add the optional **Super + Alt + P** shortcut, follow the
 [keyboard setup](docs/GUIDE.md#keyboard-controls).
 

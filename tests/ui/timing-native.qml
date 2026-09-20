@@ -58,16 +58,16 @@ ShellRoot {
                 Qt.LeftButton, Qt.NoModifier, 0);
         } else events.mouseClick(button, 20, 14, Qt.LeftButton, Qt.NoModifier, 0);
     }
-    function control(down) {
+    function shift(down) {
         var state = loader.item.windowPreview.modifierState;
         state.pending = "timing:" + (++modifierSample);
-        state.receive("custom", "windowpeek-control," + state.pending + "," + (down ? "1" : "0"));
+        state.receive("custom", "windowpeek-preview-shift," + state.pending + "," + (down ? "1" : "0"));
     }
     function rowPointer() { return find(panel.body, "windowFocusPointer", []); }
     function previewCard() { return find(loader.item.windowPreview.contentItem, "windowThumbnailPointer", []); }
     function checkPreview(left) {
         var preview = loader.item.windowPreview;
-        check(preview.visible && preview.backingWindowVisible, "instant preview maps: " + JSON.stringify({visible:preview.visible,mapped:preview.backingWindowVisible,ready:preview.ready,available:preview.available,known:preview.modifierState.known,ctrl:preview.modifierState.controlDown,row:preview.rowHovered,address:preview.address}));
+        check(preview.visible && preview.backingWindowVisible, "instant preview maps: " + JSON.stringify({visible:preview.visible,mapped:preview.backingWindowVisible,ready:preview.ready,available:preview.available,known:preview.modifierState.known,shift:preview.modifierState.shiftDown,row:preview.rowHovered,address:preview.address}));
         check(preview.contentItem.QsWindow.window.WlrLayershell.namespace === "omarchy-keyboard-panel", "preview uses unanimated layer role");
         check(preview.contentItem.QsWindow.window.WlrLayershell.keyboardFocus === WlrKeyboardFocus.None, "preview keeps keyboard passive");
         probe.left = left;
@@ -240,7 +240,7 @@ ShellRoot {
                     widget.windowPreview.modifierState.enabled = false;
                     widget.open(); break;
                 case 22: test.move(test.rowPointer(), 20, 15); break;
-                case 23: test.control(false); break;
+                case 23: test.shift(false); break;
                 case 24:
                     test.checkPreview(false);
                     break;
@@ -249,16 +249,16 @@ ShellRoot {
                     test.move(test.previewCard(), 40, 30); break;
                 case 26:
                     test.check(widget.windowPreview.pointerOnCard, "pointer reaches instant card");
-                    test.control(true);
-                    test.check(widget.windowPreview.visible, "Ctrl preserves instant card under the pointer");
+                    test.shift(true);
+                    test.check(widget.windowPreview.visible, "Shift preserves instant card under the pointer");
                     test.move(bar.contentItem, bar.width - 30, bar.height + 70); break;
                 case 27:
                     test.check(!widget.windowPreview.visible && !widget.windowPreview.backingWindowVisible,
-                        "leaving instant card with Ctrl hides and unmaps it");
+                        "leaving instant card with Shift hides and unmaps it");
                     widget.actionOnClose = true; widget.close(); loader.x = bar.width - 100; break;
                 case 28: widget.open(); break;
                 case 29: test.move(test.rowPointer(), 20, 15); break;
-                case 30: test.control(false); break;
+                case 30: test.shift(false); break;
                 case 31:
                     test.checkPreview(true); break;
                 case 32:

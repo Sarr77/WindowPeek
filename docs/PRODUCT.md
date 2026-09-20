@@ -36,7 +36,16 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   and is disabled when the window is already there. Fit the move form to its
   content, including the dropdown while open.
 - Support mouse and keyboard navigation, plus a configurable shortcut to open
-  the panel. Plain clicks on unused panel space expand the hover view or return
+  the panel. Holding Ctrl shows 1–9/0 after each visible row's app/tab label.
+  Ctrl+1–9/0 focuses that window or group tab, with 0 selecting the tenth visible
+  row. Numbering follows the viewport while scrolling and filtering. Workspace
+  headings do not count.
+  Support Ctrl held before opening either view. Hover takes keyboard focus for
+  the shortcuts only while Ctrl is held and returns it on release without expanding.
+  Offer a saved switch in Window list to align numbers at the right of the second
+  line, moving Active to their left. Keep the app/tab position as the default.
+  Keep the window's current monitor and close the panel.
+  Plain clicks on unused panel space expand the hover view or return
   the window list to hover. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
 - Allow disabling the hover panel. In click-only mode, the bar and shortcut open
@@ -76,21 +85,21 @@ Mark the active window and grouped tabs clearly.
   The preview title wraps to two lines, with an ellipsis for longer text.
   Click instructions appear as row hover hints in search when hints are enabled;
   the preview card contains no instruction footer.
-- Holding Ctrl temporarily suppresses window-content previews in both lists.
+- Holding Shift temporarily suppresses window-content previews in both lists.
   It hides an existing preview and releases capture, except while the pointer
-  is on that preview card or its move menu is open. Leaving the card while holding Ctrl hides it otherwise; the
-  transparent handoff gap is not part of this exception. Releasing Ctrl starts
+  is on that preview card or its move menu is open. Leaving the card while holding Shift hides it otherwise; the
+  transparent handoff gap is not part of this exception. Releasing Shift starts
   the normal hover delay again for the row under the pointer. List interaction,
   titles, icons, scrolling and existing Ctrl+Shift+click actions remain available.
 - Window previews are enabled by default, with a persistent switch in Settings
   shared by both lists and all monitors. Turning them off closes any open preview,
-  including one under the pointer, and stops capture and Ctrl-state observation.
-  Turning them back on restores the normal hover delay and Ctrl behavior.
+  including one under the pointer, and stops capture and Shift-state observation.
+  Turning them back on restores the normal hover delay and Shift behavior.
   Row hints and actions keep their own behavior.
 - Separate bar-hover and window-preview delays accept 0–2000 ms, both defaulting
   to 400 ms. Zero opens without a dwell timer. Popup animations are on by default;
   turning them off removes fades and the click-to-expand transition. Rounded
-  borders, row feedback, Ctrl privacy and pointer handoff remain available.
+  borders, row feedback, Shift privacy and pointer handoff remain available.
   Save these choices through the shared durable preferences path.
 - Window rows and Move have subtle resting frames, accent hover frames and a
   stronger pressed fill, with brief color transitions and no layout movement.
@@ -134,7 +143,8 @@ search. It fits the screen at the chosen scale and stays readable when the
 pointer moves onto it. The transparent gap between the bar and the adjoining
 panel edge also retains hover, including while the pointer is stationary there.
 Returning to the WindowPeek label retains the same panel immediately, without
-fading or restarting the opening delay. It does not take keyboard focus until expanded. Opening
+fading or restarting the opening delay. It takes keyboard focus only while Ctrl
+is held or when expanded. Opening
 another bar popup dismisses it. Hint limits affect only the help footer;
 window information remains available when hints are off. Refreshing inventory
 preserves scroll position, and dragging the scrollbar keeps the popup open.

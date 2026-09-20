@@ -15,6 +15,10 @@ Item {
     property bool expanded: true
     property real expansion: expanded ? 1 : 0
     property bool compact: false
+    property int shortcutIndex: -1
+    property bool showShortcut: false
+    readonly property bool shortcutAtRight: !!hostWidget && hostWidget.shortcutNumbersRight === true
+    readonly property Item focusedAction: move.focus ? move : main.focus ? main : null
     readonly property var words: hostWidget.words
     readonly property color accent: hostWidget.accent
     signal focusRequested(string address)
@@ -88,18 +92,36 @@ Item {
             }
             Item {
                 width: parent.width; height: appLabel.implicitHeight
+                readonly property bool mirrored: !root.shortcutAtRight && root.LayoutMirroring.enabled
                 Text {
-                    id: appLabel
-                    width: parent.width - (activeLabel.visible ? activeLabel.width + Style.space(8) : 0)
+                    id: appLabel; objectName: "windowAppLabel"
+                    x: parent.mirrored ? parent.width - width : 0
+                    width: Math.min(appMetrics.advanceWidth, Math.max(0, parent.width
+                        - (activeLabel.visible ? activeLabel.width + Style.space(8) : 0)
+                        - (shortcutLabel.visible ? shortcutLabel.width + Style.space(6) : 0)))
                     text: (root.window.app || root.words.unnamed)
                         + (root.window.grouped ? " · " + root.words.grouped : "")
                     textFormat: Text.PlainText; elide: Text.ElideRight
                     color: Qt.alpha(Color.popups.text, 0.7)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    TextMetrics { id: appMetrics; text: appLabel.text; font: appLabel.font }
+                }
+                Text {
+                    id: shortcutLabel; objectName: "windowShortcutLabel"
+                    x: root.shortcutAtRight ? parent.width - width
+                        : parent.mirrored ? appLabel.x - width - Style.space(6)
+                        : appLabel.x + appLabel.width + Style.space(6)
+                    width: Math.max(implicitWidth, Style.space(12))
+                    horizontalAlignment: root.shortcutAtRight ? Text.AlignRight : Text.AlignLeft
+                    visible: root.showShortcut && root.shortcutIndex >= 0
+                    text: root.shortcutIndex < 0 ? "" : String((root.shortcutIndex + 1) % 10)
+                    textFormat: Text.PlainText; color: root.accent
+                    font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
                 }
                 Text {
                     id: activeLabel; objectName: "activeWindowLabel"
-                    anchors.right: parent.right
+                    x: root.shortcutAtRight && shortcutLabel.visible ? shortcutLabel.x - width - Style.space(6)
+                        : parent.mirrored ? 0 : parent.width - width
                     width: Math.min(activeMetrics.advanceWidth, parent.width * 0.4)
                     visible: root.window.active
                     text: root.words.activeWindow; textFormat: Text.PlainText; elide: Text.ElideRight

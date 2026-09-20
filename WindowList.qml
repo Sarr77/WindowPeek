@@ -15,6 +15,16 @@ Flickable {
     property real expansion: expanded ? 1 : 0
     property bool opened: true
     property string selectedAddress: ""
+    property bool showShortcuts: false
+    readonly property var shortcutAddresses: visibleWindowAddresses()
+    readonly property Item focusedAction: {
+        for (var i = 0; i < windowRepeater.count; i++) {
+            var loader = itemAtIndex(i);
+            if (loader && loader.item && loader.model.kind === "window" && loader.item.focusedAction)
+                return loader.item.focusedAction;
+        }
+        return null;
+    }
     readonly property bool compact: !!hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     readonly property bool rtl: !!hostWidget && hostWidget.language === "ar"
     readonly property bool busy: !!hostWidget && hostWidget.actionBusy
@@ -42,6 +52,17 @@ Flickable {
     // exactly instead of estimating mixed header/row heights in ListView.
     function itemAtIndex(index) { return windowRepeater.itemAt(index); }
     function itemAt(x, y) { return windowColumn.childAt(x, y); }
+    function visibleWindowAddresses() {
+        var result = [];
+        if (!opened || !visible || height <= 0) return result;
+        for (var i = 0; i < windowRepeater.count && result.length < 10; i++) {
+            var item = itemAtIndex(i);
+            if (!item || !item.item || item.model.kind !== "window") continue;
+            if (item.y + item.height > contentY && item.y < contentY + height)
+                result.push(item.model.address);
+        }
+        return result;
+    }
     function fittedHeight(preferred, maximum, minimum) {
         var total = contentHeight;
         var limit = Math.max(0, maximum);
@@ -135,6 +156,8 @@ Flickable {
                         expanded: list.expanded
                         expansion: list.expansion
                         selected: list.expanded && list.selectedAddress === window.address
+                        shortcutIndex: list.shortcutAddresses.indexOf(window.address)
+                        showShortcut: list.showShortcuts
                         enabled: list.opened
                         busy: list.busy
                         previewAllowed: list.opened && list.visible && !list.busy

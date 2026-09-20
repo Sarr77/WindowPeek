@@ -72,7 +72,7 @@ MIT notice, copyright David Heinemeier Hansson, is retained in
 `vendor/omarchy/LICENSE`. The remaining selected ScratchPeek code is by Sarr,
 covered by the root MIT license.
 
-The native Ctrl test uses the virtual-keyboard protocol definition in
+The native modifier-key test uses the virtual-keyboard protocol definition in
 `tests/protocols/virtual-keyboard-unstable-v1.xml`. Its original MIT notice
 is retained in that file; it is a test dependency, not part of the runtime.
 

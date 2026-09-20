@@ -40,7 +40,7 @@ parser.add_argument("--scale", type=float, default=1)
 parser.add_argument("--instant", action="store_true", help="Use zero preview delay and disable popup animations")
 parser.add_argument("--screen", help="Monitor for the fixture; defaults to the focused monitor")
 parser.add_argument("--hover-only", action="store_true", help="Check real Qt hover transitions without the longer capture scenarios")
-parser.add_argument("--privacy-only", action="store_true", help="Check Ctrl preview suppression with a virtual keyboard; requires idle input")
+parser.add_argument("--privacy-only", action="store_true", help="Check Shift preview suppression with a virtual keyboard; requires idle input")
 parser.add_argument("--frames-only", action="store_true", help="Measure source repaint and capture delivery without pointer scenarios")
 parser.add_argument("--image", type=Path, help="Save only the fictional preview card")
 args = parser.parse_args()
@@ -164,35 +164,43 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
             if args.privacy_only:
                 for surface in ("panel", "hover"):
                     ipc("showSurface", surface); time.sleep(.2)
-                    with held_keys(keyboard, shift="Shift_L"):
+                    with held_keys(keyboard, "Shift_L"):
                         ipc("hoverRow", "0")
-                        wait(lambda: status()["controlKnown"] and status()["controlDown"], "Ctrl was not observed before hover")
+                        wait(lambda: status()["shiftKnown"] and status()["shiftDown"], "Left Shift was not observed before hover")
                         time.sleep(.5)
                         assert not status()["visible"] and not status()["content"], "Private browsing opened a capture"
+                    wait(shown, "Releasing Shift did not open the preview")
+                    for control in ("Control_L", "Control_R"):
+                        with held_keys(keyboard, control):
+                            time.sleep(.2)
+                            assert status()["shiftKnown"] and not status()["shiftDown"], "Ctrl was mistaken for Shift"
+                            assert shown(), "Ctrl alone hid the preview"
+                    with held_keys(keyboard, shift="Shift_L"):
+                        wait(lambda: status()["shiftDown"] and not status()["visible"], "Ctrl+Shift did not suppress the row preview")
                         ipc("click", "true")
                         wait(lambda: status()["brought"] == address, "Private browsing blocks row Ctrl+Shift+click")
                     # Activation closes the hover overview. Start a fresh view
                     # before testing stationary press/release independently.
                     ipc("showSurface", surface); time.sleep(.2); ipc("hoverRow", "0")
                     wait(shown, "No preview after private row activation")
-                    with held_keys(keyboard, "Control_R"):
-                        wait(lambda: status()["controlDown"], "Right Ctrl was not observed")
-                        wait(lambda: not status()["visible"] and not status()["content"], "Ctrl did not hide and release an existing capture")
+                    with held_keys(keyboard, "Shift_R"):
+                        wait(lambda: status()["shiftDown"], "Right Shift was not observed")
+                        wait(lambda: not status()["visible"] and not status()["content"], "Shift did not hide and release an existing capture")
                     wait(shown, "Release did not restart preview")
                     cross()
                     with held_keys(keyboard, shift="Shift_L"):
-                        wait(lambda: status()["controlDown"] and status()["pointerOnCard"], "Ctrl was not observed on the card")
-                        assert shown(), "Ctrl hid the card under the pointer"
+                        wait(lambda: status()["shiftDown"] and status()["pointerOnCard"], "Shift was not observed on the card")
+                        assert shown(), "Shift hid the card under the pointer"
                         ipc("cardClick", "true")
                         wait(lambda: status()["brought"] == address, "Ctrl+Shift+click on the card stopped working")
                     ipc("showSurface", surface); time.sleep(.2); ipc("hoverRow", "0")
                     wait(shown, "No preview for gap test"); cross()
-                    with held_keys(keyboard):
-                        wait(lambda: status()["controlDown"], "Ctrl not observed before gap exit")
+                    with held_keys(keyboard, "Shift_L"):
+                        wait(lambda: status()["shiftDown"], "Shift not observed before gap exit")
                         ipc("pauseInGap")
-                        wait(lambda: not status()["visible"] and not status()["content"], "Gap incorrectly preserves Ctrl exception")
+                        wait(lambda: not status()["visible"] and not status()["content"], "Gap incorrectly preserves Shift exception")
                     ipc("parentClose"); time.sleep(.2)
-                    print("PASS", surface, "native Ctrl privacy: both keys, stationary press/release, capture release, row/card Ctrl+Shift+click and gap exit", flush=True)
+                    print("PASS", surface, "native Shift privacy: both keys, Ctrl does not hide previews, stationary press/release, capture release, row/card Ctrl+Shift+click and gap exit", flush=True)
                 output = (profile / "runtime.log").read_text()
                 assert not re.search(r"ReferenceError|TypeError|Unable to assign|Binding loop|Error loading", output), output
                 for w in query("clients"):

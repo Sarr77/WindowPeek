@@ -11,7 +11,7 @@ import tempfile
 from test_keys import build_keyboard, build_pointer_frame
 
 parser = argparse.ArgumentParser()
-parser.add_argument("case", choices=["list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "gestures-native", "bar-dismiss", "motion", "background", "timing-native", "bar-return-native", "bar-bridge-native", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "screenshots", "native", "hints", "hints-native", "preview", "hover", "scrolling", "interaction", "interaction-native", "transition-native", "borders", "borders-native"])
+parser.add_argument("case", choices=["preview-keys", "window-shortcuts", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "gestures-native", "bar-dismiss", "motion", "background", "timing-native", "bar-return-native", "bar-bridge-native", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "screenshots", "native", "hints", "hints-native", "preview", "hover", "scrolling", "interaction", "interaction-native", "transition-native", "borders", "borders-native"])
 parser.add_argument("--scale", type=float, default=1)
 parser.add_argument("--image")
 parser.add_argument("--style", choices=["bar-return-native", "bar-bridge-native", "panel", "compact"], default="panel")
@@ -37,8 +37,9 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui-") as directory:
     fixture = {"bar-return-native": "bar-return", "bar-bridge-native": "bar-bridge", "hints-native": "hints", "borders-native": "borders"}.get(args.case, args.case)
     shutil.copyfile(root / "tests/ui" / (fixture + ".qml"), profile / "shell.qml")
     shutil.copyfile(root / "tests/ui/FakeHost.qml", profile / "FakeHost.qml")
-    if args.case == "gestures-native":
+    if args.case in ("gestures-native", "bar-return-native"):
         build_keyboard(root, profile)
+    if args.case == "gestures-native":
         build_pointer_frame(root, profile)
     native = args.case in ("gestures-native", "timing-native", "bar-return-native", "bar-bridge-native", "transition-native", "native", "hover", "interaction-native", "hints-native", "borders-native")
     env = dict(os.environ, QT_QPA_PLATFORM="wayland" if native else "offscreen", QT_QPA_PLATFORMTHEME="",
@@ -46,8 +47,9 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui-") as directory:
                WINDOWPEEK_TEST_SCALE=str(args.scale), WINDOWPEEK_TEST_IMAGE=args.image or "", WINDOWPEEK_TEST_STYLE=args.style,
                WINDOWPEEK_TEST_SURFACE=args.surface, WINDOWPEEK_TEST_HINTS=args.hints,
                WINDOWPEEK_TEST_MANUAL="1" if args.manual else "")
-    if args.case == "gestures-native":
+    if args.case in ("gestures-native", "bar-return-native"):
         env["WINDOWPEEK_TEST_KEYBOARD"] = str(profile / "control-key")
+    if args.case == "gestures-native":
         env["WINDOWPEEK_TEST_POINTER_FRAME"] = str(profile / "pointer-frame")
         env["WINDOWPEEK_TEST_PIXEL_PROBE"] = str(root / "tools/test_compositor_pixel.py")
         env["WINDOWPEEK_TEST_OVERLAY_MENU"] = "1" if args.overlay_menu else ""

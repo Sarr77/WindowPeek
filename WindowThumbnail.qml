@@ -8,6 +8,7 @@ import "PopupPlacement.js" as Placement
 Scope {
     id: root
     required property var hostWidget
+    property Item shortcutTarget: null
     property Item anchorItem: null
     property Item boundsItem: null
     property bool rowHovered: false
@@ -44,7 +45,7 @@ Scope {
     readonly property bool pointerOnCard: pointer.containsMouse || pointer.pressed
     readonly property var modifierState: modifiers
     readonly property bool previewAllowed: modifiers.known
-        && (!modifiers.controlDown || pointerOnCard || menuRetained)
+        && (!modifiers.shiftDown || pointerOnCard || menuRetained)
     readonly property bool held: menuRetained || rowHovered || (!!listPointer && listPointer.hovered) || containsPointer
     Connections {
         target: root.hostWidget
@@ -155,6 +156,10 @@ Scope {
     Binding { target: instantLoader.item; property: "preview"; value: root; when: !!instantLoader.item }
     Item {
         id: scene
+        // An XDG preview may receive keys belonging to its parent layer even
+        // without a keyboard grab. Keep list shortcuts on the original list.
+        focus: true
+        Keys.forwardTo: root.shortcutTarget ? [root.shortcutTarget] : []
         parent: root.instant && instantLoader.item ? instantLoader.item.contentItem : popup.contentItem
         width: root.width; height: root.height
         HoverHandler { id: listPointer; parent: root.boundsItem || card; enabled: root.visible }

@@ -31,7 +31,8 @@ Hyprland events → WindowState → WindowModel → Widget / PanelContent
 | `WindowIcon.qml` | Shared desktop-entry icon lookup and window-outline fallback |
 | `WindowPreviewTarget.qml`, `WindowThumbnail.qml`, `WindowCapture.qml` | Row ownership, interactive preview card and on-demand window capture |
 | `WindowClickArea.qml`, `MoveMenu.qml` | Modifier-aware clicks on passive surfaces and compact destination selection |
-| `PreviewModifiers.qml` | Bounded Ctrl-state observation for preview privacy without keyboard focus |
+| `PreviewModifiers.qml` | Bounded Shift-state observation for preview privacy without keyboard focus |
+| `ShortcutModifiers.qml` | Ctrl state on opening and while the window list is visible |
 | `Preferences.qml`, `Settings.js` | Atomic durable preferences and revision handling |
 | `Appearance.js` and editors | Color rules, presets, preview, apply/cancel and scaling |
 | `Labels.js`, `LabelsEditor.qml`, `LabelButton.qml` | Text templates, grouped editing and bounded action labels |
@@ -79,6 +80,35 @@ Left/Right follow their physical column positions, mirrored in RTL; Up/Down
 preserve the action column and reveal the next window across workspace headings.
 At the search text edge, the arrow toward Move transfers focus into that column.
 Cursor movement and text selection inside the search field retain their normal behavior.
+
+Ctrl+1–9/0 uses the first ten window rows intersecting the current list viewport,
+including search, special-workspace filtering and the opening active-window
+promotion. Workspace headings do not count; each group tab has its own position.
+`WindowList.visibleWindowAddresses()` supplies both the Ctrl hints beside the
+app/tab labels and the key handler's targets. Scrolling recomputes their numbering.
+Zero selects the tenth visible row. `ShortcutModifiers` samples both Ctrl keys
+on opening and every 50 ms while a main list is available, with one outstanding
+request, a per-instance token and a 250 ms timeout. Focused Qt key events update
+the state immediately and invalidate older pending samples. Closing, settings,
+menus and busy actions stop observation and clear the hints.
+Hover temporarily requests keyboard focus while Ctrl is known to be held, without
+expanding, changing its input mask or registering a full bar popout. Releasing Ctrl
+returns keyboard ownership. Without a preview, Ctrl keeps exclusive keyboard
+focus instead of dropping to OnDemand after the normal opening delay. A visible
+preview uses OnDemand so its pointer events remain available. The list first
+primes keyboard focus unless the pointer is already on the preview. The preview
+forwards key events to the source list's locally focused control when its XDG
+popup receives the keyboard. Local focus follows search and row navigation even
+while the source window is inactive; hover forwards directly to the list.
+Held Ctrl also retains the hover: claiming the keyboard may remove the bar's
+pointer hover, which must not trigger a close/reopen loop under a stationary cursor.
+This routes Ctrl+digits to the list instead of the
+application underneath. The expanded main list also handles these keys; modal menus, settings, busy
+actions and auto-repeat cannot start another action. The chosen row's address
+uses the same validated focus and panel-unmap path as a plain click.
+`shortcutNumbersRight` is a persisted boolean, false by default. It places the
+second-line number at the physical right edge and reserves room to its left for
+the active label. Both positions reserve space before eliding the app/tab label.
 
 An action refreshes state before building a command. Only one action may run
 at a time. Hyprland receives the validated address through an argument vector;
@@ -371,7 +401,7 @@ Action instructions use the search row's passive `PanelHint` and its existing
 hint budget. The preview has no instruction footer and does not consume that
 budget; its title and image remain available when hints are off.
 
-Holding Ctrl suppresses previews, with an exception for the preview card under
+Holding Shift suppresses previews, with an exception for the preview card under
 the pointer or the card whose move menu is open. The latter retains its anchor,
 address and capture, ignores other row hover requests, and releases retention when
 the menu closes. It still respects disabled previews and busy window actions.
@@ -404,10 +434,10 @@ places the card beside the parent, flips at the screen edge and preserves both
 gap strips. This avoids Hyprland's separate XDG-popup fade without changing global
 animation settings. The layer is loaded only when needed and released with its
 owner; capture still requires a mapped, allowed preview.
-Even at zero delay, a thumbnail waits for a known Ctrl state before revealing
+Even at zero delay, a thumbnail waits for a known Shift state before revealing
 content; its first captured frame still depends on the compositor and source.
 
-`PreviewModifiers` reads both Ctrl keys through Hyprland's `hl.is_key_down`.
+`PreviewModifiers` reads both Shift keys through Hyprland's `hl.is_key_down`.
 It queries only while a preview has an available owner, at 50 ms intervals,
 using Quickshell's asynchronous IPC with at most one request outstanding.
 A per-instance token and sequence match each reply; inactive and late replies

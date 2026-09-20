@@ -29,13 +29,13 @@ def build_pointer_frame(root: Path, profile: Path) -> Path:
 
 
 @contextmanager
-def held_keys(binary: Path, control="Control_L", shift=None):
-    command = [str(binary), control] + ([shift] if shift else [])
+def held_keys(binary: Path, key="Control_L", shift=None):
+    command = [str(binary), key] + ([shift] if shift else [])
     process = subprocess.Popen(command, text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         if not select.select([process.stdout], [], [], 3)[0] or process.stdout.readline().strip() != "pressed":
             raise AssertionError("Virtual keyboard did not press the requested keys")
-        yield
+        yield process
     finally:
         try:
             _, error = process.communicate(input="\n", timeout=3)

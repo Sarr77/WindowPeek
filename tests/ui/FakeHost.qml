@@ -25,6 +25,7 @@ QtObject {
     readonly property int previewHoverDelay: Settings.hoverDelay(setting("previewHoverDelay", 400))
     readonly property bool popupAnimations: setting("popupAnimations", true) === true
     readonly property bool scrollBounce: setting("scrollBounce", true) === true
+    readonly property bool shortcutNumbersRight: setting("shortcutNumbersRight", false) === true
     property var savedAppearance: Appearance.normalize({})
     property var appearance: savedAppearance
     property string themeId: "tokyo-night"

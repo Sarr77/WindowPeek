@@ -34,11 +34,21 @@ static void removed(void *data, struct wl_registry *registry, uint32_t name) {
 }
 static const struct wl_registry_listener listener = {global, removed};
 
+static uint32_t key_code(const char *name) {
+    if (!strcmp(name, "Control_L")) return 29;
+    if (!strcmp(name, "Control_R")) return 97;
+    if (!strcmp(name, "Shift_L")) return 42;
+    if (!strcmp(name, "Shift_R")) return 54;
+    return 0;
+}
+
 int main(int argc, char **argv) {
-    if ((argc != 2 && argc != 3) || (strcmp(argv[1], "Control_L") && strcmp(argv[1], "Control_R"))) return 2;
+    if (argc != 2 && argc != 3) return 2;
+    uint32_t key = key_code(argv[1]);
+    if (!key) return 2;
     if (argc == 3 && strcmp(argv[2], "Shift_L") && strcmp(argv[2], "Shift_R")) return 2;
-    uint32_t key = !strcmp(argv[1], "Control_L") ? 29 : 97;
-    uint32_t shift = argc == 3 ? (!strcmp(argv[2], "Shift_L") ? 42 : 54) : 0;
+    uint32_t shift = argc == 3 ? key_code(argv[2]) : 0;
+    if (key == shift) return 2;
     struct wl_display *display = wl_display_connect(NULL);
     if (!display) return 3;
     struct wl_registry *registry = wl_display_get_registry(display);
@@ -62,7 +72,8 @@ int main(int argc, char **argv) {
     struct sigaction action = {.sa_handler = stop};
     sigemptyset(&action.sa_mask);
     sigaction(SIGTERM, &action, NULL); sigaction(SIGINT, &action, NULL);
-    uint32_t mask = 1u << xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
+    uint32_t mask = 1u << xkb_keymap_mod_get_index(keymap,
+        key == 42 || key == 54 ? XKB_MOD_NAME_SHIFT : XKB_MOD_NAME_CTRL);
     zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_PRESSED);
     if (shift) {
         mask |= 1u << xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
@@ -73,7 +84,22 @@ int main(int argc, char **argv) {
     if (result >= 0) {
         puts("pressed"); fflush(stdout);
         struct pollfd input = {.fd = STDIN_FILENO, .events = POLLIN};
-        poll(&input, 1, 10000);
+        uint32_t started = now();
+        char command[32];
+        for (;;) {
+            int remaining = 10000 - (int)(now() - started);
+            if (remaining <= 0 || poll(&input, 1, remaining) <= 0) break;
+            if (!fgets(command, sizeof(command), stdin)) break;
+            // Tests may tap a digit on this same keyboard while Ctrl stays
+            // held. A blank line retains the original release-and-exit API.
+            if (strlen(command) != 6 || strncmp(command, "tap ", 4)
+                    || command[4] < '0' || command[4] > '9' || command[5] != '\n') break;
+            uint32_t digit = command[4] == '0' ? 11 : 2 + (uint32_t)(command[4] - '1');
+            zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_PRESSED);
+            zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_RELEASED);
+            if (wl_display_roundtrip(display) < 0) { result = -1; break; }
+            puts("tapped"); fflush(stdout);
+        }
     }
     if (shift) zwp_virtual_keyboard_v1_key(keyboard, now(), shift, WL_KEYBOARD_KEY_STATE_RELEASED);
     zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_RELEASED);

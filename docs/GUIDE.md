@@ -30,8 +30,8 @@ Hover a row to see a content preview. You can move onto the preview and click
 it to switch to that window. The gaps between the bar, list and preview keep
 them open while you cross. A long preview title wraps to two lines.
 
-Hold **Ctrl** to hide previews while browsing. A preview under your pointer
-stays visible, as does one whose move menu is open. Releasing Ctrl starts the
+Hold **Shift** to hide previews while browsing. A preview under your pointer
+stays visible, as does one whose move menu is open. Releasing Shift starts the
 usual preview delay. To disable previews permanently, turn off **Window previews**.
 
 Previews stay in memory. A hidden application that stops drawing can show its
@@ -68,6 +68,8 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 | Shift + Enter in search | Open its Move form |
 | ← / → on a window row | Switch between the window and Move |
 | ↑ / ↓ on a row action | Change rows, keeping the same action |
+| Hold Ctrl in the window list | Show shortcut numbers beside visible windows and tabs |
+| Ctrl + 1–9 / 0 in the window list | Switch to the matching numbered window or tab; 0 means tenth |
 | Tab / Shift + Tab | Move through visible controls |
 | Enter / Space on a control | Activate it |
 | Escape | Close a picker, go back, or close the main list |
@@ -75,6 +77,19 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 Arrows within search text edit the text normally. At the text’s edge, the arrow
 toward Move enters that column. Window and Move sides are mirrored in Arabic.
 **Controls** in Settings also covers dropdowns, color editing and mouse gestures.
+
+Number shortcuts count the first ten window rows in the visible part of the
+list, including individual group tabs; workspace headings do not count. Numbers
+start again at 1 as you scroll and update after searching or filtering. They
+appear after the app name or the tab marker while Ctrl is held. Turn on
+**Shortcut numbers on the right** in **Settings → Window list** to place them
+in a vertical column at the right of the second line; **Active** moves to their left.
+The default is after the app or tab label. Selecting one
+keeps the window on its existing monitor and closes the panel.
+A missing position does nothing.
+These shortcuts work in hover and the expanded window list, including when Ctrl
+was pressed before opening. Hover takes keyboard focus only while Ctrl is held,
+then returns it on release without expanding. Settings and move menus keep their own keys.
 
 An optional shortcut can open search on the focused monitor. After checking
 that it is free, add this to `~/.config/hypr/bindings.lua`:
@@ -96,8 +111,8 @@ wide header. The header stays in place while its contents expand below it.
   delays, and popup animations. Both delays start at 400 ms and accept 0–2000 ms.
   Set them to 0 and disable animations for instant popups. Disabled controls
   keep their saved values.
-- **Window list:** special workspaces, Spacious or Compact rows, and springy
-  scrolling. Compact affects both lists without shrinking the text. Special
+- **Window list:** special workspaces, Spacious or Compact rows, springy
+  scrolling, and shortcut-number placement. Compact affects both lists without shrinking the text. Special
   workspaces and springy scrolling start enabled.
 - **Personalization:** colors, panel and bar size, bar label and custom text.
 - **Controls:** the mouse and keyboard guide.

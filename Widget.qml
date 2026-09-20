@@ -40,6 +40,7 @@ BarWidget {
     readonly property int previewHoverDelay: Settings.hoverDelay(preference("previewHoverDelay", 400))
     readonly property bool popupAnimations: preference("popupAnimations", true) === true
     readonly property bool scrollBounce: preference("scrollBounce", true) === true
+    readonly property bool shortcutNumbersRight: preference("shortcutNumbersRight", false) === true
     readonly property var hints: Settings.hints(effectiveSettings)
     readonly property bool autoUpdates: !effectiveSettings || effectiveSettings.autoUpdates === undefined || effectiveSettings.autoUpdates === true
     readonly property bool updatesAvailable: runtime.updates.available
@@ -119,20 +120,20 @@ BarWidget {
     }
     function focusWindow(address) { return activateWindow(address, false); }
     function bringWindow(address) { return activateWindow(address, true); }
+    function releaseForAction(ready) {
+        root.actionOnClose = true;
+        root.close();
+        var afterHover = function() { thumbnail.afterHidden(ready); };
+        if (panelLoader.item) panelLoader.item.afterHidden(afterHover);
+        else afterHover();
+    }
     function activateWindow(address, bringHere) {
         if (actionBusy) return false;
         if (!opened && hoverOpened)
             focusBeforePanel = snapshot ? Model.address(snapshot.activeAddress) : "";
         reopenOnFailure = opened || hoverOpened;
-        var releasePanel = function(ready) {
-            root.actionOnClose = true;
-            root.close();
-            var afterHover = function() { thumbnail.afterHidden(ready); };
-            if (panelLoader.item) panelLoader.item.afterHidden(afterHover);
-            else afterHover();
-        };
-        return bringHere ? runtime.actions.bring(address, screenName, releasePanel)
-            : runtime.actions.focus(address, releasePanel);
+        return bringHere ? runtime.actions.bring(address, screenName, releaseForAction)
+            : runtime.actions.focus(address, releaseForAction);
     }
     function chooseDestination(address, position, keepPreview) {
         if (actionBusy || !panelLoader.item || !inventory.windows.some(function(window) { return window.address === address; })) return false;
@@ -281,7 +282,10 @@ BarWidget {
         onPressed: function(code) { if (code === Qt.LeftButton || code === Qt.RightButton || code === Qt.MiddleButton) root.pressBarButton(); }
     }
     Timer { id: tooltipDelay; interval: root.panelHoverDelay; onTriggered: root.tooltipReady = root.canShowTooltip }
-    WindowThumbnail { id: thumbnail; objectName: "windowThumbnail"; hostWidget: root }
+    WindowThumbnail {
+        id: thumbnail; objectName: "windowThumbnail"; hostWidget: root
+        shortcutTarget: panelLoader.item ? panelLoader.item.body.previewKeyTarget : null
+    }
     Rectangle {
         height: Style.space(2); width: Math.min(button.labelWidth, parent.width)
         anchors.horizontalCenter: parent.horizontalCenter
@@ -323,8 +327,8 @@ BarWidget {
                         enabled: w.windowPreviews,
                         supported: !!w.windowPreview.modifierState,
                         watching: !!w.windowPreview.modifierState && w.windowPreview.modifierState.active,
-                        controlKnown: !!w.windowPreview.modifierState && w.windowPreview.modifierState.known,
-                        controlDown: !!w.windowPreview.modifierState && w.windowPreview.modifierState.controlDown,
+                        shiftKnown: !!w.windowPreview.modifierState && w.windowPreview.modifierState.known,
+                        shiftDown: !!w.windowPreview.modifierState && w.windowPreview.modifierState.shiftDown,
                         pointerOnCard: !!w.windowPreview.pointerOnCard,
                         visible: w.windowPreview.visible,
                         mapped: w.windowPreview.backingWindowVisible

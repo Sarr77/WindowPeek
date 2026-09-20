@@ -211,7 +211,7 @@ ShellRoot {
                 promotionRetained: !!fixture.promotionOwner && thumbnail.anchorItem === fixture.promotionOwner
                     && !!fixture.promotionCapture && fixture.find(thumbnail.contentItem, "windowCaptureView") === fixture.promotionCapture,
                 sourceColor:String(fixture.sourceColor), sourceFrames:fixture.sourceFrames,
-                controlKnown:thumbnail.modifierState.known, controlDown:thumbnail.modifierState.controlDown,
+                shiftKnown:thumbnail.modifierState.known, shiftDown:thumbnail.modifierState.shiftDown,
                 pointerOnCard:thumbnail.pointerOnCard,
                 titleLines:title.lineCount, titleTruncated:title.truncated,
                 available:thumbnail.available, owner:!!thumbnail.anchorItem, ownerWindow:!!thumbnail.anchorWindow, ready:thumbnail.ready,

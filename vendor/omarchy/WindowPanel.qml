@@ -18,10 +18,13 @@ PanelWindow {
   property var borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
   property bool centerOnBar: false
   property bool hoverOpen: false
+  property bool shortcutKeyboard: false
+  property bool pointerPreviewVisible: false
+  property bool pointerOnPreview: false
   property bool transientOpen: false
   readonly property bool interactive: open || transientOpen
   property bool keyboardSuppressed: false
-  readonly property bool keyboardActive: interactive && !keyboardSuppressed
+  readonly property bool keyboardActive: (interactive || (hoverOpen && shortcutKeyboard)) && !keyboardSuppressed
   property real cornerRadius: Style.space(8)
   property alias cardItem: card
   property bool pinOrigin: false
@@ -53,6 +56,12 @@ PanelWindow {
   function beginFocusPrime() {
     if (keyboardActive && backingWindowVisible) focusPrimeTimer.restart()
   }
+  function focusContent() {
+    if (keyboardActive && focusTarget) Qt.callLater(function() {
+      if (root.keyboardActive && root.focusTarget) root.focusTarget.forceActiveFocus()
+    })
+  }
+  onFocusTargetChanged: focusContent()
 
   screen: anchorWindow ? anchorWindow.screen : null
   visible: open || hoverOpen || card.opacity > 0 || popoutSwitching
@@ -62,8 +71,11 @@ PanelWindow {
   // Keep Omarchy's layer role: its compositor rule disables a second animation.
   WlrLayershell.namespace: "omarchy-keyboard-panel"
   WlrLayershell.layer: WlrLayer.Overlay
+  // Hold shortcut focus while browsing the bar/list. A visible preview needs
+  // OnDemand to receive pointer events; prime focus first unless it is hovered.
   WlrLayershell.keyboardFocus: keyboardActive
-    ? (focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
+    ? (pointerOnPreview || (focusPrimed && (!shortcutKeyboard || pointerPreviewVisible))
+        ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     : WlrKeyboardFocus.None
 
   onBackingWindowVisibleChanged: beginFocusPrime()
@@ -203,9 +215,7 @@ PanelWindow {
     if (keyboardActive) {
       focusPrimed = false
       beginFocusPrime()
-      if (focusTarget) Qt.callLater(function() {
-        if (root.keyboardActive && root.focusTarget) root.focusTarget.forceActiveFocus()
-      })
+      focusContent()
     } else {
       focusPrimeTimer.stop()
       focusPrimed = false

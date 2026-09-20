@@ -12,8 +12,9 @@ commands = [
     [sys.executable, "tools/test_qml.py"],
     [sys.executable, "-B", "tools/test_preferences.py"],
 ]
-for case in ("list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
+for case in ("window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
     commands.append([sys.executable, "tools/test_ui.py", case])
+commands.append([sys.executable, "tools/test_ui.py", "window-shortcuts", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "background", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "defaults", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "list-height", "--scale", "2"])

@@ -43,7 +43,30 @@ ShellRoot {
             + Math.round(point.x) + ",y=" + Math.round(point.y) + "}))"];
         mover.running = true;
     }
+    function leavePanel() {
+        // At 200% the card reaches the bottom of the screen. Leave to its right,
+        // not merely below the unscaled card, which can still be inside it.
+        var x = bar.width - 30, y = bar.screen.height - 40;
+        var card = test.panel.surface.cardItem;
+        var point = bar.contentItem.mapToGlobal(x, y);
+        var local = card.mapFromGlobal(point.x, point.y);
+        test.check(local.x < 0 || local.x > card.width || local.y < 0 || local.y > card.height,
+            "exit coordinate is outside the scaled card");
+        test.move(bar.contentItem, x, y);
+    }
     TestEvent { id: events }
+    Process {
+        id: keys
+        property bool ready: false
+        stdinEnabled: true
+        stdout: SplitParser { onRead: function(line) { if (line === "pressed") keys.ready = true; } }
+        onExited: ready = false
+    }
+    function hold(control) {
+        check(!keys.running, "previous Ctrl released");
+        keys.ready = false; keys.command = [Quickshell.env("WINDOWPEEK_TEST_KEYBOARD"), control]; keys.running = true;
+    }
+    Component.onDestruction: keys.running = false
     Process {
         id: mover
         property var target: null
@@ -142,16 +165,46 @@ ShellRoot {
                     test.check(test.list.itemAtIndex(1) === test.firstRow && test.list.contentY === test.scrollPosition, "return preserves row identity and scroll");
                     if (test.step === 10 && ++test.returns < 3) test.step = 3;
                     break;
-                case 10:
-                    test.button.triggerPress(Qt.LeftButton); break;
+                case 10: test.hold("Control_L"); break;
                 case 11:
+                    test.check(keys.ready && test.panel.body.controlHeld, "Ctrl reaches hover with the pointer on the bar"); break;
+                case 12: case 13: case 14: case 15: case 16: case 17:
+                    test.check(test.panel.hoverOpened && test.panel.mapped && test.maps === 1,
+                        "held Ctrl on the bar must not close or reopen hover");
+                    test.check(loader.item.hints.used === test.hintsUsed && test.list.contentY === test.scrollPosition,
+                        "held Ctrl preserves hints and scroll"); break;
+                case 18: keys.running = false; break;
+                case 20:
+                    test.check(!test.panel.body.controlHeld && test.panel.hoverOpened && test.maps === 1,
+                        "releasing Ctrl keeps the original hover under the bar pointer");
+                    test.button.triggerPress(Qt.LeftButton); break;
+                case 21:
                     test.check(test.panel.opened && test.panel.body.searchField.activeFocus && test.maps === 1, "label click promotes without remapping");
                     test.watching = false; loader.item.actionOnClose = true; loader.item.close();
-                    test.move(test.button, test.button.width + 40, bar.screen.height - 40); break;
-                case 12: break;
-                case 13:
+                    test.leavePanel(); break;
+                case 22: break;
+                case 23:
                     test.check(!test.panel.mapped, "explicit close still unmaps");
-                    console.info("WINDOWPEEK_TEST_PASS: three native label/card returns, no fade/remap, stable scroll/hints, click promotion");
+                    test.maps = 0; test.hold("Control_R"); break;
+                case 24:
+                    test.check(keys.ready, "Ctrl held before bar entry");
+                    test.move(test.button, test.button.width / 2, test.button.height / 2); break;
+                case 28:
+                    test.check(test.panel.hoverOpened && test.panel.body.controlHeld && test.maps === 1,
+                        "pre-held Ctrl opens bar hover once");
+                    test.watching = true; break;
+                case 29: case 30: case 31: case 32: case 33:
+                    test.check(test.panel.hoverOpened && test.maps === 1, "pre-held Ctrl cannot cycle bar hover"); break;
+                case 34:
+                    test.watching = false; keys.running = false;
+                    test.leavePanel(); break;
+                case 37:
+                    test.check(!test.panel.mapped && !test.panel.body.controlHeld,
+                        "release and pointer exit close hover normally: " + JSON.stringify({
+                            mapped:test.panel.mapped, control:test.panel.body.controlHeld,
+                            canHide:test.panel.canHideHover, requested:test.panel.hoverRequested,
+                            barHover:loader.item.canShowTooltip, bridge:test.panel.surface.barBridgeHovered}));
+                    console.info("WINDOWPEEK_TEST_PASS: stable bar hover with pre-held and newly pressed Ctrl, label/card returns, scroll/hints and click promotion");
                     timer.stop(); Qt.quit();
                 }
             } catch (error) { test.fail(error); }

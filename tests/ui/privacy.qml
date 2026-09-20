@@ -19,10 +19,10 @@ ShellRoot {
         return null;
     }
     function row() { return find(surface === 0 ? panel : overview, surface === 0 ? "windowFocusPointer" : "windowFocusPointer"); }
-    function control(down) {
+    function shift(down) {
         var state = thumbnail.modifierState;
         state.pending = "fixture:" + (++sample);
-        state.receive("custom", "windowpeek-control," + state.pending + "," + (down ? "1" : "0"));
+        state.receive("custom", "windowpeek-preview-shift," + state.pending + "," + (down ? "1" : "0"));
     }
     function hover() { var item = row(); events.mouseMove(item, item.width / 2, item.height / 2, 0, Qt.NoButton, Qt.NoModifier); }
     TestEvent { id: events }
@@ -59,45 +59,45 @@ ShellRoot {
                 case 0: thumbnail.modifierState.enabled = false; panel.begin(); break;
                 case 1:
                     test.hover();
-                    test.check(thumbnail.available && !thumbnail.visible, "row waits for a fresh Ctrl sample");
-                    test.control(true); break;
+                    test.check(thumbnail.available && !thumbnail.visible, "row waits for a fresh Shift sample");
+                    test.shift(true); break;
                 case 6:
-                    test.check(!thumbnail.visible, "holding Ctrl prevents a preview after the dwell");
-                    test.control(false); break;
+                    test.check(!thumbnail.visible, "holding Shift prevents a preview after the dwell");
+                    test.shift(false); break;
                 case 7:
-                    test.check(!thumbnail.visible, "releasing Ctrl starts a new dwell"); break;
+                    test.check(!thumbnail.visible, "releasing Shift starts a new dwell"); break;
                 case 11:
-                    test.check(thumbnail.visible, "stationary row resumes preview after releasing Ctrl");
-                    test.control(true);
+                    test.check(thumbnail.visible, "stationary row resumes preview after releasing Shift");
+                    test.shift(true);
                     test.check(!thumbnail.visible && !test.find(thumbnail.contentItem, "windowThumbnailCapture").active,
-                        "Ctrl hides an existing preview and releases capture immediately");
+                        "Shift hides an existing preview and releases capture immediately");
                     events.mouseClick(test.row(), 15, 15, Qt.LeftButton, Qt.ControlModifier | Qt.ShiftModifier, 0);
                     test.check(host.brought === "0x1" && !host.focused, "private row still supports Ctrl+Shift+click");
                     host.brought = ""; break;
-                case 12: test.hover(); test.control(false); break;
+                case 12: test.hover(); test.shift(false); break;
                 case 16:
                     test.check(thumbnail.visible, "preview can reopen after private browsing");
                     events.mouseMove(test.row(), -20, -20, 0, Qt.NoButton, Qt.NoModifier);
                     events.mouseMove(card, card.width / 2, card.height / 2, 0, Qt.NoButton, Qt.NoModifier);
                     test.check(thumbnail.pointerOnCard, "pointer reaches the preview card");
-                    test.control(true); break;
+                    test.shift(true); break;
                 case 17:
-                    test.check(thumbnail.visible && thumbnail.previewAllowed, "Ctrl preserves the card under the pointer");
+                    test.check(thumbnail.visible && thumbnail.previewAllowed, "Shift preserves the card under the pointer");
                     events.mouseClick(card, card.width / 2, card.height / 2, Qt.LeftButton, Qt.ControlModifier | Qt.ShiftModifier, 0);
                     test.check(host.brought === "0x1" && !host.focused && !thumbnail.visible, "Ctrl+Shift+click on card still brings the window");
                     host.brought = ""; break;
-                case 18: test.hover(); test.control(false); break;
+                case 18: test.hover(); test.shift(false); break;
                 case 22:
                     test.check(thumbnail.visible, "preview reopens after activation");
                     events.mouseMove(test.row(), -20, -20, 0, Qt.NoButton, Qt.NoModifier);
                     events.mouseMove(card, card.width / 2, card.height / 2, 0, Qt.NoButton, Qt.NoModifier);
-                    test.control(true);
+                    test.shift(true);
                     events.mouseMove(card, -4, card.height / 2, 0, Qt.NoButton, Qt.ControlModifier | Qt.ShiftModifier);
                     break;
                 case 23:
-                    test.check(!thumbnail.visible, "the transparent gap is not a Ctrl exception");
+                    test.check(!thumbnail.visible, "the transparent gap is not a Shift exception");
                     break;
-                case 24: test.hover(); test.control(false); break;
+                case 24: test.hover(); test.shift(false); break;
                 case 28:
                     test.check(thumbnail.visible, "ordinary hover still works");
                     thumbnail.modifierState.known = false;
@@ -105,18 +105,18 @@ ShellRoot {
                     thumbnail.dismiss();
                     test.check(!thumbnail.modifierState.active && !thumbnail.modifierState.known, "dismissal stops modifier observation");
                     var state = thumbnail.modifierState;
-                    state.pending = "old"; state.receive("custom", "windowpeek-control,old,0");
+                    state.pending = "old"; state.receive("custom", "windowpeek-preview-shift,old,0");
                     test.check(!state.known, "late reply after dismissal is ignored");
                     host.persistSettings({windowPreviews:false});
                     test.hover(); break;
                 case 33:
                     test.check(!thumbnail.visible && !thumbnail.available && !thumbnail.modifierState.active,
-                        "disabled previews do not start capture or Ctrl observation after dwell");
+                        "disabled previews do not start capture or Shift observation after dwell");
                     events.mouseClick(test.row(), 15, 15, Qt.LeftButton, Qt.ControlModifier | Qt.ShiftModifier, 0);
                     test.check(host.brought === "0x1", "disabling previews preserves row Ctrl+Shift+click");
                     host.brought = "";
                     host.persistSettings({windowPreviews:true});
-                    test.hover(); test.control(false); break;
+                    test.hover(); test.shift(false); break;
                 case 37:
                     test.check(thumbnail.visible, "enabling previews restores stationary row preview");
                     host.persistSettings({windowPreviews:false});
@@ -126,10 +126,10 @@ ShellRoot {
                     break;
                 case 38:
                     host.persistSettings({windowPreviews:true});
-                    test.hover(); test.control(true); break;
+                    test.hover(); test.shift(true); break;
                 case 43:
-                    test.check(!thumbnail.visible, "enabling previews still respects held Ctrl");
-                    test.control(false); break;
+                    test.check(!thumbnail.visible, "enabling previews still respects held Shift");
+                    test.shift(false); break;
                 case 47:
                     test.check(thumbnail.visible, "release restores reenabled preview");
                     events.mouseMove(test.row(), -20, -20, 0, Qt.NoButton, Qt.NoModifier);
@@ -140,20 +140,20 @@ ShellRoot {
                     break;
                 case 48:
                     thumbnail.dismiss(); host.persistSettings({windowPreviews:true, previewHoverDelay:1000});
-                    test.hover(); test.control(false); break;
+                    test.hover(); test.shift(false); break;
                 case 49:
                     test.check(!thumbnail.visible, "longer preview delay does not reveal the card early");
                     host.persistSettings({previewHoverDelay:0});
                     test.check(thumbnail.visible, "zero opens a pending preview synchronously");
-                    test.control(true);
-                    test.check(!thumbnail.visible, "zero delay still respects Ctrl privacy");
-                    test.control(false);
+                    test.shift(true);
+                    test.check(!thumbnail.visible, "zero delay still respects Shift privacy");
+                    test.shift(false);
                     test.check(thumbnail.visible, "release uses zero delay without an extra timer tick");
                     events.mouseClick(test.row(), 15, 15, Qt.LeftButton, Qt.ControlModifier | Qt.ShiftModifier, 0);
                     test.check(host.brought === "0x1", "instant previews preserve Ctrl+Shift+click");
                     host.brought = "";
                     thumbnail.dismiss(); host.persistSettings({previewHoverDelay:800});
-                    test.hover(); test.control(false); break;
+                    test.hover(); test.shift(false); break;
                 case 50:
                     test.check(!thumbnail.visible, "nonzero delay is restored");
                     thumbnail.dismiss(); break;
@@ -162,24 +162,25 @@ ShellRoot {
                     host.persistSettings({previewHoverDelay:0});
                     test.hover();
                     test.check(!thumbnail.visible, "zero delay waits for known modifier state");
-                    test.control(true);
-                    test.check(!thumbnail.visible, "held Ctrl blocks a fresh instant preview");
-                    test.control(false);
+                    test.shift(true);
+                    test.check(!thumbnail.visible, "held Shift blocks a fresh instant preview");
+                    test.shift(false);
                     test.check(thumbnail.visible, "fresh instant preview opens after a safe modifier sample");
                     host.persistSettings({windowPreviews:false});
                     test.check(!thumbnail.visible && !thumbnail.modifierState.active, "disable wins over instant preview");
                     break;
                 case 59:
                     host.persistSettings({windowPreviews:true, previewHoverDelay:0});
-                    test.hover(); test.control(false); break;
+                    test.hover(); test.shift(false); break;
                 case 60:
                     events.mouseMove(test.row(), -20, -20, 0, Qt.NoButton, Qt.NoModifier);
                     events.mouseMove(card, card.width / 2, card.height / 2, 0, Qt.NoButton, Qt.NoModifier);
-                    test.control(true);
-                    test.check(thumbnail.visible, "Ctrl alone still keeps the hovered card available");
+                    test.shift(false);
+                    test.check(thumbnail.visible, "Ctrl-click keeps the hovered card available");
                     events.mouseClick(card, card.width / 2, card.height / 2, Qt.LeftButton, Qt.ControlModifier, 0);
                     test.check(host.destinationRequested === "0x1" && !host.brought && thumbnail.visible && thumbnail.menuRetained,
                         "Ctrl-only card click requests a chooser while retaining its preview");
+                    test.shift(true);
                     events.mouseMove(card, -20, -20, 0, Qt.NoButton, Qt.ControlModifier);
                     thumbnail.hideFor(thumbnail.anchorItem);
                     break;
@@ -190,13 +191,14 @@ ShellRoot {
                     test.check(thumbnail.address === "0x1", "hover cannot retarget the menu's retained preview");
                     host.moveMenuOpen = false;
                     test.check(!thumbnail.menuRetained && !thumbnail.visible,
-                        "closing the chooser restores Ctrl privacy outside the card");
-                    test.hover(); test.control(false);
+                        "closing the chooser restores Shift privacy outside the card");
+                    test.hover(); test.shift(false);
                     break;
                 case 65:
                     events.mouseMove(card, card.width / 2, card.height / 2, 0, Qt.NoButton, Qt.NoModifier);
-                    test.control(true);
+                    test.shift(false);
                     events.mouseClick(card, card.width / 2, card.height / 2, Qt.LeftButton, Qt.ControlModifier, 0);
+                    test.shift(true);
                     test.check(thumbnail.visible && thumbnail.menuRetained, "a later menu can retain its preview again");
                     host.persistSettings({windowPreviews:false});
                     test.check(!thumbnail.visible && !test.find(thumbnail.contentItem, "windowThumbnailCapture").active,
@@ -210,7 +212,7 @@ ShellRoot {
             } catch (error) {
                 console.error("WINDOWPEEK_TEST_FAIL: " + error, JSON.stringify({available:thumbnail.available,
                     allowed:thumbnail.previewAllowed, ready:thumbnail.ready, rowHovered:thumbnail.rowHovered,
-                    known:thumbnail.modifierState.known, ctrl:thumbnail.modifierState.controlDown, address:thumbnail.address}));
+                    known:thumbnail.modifierState.known, shift:thumbnail.modifierState.shiftDown, address:thumbnail.address}));
                 stop(); Qt.quit();
             }
         }
