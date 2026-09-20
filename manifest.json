@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "sarr.windowpeek",
+  "name": "WindowPeek",
+  "version": "0.1.0",
+  "author": "Sarr",
+  "license": "MIT",
+  "description": "Find a window across workspaces and go straight to it.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "Widget.qml"},
+  "barWidget": {
+    "displayName": "WindowPeek",
+    "description": "Search windows and Hyprland group tabs",
+    "category": "Compositor",
+    "defaultSection": "left",
+    "allowMultiple": false,
+    "defaults": {
+      "language": "auto",
+      "includeSpecial": true,
+      "windowPreviews": true,
+      "openOnHover": true,
+      "panelHoverDelay": 400,
+      "previewHoverDelay": 400,
+      "popupAnimations": true,
+      "scrollBounce": true,
+      "barLabel": "full",
+      "hintsMode": "auto",
+      "hintsUsed": 0,
+      "autoUpdates": true,
+      "colorMode": "adaptive",
+      "colorScope": "theme",
+      "themeColors": {},
+      "colorPresets": [],
+      "uiScale": 1,
+      "barScale": 1
+    },
+    "schema": [
+      {"key": "includeSpecial", "type": "boolean", "label": "Include special workspaces"},
+      {"key": "windowPreviews", "type": "boolean", "label": "Window previews"},
+      {"key": "openOnHover", "type": "boolean", "label": "Open panel on hover"},
+      {"key": "panelHoverDelay", "type": "number", "label": "Bar hover delay (0–2000 ms; 0 = instant)"},
+      {"key": "previewHoverDelay", "type": "number", "label": "Window preview delay (0–2000 ms; 0 = instant)"},
+      {"key": "popupAnimations", "type": "boolean", "label": "Popup animations"},
+      {"key": "scrollBounce", "type": "boolean", "label": "Springy scrolling"},
+      {"key": "barLabel", "type": "string", "label": "Bar label: full, compact or name"},
+      {"key": "language", "type": "string", "label": "Language code, or auto"},
+      {"key": "uiScale", "type": "number", "label": "Panel scale (0.8–2.0)"},
+      {"key": "barScale", "type": "number", "label": "Bar text scale (0.8–2.0)"}
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+dist/
+*.qmlc
+*.jsc
+__pycache__/
+.DS_Store
