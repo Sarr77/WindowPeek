@@ -7,6 +7,7 @@ import qs.Commons
 import "." as Local
 import "I18n.js" as I18n
 import "Settings.js" as Settings
+import "Shortcuts.js" as Shortcuts
 import "Appearance.js" as Appearance
 import "WindowModel.js" as Model
 import "Labels.js" as Labels
@@ -14,6 +15,7 @@ import "Labels.js" as Labels
 BarWidget {
     id: root
     moduleName: "sarr.windowpeek"
+    readonly property string version: runtime.version
     readonly property var runtime: Local.Runtime
     readonly property var inventory: runtime.state.inventory
     readonly property var snapshot: runtime.state.snapshot
@@ -31,9 +33,12 @@ BarWidget {
     readonly property var baseWords: I18n.words(language)
     readonly property var savedLabels: Labels.normalize(effectiveSettings)
     readonly property var labels: runtime.labelsPreviewOwner ? runtime.labelsPreview : savedLabels
-    readonly property var words: Labels.apply(baseWords, labels)
+    readonly property var shortcuts: Shortcuts.resolve(preference("shortcuts", {}))
+    readonly property var words: Labels.apply(Shortcuts.applyWords(baseWords, shortcuts), labels)
     readonly property var textTemplates: Labels.templates(baseWords, labels, preference("barLabel", "full"), vertical)
     readonly property bool includeSpecial: preference("includeSpecial", true) === true
+    readonly property bool previewBackdrop: preference("previewBackdrop", true) === true
+    readonly property bool previewFit: preference("previewFit", true) === true
     readonly property bool windowPreviews: preference("windowPreviews", true) === true
     readonly property bool openOnHover: preference("openOnHover", true) === true
     readonly property int panelHoverDelay: Settings.hoverDelay(preference("panelHoverDelay", 400))
@@ -41,6 +46,22 @@ BarWidget {
     readonly property bool popupAnimations: preference("popupAnimations", true) === true
     readonly property bool scrollBounce: preference("scrollBounce", true) === true
     readonly property bool shortcutNumbersRight: preference("shortcutNumbersRight", false) === true
+    readonly property string panelStyle: Settings.panelStyle(preference("panelStyle", "wallpaper"))
+    readonly property bool glassPanels: panelStyle !== "solid"
+    readonly property int glassTransparency: Settings.backgroundTransparency(preference("glassTransparency", 8), 8)
+    readonly property var wallpaperTransparencyRule: Settings.wallpaperRule(effectiveSettings, themeId)
+    readonly property int wallpaperTransparency: wallpaperTransparencyRule.value
+    readonly property int wallpaperTransparencyDefault: wallpaperTransparencyRule.defaultValue
+    function saveWallpaperTransparency(value) {
+        return persistSettings(Settings.setWallpaperTransparency(effectiveSettings, themeId, value));
+    }
+    readonly property real glassOpacity: 1 - glassTransparency / 100
+    readonly property bool backgroundBlur: preference("backgroundBlur", false) === true
+    readonly property bool backgroundTexture: preference("backgroundTexture", true) === true
+    readonly property url wallpaperSource: runtime.wallpaper.source
+    readonly property bool wallpaperPending: !runtime.wallpaper.checked
+    readonly property bool needsWallpaper: panelStyle === "wallpaper" && (opened || hoverOpened || thumbnail.visible)
+    onNeedsWallpaperChanged: runtime.wallpaper.observe(root, needsWallpaper)
     readonly property var hints: Settings.hints(effectiveSettings)
     readonly property bool autoUpdates: !effectiveSettings || effectiveSettings.autoUpdates === undefined || effectiveSettings.autoUpdates === true
     readonly property bool updatesAvailable: runtime.updates.available
@@ -50,6 +71,10 @@ BarWidget {
     readonly property string themeId: runtime.themeId
     readonly property color themeAccent: Color.accent
     readonly property color accent: Appearance.resolve(appearance, themeId, String(themeAccent))
+    property SurfacePalette surfaces: SurfacePalette {
+        appearance: root.appearance; themeId: root.themeId
+        panelStyle: root.panelStyle; accent: root.accent
+    }
     readonly property real uiScale: appearance.uiScale
     readonly property real requestedBarFont: Style.font.body * appearance.barScale
     readonly property real effectiveBarFont: vertical ? requestedBarFont
@@ -81,22 +106,23 @@ BarWidget {
 
     FontMetrics { id: metrics; font.family: root.bar ? root.bar.fontFamily : Style.font.family; font.pixelSize: root.requestedBarFont }
 
+    function observeWallpaper(owner, enabled) { runtime.wallpaper.observe(owner, enabled); }
     function peers() { return bar ? bar.moduleWidgets(moduleName) : [root]; }
     function onScreen(name) {
         var target = name || (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "");
         return peers().find(function(widget) { return widget.screenName === target; }) || root;
     }
-    function open() {
+    function open(quickSelection) {
         if (!panelLoader.item || opened || actionBusy) return;
         restoreFocus.stop();
         focusBeforePanel = snapshot ? Model.address(snapshot.activeAddress) : "";
         actionOnClose = false;
         runtime.actions.error = "";
         runtime.state.refresh();
-        panelLoader.item.open();
+        panelLoader.item.open(quickSelection);
     }
     function close() { thumbnail.dismiss(); if (panelLoader.item) panelLoader.item.close(); }
-    function toggle() { opened ? close() : open(); }
+    function toggle(quickSelection) { opened ? close() : open(quickSelection); }
     function pressBarButton() {
         if (opened) {
             // Closing by the bar is deliberate. Dwell resumes only after exit.
@@ -135,9 +161,10 @@ BarWidget {
         return bringHere ? runtime.actions.bring(address, screenName, releaseForAction)
             : runtime.actions.focus(address, releaseForAction);
     }
-    function chooseDestination(address, position, keepPreview) {
+    function chooseDestination(address, position) {
         if (actionBusy || !panelLoader.item || !inventory.windows.some(function(window) { return window.address === address; })) return false;
-        thumbnail.menuRetained = keepPreview === true && thumbnail.visible && thumbnail.address === address;
+        // Retain before mapping the menu so neither its anchor nor capture resets.
+        thumbnail.menuRetained = thumbnail.visible;
         if (!panelLoader.item.showMoveMenu(address, position)) { thumbnail.menuRetained = false; return false; }
         if (!thumbnail.menuRetained) thumbnail.dismiss();
         return true;
@@ -208,7 +235,7 @@ BarWidget {
     }
     onBarChanged: { injectPanel(); hydrate.restart(); }
     Component.onCompleted: hydrate.start()
-    Component.onDestruction: { cancelAppearance(); cancelLabels(); }
+    Component.onDestruction: { cancelAppearance(); cancelLabels(); runtime.wallpaper.observe(root, false); }
 
     Timer {
         id: hydrate; interval: 60
@@ -297,11 +324,17 @@ BarWidget {
         source: Qt.resolvedUrl("Panel.qml")
         onLoaded: { root.injectPanel(); Qt.callLater(root.injectPanel); }
     }
+    OpenShortcut {
+        active: ipcControl.enabled
+        chord: root.shortcuts.open
+        onPressed: root.onScreen("").toggle(true)
+    }
     IpcHandler {
+        id: ipcControl
         target: "sarr.windowpeek"
         enabled: !!root.snapshot && root.snapshot.monitors.length > 0 && root.screenName === root.snapshot.monitors[0].name
-        function toggle(screen: string): void { root.onScreen(screen).toggle(); }
-        function open(screen: string): void { root.onScreen(screen).open(); }
+        function toggle(screen: string): void { root.onScreen(screen).toggle(true); }
+        function open(screen: string): void { root.onScreen(screen).open(true); }
         function close(): void { root.broadcast("close"); }
         function focusWindow(address: string): bool {
             var widget = root.peers().find(function(w) { return w.opened; }) || root.onScreen("");
@@ -316,7 +349,7 @@ BarWidget {
         }
         function status(): string {
             return JSON.stringify(root.peers().map(function(w) {
-                return { screen: w.screenName, version: "0.1.0", ready: w.inventory.status === "ready",
+                return { screen: w.screenName, version: w.version, ready: w.inventory.status === "ready",
                     count: w.inventory.windows.length, opened: w.opened, language: w.language,
                     settingsReady: w.settingsReady, saveFailed: w.saveFailed, includeSpecial: w.includeSpecial, scrollBounce: w.scrollBounce,
                     panelHoverDelay: w.panelHoverDelay, previewHoverDelay: w.previewHoverDelay, popupAnimations: w.popupAnimations,

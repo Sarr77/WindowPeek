@@ -7,8 +7,10 @@ Item {
     required property string text
     property string description: ""
     property bool isSwitch: false
+    property bool bordered: false
     property bool checked: false
     property color accent: Color.accent
+    property var palette: null
     readonly property bool hot: pointer.containsMouse || activeFocus
     signal clicked()
     implicitHeight: Math.max(Style.space(48), captions.implicitHeight + Style.space(20))
@@ -29,14 +31,16 @@ Item {
 
     Rectangle {
         anchors.fill: parent; radius: Style.space(5)
-        color: root.accent
-        opacity: pointer.pressed ? 0.16 : root.hot ? 0.08 : 0
+        color: root.palette && root.palette.customMenu ? root.palette.menu : root.accent
+        opacity: root.palette && root.palette.customMenu
+            ? Math.min(1, root.palette.menuOpacity + (pointer.pressed ? 0.16 : root.hot ? 0.08 : 0))
+            : pointer.pressed ? 0.16 : root.hot ? 0.08 : root.bordered ? 0.035 : 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
     }
     Rectangle {
         anchors.fill: parent; radius: Style.space(5)
         color: "transparent"; border.width: 1; border.color: root.accent
-        opacity: root.activeFocus ? 1 : root.hot ? 0.45 : 0
+        opacity: root.activeFocus ? 1 : root.hot ? (root.bordered ? 0.8 : 0.45) : root.bordered ? 0.5 : 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
     }
     Column {
@@ -85,7 +89,7 @@ Item {
         Text {
             anchors.centerIn: parent; visible: !root.isSwitch
             text: root.LayoutMirroring.enabled ? "‹" : "›"; textFormat: Text.PlainText
-            color: root.hot ? root.accent : Qt.alpha(Color.popups.text, 0.5)
+            color: root.hot || root.bordered ? root.accent : Qt.alpha(Color.popups.text, 0.5)
             font.family: Style.font.family; font.pixelSize: Style.font.subtitle
         }
     }

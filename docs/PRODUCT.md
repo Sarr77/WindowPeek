@@ -24,7 +24,7 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   gesture in hover help. If already there, focus without detaching its group.
 - Ctrl+click opens a small destination menu at the click position from either
   list or its preview. Keep the list in its current mode and retain hover while
-  the menu is open. A menu opened on the preview retains that preview and its
+  the menu is open. Opening the menu retains any already visible preview and its
   capture until the menu closes or a move starts. Search or scroll to a workspace;
   selecting it moves the window. Pin Move to Scratchpad below the scrollable list,
   without duplicating it among the rows; disable it when already there.
@@ -45,7 +45,7 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   Offer a saved switch in Window list to align numbers at the right of the second
   line, moving Active to their left. Keep the app/tab position as the default.
   Keep the window's current monitor and close the panel.
-  Plain clicks on unused panel space expand the hover view or return
+  Left or middle clicks on unused panel space expand the hover view or return
   the window list to hover. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
 - Allow disabling the hover panel. In click-only mode, the bar and shortcut open
@@ -124,7 +124,11 @@ Mark the active window and grouped tabs clearly.
 
 The default bar label is **WindowPeek · count**. The agreed local shortcut is
 **Super + Alt + P**. Special workspaces start included and can be hidden in
-Settings. The installer leaves shortcut configuration to the user.
+Settings. The enabled plugin registers the shortcut if unused, preserving existing
+bindings. Opening by shortcut shows numbers and accepts bare digits for five
+seconds; typing starts search immediately. Page Up/Down and Home/End navigate
+the list (Home/End still edit a nonempty query). Mouse opening keeps the ordinary
+Ctrl shortcuts.
 
 ## Bar preview
 
@@ -157,7 +161,7 @@ The intended state directory is `$XDG_STATE_HOME/windowpeek`, falling back to
 
 Keep language first, then four expandable categories: Panel and previews, Window
 list, Personalization and Controls. Controls is a translated guide to mouse and
-keyboard actions, including the optional system shortcut. Use full-width outlined headers with clear expand/collapse
+keyboard actions, including the default opening shortcut. Use full-width outlined headers with clear expand/collapse
 indicators, keyboard operation and wrapped titles. Start collapsed on entering
 Settings; preserve expanded categories while visiting an editor. Collapsing a
 category closes its pickers and removes hidden controls from keyboard navigation.
@@ -199,8 +203,10 @@ Carry over these established design decisions where they fit WindowPeek:
   across monitors and persisted; manually enabled hints stay on until disabled.
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
-- Plain `by Sarr` at the other end of the footer, without a link initially.
-- A subtle daily-update control beside help, enabled by default. Disabling
+- The installed version beside `by Sarr` at the other end of the expanded footer.
+- A subtle automatic-update control beside help, enabled by default. Check about
+  a minute after startup if there has been no check that local day, then every
+  six hours. Restarts preserve the deadline without extra checks. Disabling
   requires confirmation. Install only immutable WindowPeek releases whose exact
   commits are verified in the official catalog; preserve settings and local work.
 
@@ -213,3 +219,13 @@ frameworks, services or abstractions that do not solve a current requirement.
 Desktop window operations need checks against real compositor behavior. A passed
 pure-model test alone does not prove focus or group navigation works. Validate
 the full interaction on multiple workspaces and monitors before calling it ready.
+
+## Shortcut customization
+
+Controls includes a dedicated editor for WindowPeek action shortcuts and mouse
+modifiers. Keep standard Tab/Shift+Tab, Enter, Space and Esc navigation. Group
+opening/selection, window actions, list navigation and mouse modifiers. Editing
+opens a stationary recorder with a mouse alternative and immediate conflict
+feedback. Save the complete draft with Apply; Cancel and Back discard it. Offer
+per-action reset and whole-draft defaults. Saved choices apply to both lists,
+previews and all monitors, independently of appearance themes.

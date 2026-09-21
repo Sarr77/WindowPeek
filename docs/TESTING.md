@@ -6,8 +6,9 @@ Run offline checks from the project directory:
 python3 tools/check.py
 ```
 
-Requires Node.js, Python 3, Quickshell, Qt Quick Test and the installed Omarchy
-shell components. No dependencies are downloaded. These checks use temporary
+Requires Node.js, Python 3, Lua, Quickshell, Qt Quick Test and the installed Omarchy
+shell components. ImageMagick (`magick`) exercises the real wallpaper sampling;
+that Python case is skipped when the binary is absent. No dependencies are downloaded. These checks use temporary
 profiles and fictional windows; they do not read the live window list or change
 desktop settings.
 
@@ -245,6 +246,22 @@ with Ctrl pressed before and after the content preview opens. Key delivery waits
 for native window activation, not just the QML focus item. It uses the same
 disposable windows and cleanup.
 
+`--keypad-shortcuts` sends actual keypad keycodes through a separate virtual
+keyboard, with Num Lock on and off. It verifies the selected row in hover and
+search at both scales, including a grouped tab and a window on another workspace.
+The lock state belongs to the test keyboard and is cleared before it is destroyed.
+Offscreen shortcut tests cover all ten digits, scrolled rows, unchanged search
+text, preview forwarding and dedicated navigation keys.
+
+`--fast-keypad` opens each list before pressing Ctrl, then sends Ctrl and the
+keypad digit in one Wayland flush without waiting for Ctrl hints or keyboard focus.
+It repeats at both scales, selecting an exact hidden group tab. A disposable
+terminal counts input bytes to detect leakage without recording their contents.
+After closing, the same probe must receive input again. Terminating the fixture
+also verifies the compositor's shortcut lease expires within two seconds.
+The Lua lease lifecycle has an offline test in `shortcut-bindings.test.cjs`;
+it requires the `lua` interpreter and checks owner isolation, expiry and handle reuse.
+
 The bar-return fixture uses the production Widget and bar button with a fictional
 inventory. It moves the compositor cursor and delivers matching Qt mouse events through
 the label, gap and card three times, checking that opacity never falls, the native surface never remaps, and
@@ -351,7 +368,8 @@ mid-action and other compositor versions have not been tested.
 directory exchange, without network or desktop access. It covers:
 
 - Successful replacement, full-project upgrade and unchanged preferences.
-- Daily deadlines, new workers, parallel processes and malformed schedule data.
+- Six-hour deadlines, new-day startup checks, same-day restarts, migration from
+  daily deadlines, parallel processes and malformed schedule data.
 - Missing or revoked catalog approval, unknown schemas, mutable releases,
   wrong SHAs, changed tags and unavailable services, including the final check.
 - Dirty files, hidden index flags, symlinks, submodules, executable mode changes,
@@ -371,9 +389,44 @@ Run `python3 -B tools/test_lifecycle.py` separately on Omarchy with Bubblewrap.
 It uses the real plugin CLI and registry inside a private home/config/state
 namespace, with no network or desktop sockets. It installs, enables, changes
 host settings, restarts, updates, removes and reinstalls the fixture while
-checking saved preferences and unchanged live configuration. A system sandbox
+checking saved preferences and unchanged live configuration. The saved values
+include distinct per-theme Wallpaper levels, surface colors and presets,
+custom shortcuts, preview choices, labels and scaling. A fresh install checks
+Wallpaper with grain, no blur, a pending per-theme contrast assessment and the
+full automatic hint budget starting at zero displays. A system sandbox
 may require permission to create this nested namespace. Git commits made by
 these tests exist only in disposable fixture repositories.
+
+`python3 tools/test_ui.py glass` checks painted row contrast, opaque foreground
+content, theme changes, the translated background picker, independent slider
+values, reset, effects and failed saves.
+Run it with `--scale 2` as well. Preference and widget tests cover restoring the
+choice after restarting and sharing it between monitors.
+
+`python3 tools/test_ui.py wallpaper-source` uses temporary images and a symlink
+to check loading, cache invalidation after link changes and in-place edits,
+missing files and the lifecycle of multiple panel consumers. It uses no desktop
+input and does not alter the current wallpaper.
+
+`WINDOWPEEK_TEST_BACKGROUND=/path/to/wallpaper.jpg python3 tools/test_ui.py wallpaper-opening --desktop`
+delays the initial wallpaper lookup and checks every opening frame for premature
+visibility. It also checks that fade-in remains animated, refreshing does not
+hide the card, missing files fall back to solid, and early close leaves no mapped
+panel. Run at both scales after arranging an idle desktop; `--compile-only` does
+not show panels. The source test also covers reopening during a pending lookup.
+
+`python3 tools/test_ui.py glass-native --desktop --image /tmp/windowpeek-glass`
+briefly covers one monitor with a fictional backdrop. Set
+`WINDOWPEEK_TEST_BACKGROUND=/path/to/wallpaper.jpg` for the wallpaper cases.
+It checks all three modes, rounded blur regions, light themes, both preview
+surfaces, wallpaper loading, missing-file fallback and stopping observation.
+It saves compositor captures for visual comparison without moving the cursor
+or sending input. Arrange an idle desktop first; run at both scales. Compare
+`reference`, `aligned-raw` and `popup-raw` pixels in clear areas of each card to
+verify wallpaper alignment. The striped backdrop must never appear in Wallpaper
+mode. `effects` captures blur and grain; `fallback` checks an unavailable image.
+Use `--compile-only` to check loading without displaying anything. Blur itself
+must be checked in the compositor captures, not inferred from QML properties.
 
 GitHub Actions pins external actions to full SHAs. It runs the Node/Python
 checks and package validation. Its Ubuntu runner does not provide Quickshell,
@@ -442,13 +495,16 @@ settings. Run it at both scales when changing the bar-close lifecycle.
 
 `python3 tools/test_ui.py gestures-native --desktop` checks the small destination
 menu in hover, expanded and preview-card views. A test-only virtual keyboard holds
-left/right Ctrl and Ctrl+Shift. Focused lists receive matching Qt click modifiers;
-passive preview surfaces receive none, exercising the Hyprland sampling fallback.
+left/right Ctrl and Ctrl+Shift. Both focused lists and passive previews receive
+clicks without Qt modifiers, exercising the Hyprland sampling fallback.
 Checks include unchanged list mode, search focus, selection, Escape, released
 keys, Ctrl preview interactions and waiting for both surfaces before a bring action.
 It also retains the originating preview in both list modes, with animations on
 and off. A real cursor move verifies that the menu receives hover above the native
 preview; right-click cancels the menu and releases retention.
+`--row-move-menu` opens the chooser from the list row while its preview is visible.
+Both variants assert that opening and using the menu never unmaps the preview or
+recreates its capture, in hover and expanded views with animations on and off.
 Actions are recorded against fictional windows, not sent to real windows. Run at
 100% and 200% with an idle desktop. `--compile-only` loads the fixture without
 mapping a surface or sending input.
@@ -518,3 +574,92 @@ fictional preview. This needs `grim` and does not save a desktop screenshot.
 `gestures-native --overlay-menu --desktop` forces the former layer-only menu
 for diagnosis; its pixel assertion is expected to fail. Normal runs cover
 hover and expanded lists with animations on and off, at each requested scale.
+
+
+`surfaces` checks color roles, independent theme scopes, preset Apply/Cancel,
+single-element and full-scope resets, and rejected writes. The preferences
+fixture checks cold restoration of surface rules and full color presets.
+`background` checks middle-button input alongside left/right clicks and scrolling.
+The `surfaces` case also clicks the live appearance sample: panel, window fields,
+active accents, menu and wallpaper. Repeat with `--scale 2`. It covers all three
+background modes, RTL, unchanged drafts and saved values, and verifies that no
+window action fires. `list-height` additionally checks that the editor opens at
+the top preview, Apply is reachable on small screens, and preview clicks preserve
+scroll and screen position after adding or removing role-specific controls.
+`dropdowns` repeats open/close and keyboard checks for both picker types in Solid,
+Wallpaper and Transparency, including a light theme. It checks their background
+coverage and can save comparisons with `--image`; repeat at `--scale 2`.
+Wallpaper checks include the popup's screen origin and unscaled background canvas.
+`dropdowns-native --desktop` renders the same synthetic wallpaper through the
+desktop renderer. Run it only during an agreed desktop test; its temporary
+window can be constrained by the compositor at 200%.
+It also checks wheel input on fitting, long, screen-constrained and filtered lists:
+short lists stay still, long lists scroll, and boundaries do not scroll the editor
+underneath. Repeat at a fractional scale such as `--scale 1.25`.
+
+`quick-selection` checks bare digits on both keyboard sections, Num Lock-off
+keysyms, visible-row numbering after paging, the actual five-second timeout,
+ordinary search typing, row-action focus and cancellation on close/settings.
+Repeat at `--scale 2`. `tools/test_live.py --quick-selection` uses disposable
+windows and native unmodified digit events at both scales, verifies the exact
+focused window/group tab, the timeout, unchanged groups and monitor placement,
+then restores the desktop. Coordinate its timing with the user first.
+`tests/shortcut-bindings.test.cjs` checks default-chord conflicts, handle reuse,
+ownership, cleanup and expiry without editing real keybindings.
+
+The native `glass-native --desktop` comparison covers custom fills, wallpaper
+brightness, grain colorization, both editor preview modes, and middle-click
+promotion/demotion at 100% and 200%. Captures use a fictional backdrop and list.
+
+
+`tools/test_capture.py --geometry-only --park-pointer --scale 1` checks portrait,
+landscape and live source resizing in hover and search, including dark-backing
+and fixed-frame opt-outs. Repeat at scale2 and with `--instant` for both native
+surface paths. It resizes only disposable fixture windows, compares captured and
+displayed aspect ratios after reopening, verifies the open frame stays fixed
+during a source resize, checks screen bounds and restores the desktop.
+
+`--motion-only` measures source and preview frame presentation over five seconds
+using a continuously animated fictional marker. It reports FPS and 95th-percentile
+and maximum frame intervals; it avoids conflating discrete geometry-test steps
+with live content playback. The cursor and desktop are restored by the fixture.
+
+`--startup-only --startup-source wayland --park-pointer` records the first preview
+frames for visible and inactive grouped windows. Repeat with `--startup-source xcb`
+to cover XWayland. This diagnostic needs `qml6` and starts its animated source in a
+separate process, so rendering the preview cannot drive the source's own animation
+loop. It reports popup/content timestamps and source/preview frame intervals from
+the start of each trial. A long source gap before popup visibility includes the
+intentional hidden wait; it is not a measured delay after opening. Frame swaps
+alone do not prove that every captured image contains newly rendered pixels.
+
+## Wallpaper readability
+
+`python tools/test_ui.py wallpaper-contrast` checks first-use sampling, theme
+isolation, per-theme reset, manual priority, stale results, missing images and
+failed saves without desktop access. It also delays applying a light theme's
+palette after its name changes, checks that no old-color result is saved, and
+exercises the actual Personalization slider's per-theme persistence.
+`tests/test_wallpaper_contrast.py` checks palette matching as well as
+the conservative trigger and local crop sampling using generated images.
+After coordinating desktop timing, `wallpaper-contrast-native --desktop` checks
+that first visible frames already use the adapted level, while acceptable
+backgrounds remain unchanged. Repeat with `--scale 2`; `--image <prefix>` saves
+the fictional panels. `--compile-only` maps no windows or input surfaces.
+
+## Shortcut editor
+
+`python tools/test_ui.py shortcuts-editor` checks draft isolation, Apply/Cancel,
+reset, save failure, conflicts, custom navigation and digit selection (including
+Num Lock off), standard Enter and RTL. Repeat with `--scale 2`.
+`tests/shortcut-bindings.test.cjs` checks custom modifier leases and canonical
+validation, alongside the default opener/number leases.
+
+After coordinating desktop timing, `python tools/test_ui.py shortcuts-native
+--desktop --scale 1` (then scale 2) uses fictional windows and a temporary
+Ctrl+F24 handler to verify protected recording and release. It also tests custom
+Alt+numpad in both views and Ctrl+click with deliberately stale Qt modifiers
+while the hover already owns focus. The destination and shortcut menus must
+use Wallpaper surfaces. The temporary handler is removed using its own handle;
+a timer also releases it if the fixture exits early. No real window actions
+are dispatched. `--compile-only` maps no windows and sends no input.

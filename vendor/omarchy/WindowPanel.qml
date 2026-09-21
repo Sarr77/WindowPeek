@@ -35,6 +35,21 @@ PanelWindow {
   property bool popoutSwitchClosing: false
   property bool focusPrimed: false
   property bool animationsEnabled: true
+  property bool glassEnabled: false
+  property color panelColor: Color.popups.background
+  property real glassOpacity: 0.92
+  property Component backgroundComponent: null
+  readonly property bool backgroundReady: !backgroundComponent
+    || (!!backgroundLoader.item && backgroundLoader.item.readyToShow)
+  // Gate only the start of an opening. A later wallpaper refresh must not hide
+  // a panel that is already in use, or interrupt its closing animation.
+  property bool backgroundPresented: false
+  function latchBackground() { if (visible && backgroundReady) backgroundPresented = true }
+  onBackgroundReadyChanged: Qt.callLater(latchBackground)
+  onVisibleChanged: {
+    if (!visible) backgroundPresented = false
+    else Qt.callLater(latchBackground)
+  }
   signal backgroundClicked()
   signal backRequested()
   signal transientCloseRequested()
@@ -67,6 +82,9 @@ PanelWindow {
   visible: open || hoverOpen || card.opacity > 0 || popoutSwitching
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
+  // Limit the compositor effect to the card, excluding dismissal and handoff areas.
+  BackgroundEffect.blurRegion: glassEnabled && card.opacity > 0 ? glassRegion : null
+  Region { id: glassRegion; item: card; radius: card.radius }
 
   // Keep Omarchy's layer role: its compositor rule disables a second animation.
   WlrLayershell.namespace: "omarchy-keyboard-panel"
@@ -345,14 +363,21 @@ PanelWindow {
     y: root.cardOrigin.y
     width: root.contentWidth
     height: root.contentHeight
-    color: Color.popups.background
+    color: root.glassEnabled ? Qt.alpha(root.panelColor, root.glassOpacity) : root.panelColor
     borderSpec: root.borderSpec
     padding: root.padding
     radius: root.cornerRadius
+    Loader {
+      id: backgroundLoader
+      anchors.fill: parent; anchors.margins: 1
+      active: root.visible && root.backgroundComponent !== null
+      sourceComponent: root.backgroundComponent
+    }
     opacity: cardMotion.value
     PopupMotion {
       id: cardMotion
-      targetValue: root.open || root.hoverOpen || root.popoutSwitching ? 1 : 0
+      targetValue: (root.open || root.hoverOpen || root.popoutSwitching)
+        && (root.backgroundPresented || root.backgroundReady) ? 1 : 0
       animated: root.animationsEnabled && !root.popoutSwitching && !root.popoutSwitchClosing
     }
 
@@ -361,7 +386,7 @@ PanelWindow {
       anchors.fill: parent
       acceptedButtons: Qt.AllButtons
       onClicked: function(mouse) {
-        if (mouse.button === Qt.LeftButton && mouse.modifiers === Qt.NoModifier) root.backgroundClicked()
+        if ((mouse.button === Qt.LeftButton || mouse.button === Qt.MiddleButton) && mouse.modifiers === Qt.NoModifier) root.backgroundClicked()
         else if (mouse.button === Qt.RightButton) root.backRequested()
       }
     }

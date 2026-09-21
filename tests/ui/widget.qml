@@ -41,6 +41,17 @@ ShellRoot {
                 }
                 test.check(a.language === "pl" && b.language === "pl", "startup restores both monitors");
                 test.check(a.includeSpecial && b.includeSpecial, "special workspaces are included by default");
+                test.check(a.panelStyle === "wallpaper" && b.panelStyle === "wallpaper"
+                    && a.backgroundTexture && b.backgroundTexture && !a.backgroundBlur,
+                    "fresh widgets default to Wallpaper with grain and no blur");
+                test.check(a.wallpaperTransparency === 70 && !a.wallpaperTransparencyRule.initialized
+                    && a.hints.mode === "auto" && a.hints.used === 0 && a.hints.remaining === 200 && a.hints.enabled,
+                    "fresh defaults leave theme assessment pending and start the full 200-display hint budget");
+                test.check(a.persistSettings({panelStyle:"glass"}) && a.glassPanels && b.glassPanels,
+                    "glass setting synchronizes across monitors");
+                test.check(b.persistSettings({panelStyle:"solid",backgroundTexture:false}) && !a.glassPanels && !b.glassPanels
+                    && !a.backgroundTexture && !b.backgroundTexture,
+                    "explicit Solid and disabled grain still override the new defaults on both monitors");
                 test.check(a.panelHoverDelay === 400 && a.previewHoverDelay === 400 && a.popupAnimations && a.openOnHover,
                     "existing behavior is the default");
                 test.check(a.persistSettings({panelHoverDelay:0, previewHoverDelay:1250, popupAnimations:false, openOnHover:false}), "timing preferences save");

@@ -74,6 +74,7 @@ ShellRoot {
                 panelFound: !!panel, panelMapped: !!panel && panel.mapped,
                 searchFocused: !!panel && panel.body.searchField.activeFocus,
                 shortcutControl: !!panel && panel.body.controlHeld,
+                quickSelection: !!panel && panel.body.quickSelection,
                 shortcutKeyboard: !!panel && panel.surface.keyboardActive,
                 shortcutFocused: !!panel && panel.body.activeFocus,
                 shortcutSurfaceActive: !!panel && !!panel.body.Window.window && panel.body.Window.window.active,
@@ -102,6 +103,7 @@ ShellRoot {
             testBar.screen = screen; return true;
         }
         function panelOpen(): void { widget.open(); }
+        function quickOpen(): void { widget.open(true); }
         function panelClose(): void { widget.close(); }
         function shortcutFilter(): bool {
             var panel = fixture.find(widget, "windowPeekController", "", []);
@@ -109,6 +111,16 @@ ShellRoot {
             panel.body.searchField.text = "WindowPeek-Test-";
             if (widget.opened) panel.body.searchField.forceActiveFocus();
             return true;
+        }
+        function passiveDigit(address: string): string {
+            var panel = fixture.find(widget, "windowPeekController", "", []);
+            if (!panel || !panel.mapped || !ipc.isTestWindow(address)) return "";
+            var list = fixture.find(panel.body, "windowList", "", []);
+            var row = list.rows.findIndex(function(item) { return item.kind === "window" && item.address === address; });
+            if (row < 0) return "";
+            list.ensureRowVisible(row);
+            var index = list.visibleWindowAddresses().indexOf(address);
+            return index >= 0 && index < 10 ? String((index + 1) % 10) : "";
         }
         function shortcutDigit(address: string): string {
             var panel = fixture.find(widget, "windowPeekController", "", []);

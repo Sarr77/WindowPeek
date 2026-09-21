@@ -19,6 +19,42 @@ const preview = load('WindowPreview.js');
 const labels = load('Labels.js');
 const placement = load('PopupPlacement.js');
 
+test('background choices reject invalid saved values and preserve transparency endpoints', () => {
+    for (const value of [undefined, null, '', '0', false, {}, NaN, Infinity]) {
+        assert.equal(settings.backgroundTransparency(value, 8), 8);
+        assert.equal(settings.backgroundTransparency(value, 70), 70);
+        assert.equal(settings.panelStyle(value), 'solid');
+    }
+    assert.equal(settings.backgroundTransparency(-1, 8), 0);
+    assert.equal(settings.backgroundTransparency(0, 8), 0);
+    assert.equal(settings.backgroundTransparency(62.8, 8), 63);
+    assert.equal(settings.backgroundTransparency(100, 8), 100);
+    assert.equal(settings.backgroundTransparency(150, 8), 100);
+    assert.equal(settings.panelStyle('wallpaper'), 'wallpaper');
+    assert.equal(settings.panelStyle('glass'), 'glass');
+    assert.equal(settings.panelStyle('unknown'), 'solid');
+});
+
+test('Wallpaper transparency and its first-use reset belong to each theme', () => {
+    let prefs = {wallpaperTransparency:70,glassTransparency:8};
+    assert.equal(settings.wallpaperRule(prefs,'kanagawa').initialized,false);
+    prefs = {...prefs, ...settings.setWallpaperTransparency(prefs,'kanagawa',45,45)};
+    prefs = {...prefs, ...settings.setWallpaperTransparency(prefs,'hackerman',70,70)};
+    prefs = {...prefs, ...settings.setWallpaperTransparency(prefs,'kanagawa',82)};
+    assert.equal(settings.wallpaperRule(prefs,'kanagawa').value,82);
+    assert.equal(settings.wallpaperRule(prefs,'kanagawa').defaultValue,45);
+    assert.equal(settings.wallpaperRule(prefs,'hackerman').value,70);
+    prefs = {...prefs, ...settings.setWallpaperTransparency(prefs,'kanagawa',45)};
+    assert.equal(settings.wallpaperRule(prefs,'kanagawa').value,45);
+    assert.equal(settings.wallpaperRule(prefs,'new-theme').value,70);
+    assert.equal(prefs.glassTransparency,8);
+    assert.equal(settings.wallpaperRule(JSON.parse(JSON.stringify(prefs)),'kanagawa').defaultValue,45);
+    assert.equal(settings.wallpaperRule({wallpaperTransparency:44},'legacy-theme').value,44);
+    for (const theme of ['', '__proto__','constructor','../other'])
+        assert.equal(JSON.stringify(settings.setWallpaperTransparency(prefs,theme,30)),'{}');
+    assert.equal(settings.wallpaperRule({wallpaperThemeTransparencies:{test:{value:'0',defaultValue:20}}},'test').initialized,false);
+});
+
 test('instant previews align to either panel edge on scaled and offset monitors', () => {
     for (const scale of [1, 2]) {
         const screen = {x:1920, y:-100, width:1920, height:1080};
@@ -106,6 +142,7 @@ test('new durable settings win over stale inline values without dropping unrelat
     assert.equal(restored.hintsUsed, 80);
     assert.ok(settings.stamp(restored, saved)._windowpeekRevision > 20);
     assert.equal(settings.hints({}).remaining, 200);
+    assert.equal(settings.hints({}).enabled, true);
     assert.equal(settings.hints({ hintsUsed: 100, hintsMode: 'auto' }).enabled, true);
     assert.equal(settings.hints({ hintsUsed: 199, hintsMode: 'auto' }).remaining, 1);
     assert.equal(settings.hints({ hintsUsed: 200, hintsMode: 'auto' }).enabled, false);
@@ -224,4 +261,61 @@ test('custom labels stay literal, validate variables and fall back to the curren
             assert.equal(labels.invalidVariables(field.key, defaults[field.key]).length, 0, code + ':' + field.key);
         }
     }
+});
+
+
+test('surface settings retain independent theme scopes and sanitize malformed values', () => {
+    let prefs = appearance.setSurfaceRule({}, 'windows', 'tokyo-night', 'theme', {color:'#246',brightness:12,opacity:42.2});
+    prefs = appearance.setSurfaceRule(prefs, 'panel', 'nord', 'all', {color:'#000',brightness:-20,opacity:null});
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','tokyo-night').color, '#224466');
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','nord').color, '');
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','tokyo-night').opacity, 42);
+    assert.equal(appearance.surfaceRuleFor(prefs,'panel','tokyo-night').brightness, -20);
+    assert.equal(appearance.surfaceRule({color:'bad color', brightness:Infinity, opacity:'55'}).opacity, null);
+    assert.equal(appearance.surfaceRule({brightness:300,opacity:-9}).brightness, 100);
+    assert.equal(appearance.brighten('#224466',-100), '#000000');
+    assert.equal(appearance.brighten('#224466',100), '#FFFFFF');
+    assert.equal(appearance.surfaceColor(prefs,'windows','nord','#ABCDEF'), '#ABCDEF');
+    assert.equal(Object.hasOwn(appearance.normalize({surfaceColors:{bad:{},panel:{themes:{constructor:{color:'#fff'}}}}}).surfaceColors.panel.themes,'constructor'), false);
+});
+
+test('complete color presets round trip, preserve legacy presets and reset only the selected scope', () => {
+    let prefs = appearance.setRule({},'nord','theme','custom','#123456');
+    prefs = appearance.setSurfaceRule(prefs,'windows','nord','theme',{color:'#345678',brightness:9,opacity:30});
+    prefs = appearance.setSurfaceRule(prefs,'wallpaper','nord','theme',{brightness:15});
+    const style = appearance.captureStyle(prefs,'nord');
+    prefs = appearance.upsertPreset(prefs,'','Full style','#123456',style);
+    prefs = appearance.upsertPreset(prefs,'','Legacy','#ABCDEF');
+    prefs = appearance.normalize(JSON.parse(JSON.stringify(prefs)));
+    assert.equal(prefs.colorPresets[1].style, undefined);
+    prefs = appearance.applyStyle(prefs,'tokyo-night','theme',prefs.colorPresets[0].style);
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','tokyo-night').opacity, 30);
+    assert.equal(appearance.surfaceRuleFor(prefs,'wallpaper','tokyo-night').brightness, 15);
+    prefs = appearance.applyStyle(prefs,'tokyo-night','theme',{});
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','tokyo-night').color, '');
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','nord').color, '#345678');
+    assert.equal(appearance.resolve(prefs,'nord','#fff'), '#123456');
+    assert.equal(prefs.colorPresets.length, 2);
+    prefs = appearance.applyStyle(prefs,'nord','all',style);
+    assert.equal(appearance.surfaceRuleFor(prefs,'windows','another').opacity, 30);
+    assert.equal(appearance.resolve(prefs,'another','#fff'), '#123456');
+});
+
+test('displayed runtime version matches the manifest', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8'));
+    assert.ok(fs.readFileSync(path.join(root,'Runtime.qml'),'utf8').includes('readonly property string version: "' + manifest.version + '"'));
+});
+
+
+test('preview dimensions follow portrait, landscape and changing source sizes within monitor bounds', () => {
+    const geometry = load('PreviewGeometry.js');
+    for (const [w,h] of [[320,640],[1920,1080],[100,2000],[2000,100]]) {
+        const fitted = geometry.fit(w,h,290,300,164,true);
+        assert.ok(fitted.width <= 290 && fitted.height <= 300);
+        assert.ok(Math.abs(fitted.width/fitted.height - w/h) < .0001);
+    }
+    assert.equal(geometry.fit(320,640,290,300,164,true).height, 300);
+    assert.equal(geometry.fit(320,640,290,300,164,false).height, 164);
+    assert.equal(geometry.fit(0,0,290,300,164,true).width, 290);
+    assert.equal(geometry.fit(Infinity,20,290,100,164,true).height, 100);
 });

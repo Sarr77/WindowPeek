@@ -58,6 +58,7 @@ Column {
 
     Choice.Dropdown {
         id: stylePicker; objectName: "labelStylePicker"
+        hostWidget: root.hostWidget
         width: parent.width; label: root.words.labelStyle
         value: root.style; accent: root.accent; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
         options: [{value:"default", label:root.words.defaultLabels}, {value:"custom", label:root.words.customLabels}]
@@ -70,6 +71,7 @@ Column {
     }
     Choice.Dropdown {
         id: groupPicker; objectName: "labelGroupPicker"
+        hostWidget: root.hostWidget
         width: parent.width; label: root.words.labelSection
         value: root.group; accent: root.accent; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
         options: Labels.groups.map(function(group) { return {value:group.value, label:root.words[group.word]}; })

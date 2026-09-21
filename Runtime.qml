@@ -6,9 +6,11 @@ import "Appearance.js" as Appearance
 
 QtObject {
     id: root
+    readonly property string version: "0.7.0"
     property WindowState state: WindowState { }
     property WindowActions actions: WindowActions { state: root.state }
     property Preferences preferences: Preferences { }
+    property WallpaperSource wallpaper: WallpaperSource { }
     property var fallbackSettings: null
     property bool publishingSettings: false
     property Updates updates: Updates { preferences: root.preferences }

@@ -107,6 +107,7 @@ ShellRoot {
                     events.keyClick(Qt.Key_Space, Qt.NoModifier, 0); break;
                 case 10:
                     test.check(test.section("Personalization").expanded, "Space opens the focused category");
+                    panel.ensureVisible(test.named("openScalingButton"));
                     test.image("personalization"); break;
                 case 11:
                     panel.ensureVisible(test.named("openColorsButton"));

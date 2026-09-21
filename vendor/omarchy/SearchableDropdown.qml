@@ -66,7 +66,9 @@ Item {
   signal controlClicked()
 
   property color foreground: Color.popups.text
-  property color background: Color.popups.background
+  property var hostWidget: null
+  property var palette: hostWidget ? hostWidget.surfaces : null
+  property color background: palette ? palette.pickerBackground : Color.popups.background
   property color accent: Color.accent
   property color popupBorder: accent
   readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
@@ -236,8 +238,9 @@ Item {
         onAboutToShow: root.updatePlacement()
         onImplicitHeightChanged: if (visible) Qt.callLater(root.updatePlacement)
         implicitHeight: Math.max(root.popupMinHeight,
-                                 Math.min(resultList.contentHeight + Style.space(50),
-                                          root.popupRowHeight * 6 + 5 * Style.spacing.labelGap + Style.space(50)))
+                                 Math.min(resultList.contentHeight,
+                                          root.popupRowHeight * 6 + 5 * Style.spacing.labelGap)
+                                 + searchHeader.height + separator.height + topPadding + bottomPadding)
         padding: Style.spacing.hairline
         leftPadding: Border.left(root.popupBorderSpec) + Style.spacing.hairline
         rightPadding: Border.right(root.popupBorderSpec) + Style.spacing.hairline
@@ -245,8 +248,9 @@ Item {
         bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
         focus: true
 
-        background: BorderSurface {
-          color: root.background
+        background: WindowPeek.DropdownSurface {
+          hostWidget: root.hostWidget; uiScale: root.uiScale
+          fallbackBackground: root.background
           borderSpec: root.popupBorderSpec
           radius: Style.cornerRadius
         }
@@ -270,7 +274,7 @@ Item {
               height: root.popupRowHeight + Style.spacing.controlPaddingX
 
               TextField {
-                id: searchField
+                id: searchField; objectName: "dropdownSearchField"
                 anchors.fill: parent
                 anchors.margins: Style.spacing.md
                 placeholderText: root.placeholderText
@@ -305,6 +309,7 @@ Item {
             }
 
             Rectangle {
+              id: separator
               width: parent.width
               height: 1
               color: Util.alpha(root.foreground, 0.10)
@@ -330,6 +335,7 @@ Item {
                 spacing: Style.spacing.labelGap
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                interactive: contentHeight > height
                 model: root.filtered
                 currentIndex: -1
                 keyNavigationEnabled: false

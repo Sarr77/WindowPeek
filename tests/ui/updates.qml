@@ -10,6 +10,7 @@ ShellRoot {
     id: test
     property int step: 0
     property int launches: 0
+    property bool startupLaunch: false
     property var control: null
     property var confirmation: null
     function check(value, message) { if (!value) throw new Error(message); }
@@ -26,8 +27,8 @@ ShellRoot {
         var updates = host.runtime.updates;
         var prefs = host.runtime.preferences;
         updates.runtimeAvailable = true;
-        updates.launch = function() { test.launches++; };
-        updates.nextCheck = 0; updates.lastLaunch = 0;
+        updates.launch = function(startup) { test.launches++; test.startupLaunch = startup; };
+        updates.nextCheck = 0; updates.lastCheck = 0; updates.lastLaunch = 0; updates.startupPending = true;
         var quiet = {opened:false, hoverOpened:false, actionBusy:false};
         try {
             check(updates.enabled, "saved default enables updates");
@@ -52,17 +53,29 @@ ShellRoot {
             check(test.launches === 1, "failed worker startup is not retried every tick");
             updates.check([quiet], 1300);
             check(test.launches === 2, "worker startup can be retried");
-            updates.nextCheck = 87400; updates.lastLaunch = 0;
+            updates.lastCheck = 1000; updates.nextCheck = 87400; updates.lastLaunch = 0; updates.startupPending = true;
             updates.check([quiet], 1001);
-            check(test.launches === 2, "persisted daily deadline survives a scheduler restart");
-            updates.check([quiet], 87400);
-            check(test.launches === 3, "check becomes due after 24 hours");
+            check(test.launches === 2, "a restart on the same day does not add a check");
+            updates.check([quiet], 22599);
+            check(test.launches === 2, "old daily schedule waits for the six-hour deadline");
+            updates.check([quiet], 22600);
+            check(test.launches === 3 && !test.startupLaunch, "check becomes due after six hours from the previous attempt");
+            var yesterday = new Date(2026,8,20,23,30).getTime()/1000;
+            var today = new Date(2026,8,21,0,15).getTime()/1000;
+            updates.lastCheck = yesterday; updates.nextCheck = yesterday + 21600; updates.lastLaunch = 0;
+            updates.check([quiet], today);
+            check(test.launches === 3,"midnight alone does not break the six-hour cadence");
+            updates.startupPending = true; updates.check([quiet],today);
+            check(test.launches === 4 && test.startupLaunch,"first startup of a new day requests its check");
+            updates.lastCheck = today; updates.nextCheck = today+21600; updates.lastLaunch = 0;
+            updates.startupPending = true; updates.check([quiet],today+60);
+            check(test.launches === 4,"another startup the same day keeps the recorded deadline");
             host.persistSettings({autoUpdates:false});
             updates.check([quiet], 200000);
-            check(!updates.enabled && test.launches === 3, "saved opt-out blocks checks");
+            check(!updates.enabled && test.launches === 4, "saved opt-out blocks checks");
             host.persistSettings({autoUpdates:"true"});
             updates.check([quiet], 200000);
-            check(!updates.enabled && !host.autoUpdates && test.launches === 3, "invalid opt-in does not start a worker");
+            check(!updates.enabled && !host.autoUpdates && test.launches === 4, "invalid opt-in does not start a worker");
             host.persistSettings({autoUpdates:true});
         } finally { updates.runtimeAvailable = false; }
     }

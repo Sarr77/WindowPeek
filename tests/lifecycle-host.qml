@@ -85,7 +85,13 @@ ShellRoot {
     }
     function testState(): string {
       return JSON.stringify({loaded:!!widget.item,ready:!!widget.item && widget.item.settingsReady,
-        settings:widget.item ? widget.item.settings : null});
+        settings:widget.item ? widget.item.settings : null,
+        defaults:widget.item ? {panelStyle:widget.item.panelStyle,
+          backgroundTexture:widget.item.backgroundTexture, backgroundBlur:widget.item.backgroundBlur,
+          wallpaperTransparency:widget.item.wallpaperTransparency,
+          wallpaperInitialized:widget.item.wallpaperTransparencyRule.initialized,
+          hintsMode:widget.item.hints.mode, hintsUsed:widget.item.hints.used,
+          hintsRemaining:widget.item.hints.remaining, hintsEnabled:widget.item.hints.enabled} : null});
     }
   }
 }

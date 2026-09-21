@@ -44,7 +44,9 @@ Item {
   property var options: []
 
   property color foreground: Color.popups.text
-  property color background: Color.popups.background
+  property var hostWidget: null
+  property var palette: hostWidget ? hostWidget.surfaces : null
+  property color background: palette ? palette.pickerBackground : Color.popups.background
   property color accent: Color.accent
   property color popupBorder: accent
   readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
@@ -183,8 +185,9 @@ Item {
         height: root.placement.height
         onAboutToShow: root.updatePlacement()
         onImplicitHeightChanged: if (visible) Qt.callLater(root.updatePlacement)
-        implicitHeight: Math.min(root.options.length * root.popupRowHeight + Math.max(0, root.options.length - 1) * Style.spacing.labelGap + Style.spacing.xxs,
-                                 root.popupRowHeight * 8 + 7 * Style.spacing.labelGap + Style.spacing.xxs)
+        implicitHeight: Math.min(root.options.length * root.popupRowHeight + Math.max(0, root.options.length - 1) * Style.spacing.labelGap,
+                                 root.popupRowHeight * 8 + 7 * Style.spacing.labelGap)
+                        + topPadding + bottomPadding
         padding: Style.spacing.hairline
         leftPadding: Border.left(root.popupBorderSpec) + Style.spacing.hairline
         rightPadding: Border.right(root.popupBorderSpec) + Style.spacing.hairline
@@ -192,8 +195,9 @@ Item {
         bottomPadding: Border.bottom(root.popupBorderSpec) + Style.spacing.hairline
         focus: true
 
-        background: BorderSurface {
-          color: root.background
+        background: WindowPeek.DropdownSurface {
+          hostWidget: root.hostWidget; uiScale: root.uiScale
+          fallbackBackground: root.background
           borderSpec: root.popupBorderSpec
           radius: Style.cornerRadius
         }
@@ -204,7 +208,7 @@ Item {
         }
 
         contentItem: ListView {
-          id: optionList
+          id: optionList; objectName: "optionList"
           spacing: Style.spacing.labelGap
 
           Keys.priority: Keys.BeforeItem
@@ -223,6 +227,7 @@ Item {
           implicitHeight: contentHeight
           clip: true
           boundsBehavior: Flickable.StopAtBounds
+          interactive: contentHeight > height
           model: root.options
           currentIndex: -1
 

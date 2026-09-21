@@ -12,6 +12,8 @@ Rectangle {
     id: root
     required property var hostWidget
     property bool interactive: true
+    property size wallpaperCanvasSize: Qt.size(width, height)
+    property point wallpaperOrigin: Qt.point(1, 1)
     property real maximumHeight: Style.space(560)
     property bool showHint: !hostWidget || !hostWidget.hints || hostWidget.hints.enabled
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
@@ -36,6 +38,38 @@ Rectangle {
     signal focusRequested(string address)
     signal bringRequested(string address)
     signal moveRequested(string address)
+    function containsPoint(item, x, y) {
+        if (!item || !item.visible) return false;
+        var point = item.mapFromItem(root, x, y);
+        return point.x >= 0 && point.y >= 0 && point.x < item.width && point.y < item.height;
+    }
+    function appearanceElementAt(x, y) {
+        var edge = Style.space(3);
+        if (x < edge || y < edge || x >= width - edge || y >= height - edge
+                || containsPoint(countBadge, x, y) || containsPoint(list.scrollbar, x, y)) return "accent";
+        if (containsPoint(list, x, y)) {
+            for (var i = 0; i < list.rows.length; ++i) {
+                var row = list.itemAtIndex(i);
+                if (!row || row.model.kind !== "window" || !containsPoint(row, x, y)) continue;
+                var point = row.item.mapFromItem(root, x, y);
+                return row.item.appearanceElementAt(point.x, point.y);
+            }
+        }
+        return "panel";
+    }
+    function appearanceItems(target) {
+        if (target === "panel" || target === "grain") return [root];
+        if (target !== "accent" && target !== "windows") return [];
+        // Reevaluate after the sample's delegates have been laid out.
+        list.contentHeight;
+        var items = target === "accent" ? [countBadge, list.scrollbar.contentItem] : [];
+        for (var i = 0; i < list.rows.length; ++i) {
+            var row = list.itemAtIndex(i);
+            if (row && row.item && row.model.kind === "window")
+                items = items.concat(row.item.appearanceItems(target));
+        }
+        return items.filter(function(item) { return item.visible; });
+    }
     function resetScroll() { list.cancelFlick(); list.contentY = 0; }
     function activate(address, action) {
         if (!interactive || busy) return;
@@ -48,9 +82,25 @@ Rectangle {
     }
     implicitWidth: Style.space(compact ? 360 : 420)
     implicitHeight: content.implicitHeight + inset * 2
-    color: Color.popups.background
+    color: hostWidget && hostWidget.panelStyle === "glass" ? Qt.alpha(hostWidget.surfaces.panel, hostWidget.glassOpacity)
+        : hostWidget ? hostWidget.surfaces.panel : Color.popups.background
     border.color: Qt.alpha(accent, 0.5); border.width: 1
     radius: Style.space(8)
+
+    Loader {
+        anchors.fill: parent; anchors.margins: 1
+        active: !!root.hostWidget && (root.hostWidget.panelStyle === "wallpaper"
+            || (root.hostWidget.glassPanels && root.hostWidget.backgroundTexture))
+        sourceComponent: WallpaperBackdrop {
+            palette: root.hostWidget.surfaces
+            source: root.hostWidget.wallpaperSource
+            wallpaper: root.hostWidget.panelStyle === "wallpaper"
+            blurred: root.hostWidget.backgroundBlur; textured: root.hostWidget.backgroundTexture
+            tintOpacity: 1-root.hostWidget.wallpaperTransparency/100
+            screenSize: root.wallpaperCanvasSize; screenOrigin: root.wallpaperOrigin
+            radius: root.radius-1
+        }
+    }
 
     Column {
         id: content

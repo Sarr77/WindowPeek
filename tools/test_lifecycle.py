@@ -78,9 +78,27 @@ def inside(base):
             run('omarchy', 'plugin', 'validate', str(installed))
             print('PASS clean installation through actual Omarchy CLI and PluginRegistry', flush=True)
             wait_saved(lambda: json.loads(run('omarchy-shell','shell','testState'))['ready'])
+            initial = json.loads(run('omarchy-shell','shell','testState'))['defaults']
+            assert initial['panelStyle'] == 'wallpaper' and initial['backgroundTexture'] is True
+            assert initial['backgroundBlur'] is False and initial['wallpaperTransparency'] == 70
+            assert initial['wallpaperInitialized'] is False, 'New install copied theme assessment history'
+            assert initial['hintsMode'] == 'auto' and initial['hintsUsed'] == 0
+            assert initial['hintsRemaining'] == 200 and initial['hintsEnabled'] is True
+            print('PASS fresh install uses Wallpaper/grain and a new automatic hint budget', flush=True)
             preferences = {'language':'pl','accentColor':'#EF98F5','hintsUsed':37,'hintsMode':'auto','autoUpdates':False,
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
-                           'uiScale':1.25,'barScale':1.1,'customLabels':{'barText':'My windows'}}
+                           'uiScale':1.25,'barScale':1.1,'customLabels':{'barText':'My windows'},
+                           'panelStyle':'wallpaper','wallpaperTransparency':70,
+                           'wallpaperThemeTransparencies':{'kanagawa':{'value':12,'defaultValue':10},
+                                                          'catppuccin-latte':{'value':64,'defaultValue':70}},
+                           'glassTransparency':9,'backgroundBlur':True,'backgroundTexture':True,
+                           'previewBackdrop':False,'previewFit':False,
+                           'shortcuts':{'open':'Alt+Super+K','numbers':'Alt','privacy':'Ctrl'},
+                           'surfaceColors':{'windows':{'scope':'theme','themes':{
+                               'kanagawa':{'color':'#112233','brightness':12,'opacity':63}}}},
+                           'colorPresets':[{'id':'preset-1','name':'My colors','color':'#EF98F5',
+                                            'style':{'accent':{'mode':'custom','color':'#EF98F5'},
+                                                     'surfaces':{'panel':{'color':'#234567','brightness':3}}}}]}
             assert run('omarchy-shell','shell','testSave',json.dumps(preferences)) == 'true'
             wait_saved(lambda: saved_entry().get('hintsUsed') == 37)
             preferences_file = profile / '.local/state/windowpeek/preferences.json'
@@ -96,6 +114,9 @@ def inside(base):
             expected = saved_entry()
             assert expected['language'] == 'de' and expected['autoUpdates'] is False
             assert stored()['hintsUsed'] == 37, 'Host edits changed the hint count'
+            for key, value in preferences.items():
+                if key not in ('language', 'autoUpdates'):
+                    assert stored()[key] == value, f'Preference lost or changed before restart: {key}'
             print('PASS Omarchy bar settings reach the durable file before restart', flush=True)
             run('omarchy','plugin','enable',PLUGIN)
             assert saved_entry() == expected, 'Idempotent enable changed settings'

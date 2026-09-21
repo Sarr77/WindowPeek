@@ -8,13 +8,16 @@ root = Path(__file__).resolve().parents[1]
 commands = [
     ["node", "tests/model.test.cjs"],
     ["node", "tests/contracts.test.cjs"],
+    ["node", "tests/shortcut-bindings.test.cjs"],
     [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"],
     [sys.executable, "tools/test_qml.py"],
     [sys.executable, "-B", "tools/test_preferences.py"],
 ]
-for case in ("window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
+for case in ("wallpaper-contrast", "shortcuts-editor", "surfaces", "wallpaper-source", "glass", "quick-selection", "window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
     commands.append([sys.executable, "tools/test_ui.py", case])
+commands.append([sys.executable, "tools/test_ui.py", "glass", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "window-shortcuts", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "quick-selection", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "background", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "defaults", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "list-height", "--scale", "2"])

@@ -41,12 +41,16 @@ parser.add_argument("--instant", action="store_true", help="Use zero preview del
 parser.add_argument("--screen", help="Monitor for the fixture; defaults to the focused monitor")
 parser.add_argument("--hover-only", action="store_true", help="Check real Qt hover transitions without the longer capture scenarios")
 parser.add_argument("--privacy-only", action="store_true", help="Check Shift preview suppression with a virtual keyboard; requires idle input")
+parser.add_argument("--motion-only", action="store_true", help="Measure source and preview frame delivery with continuous motion")
+parser.add_argument("--startup-only", action="store_true", help="Measure initial preview frames for visible and hidden fictional sources")
+parser.add_argument("--startup-source", choices=("wayland", "xcb"), default="wayland", help="Backend of the separate startup-test source")
+parser.add_argument("--geometry-only", action="store_true", help="Check live landscape/portrait resize and preview backing options")
 parser.add_argument("--frames-only", action="store_true", help="Measure source repaint and capture delivery without pointer scenarios")
 parser.add_argument("--image", type=Path, help="Save only the fictional preview card")
 args = parser.parse_args()
 if args.pointer and args.park_pointer:
     parser.error("--pointer and --park-pointer are mutually exclusive")
-if args.frames_only and (args.pointer or args.hover_only or args.privacy_only):
+if (args.frames_only or args.geometry_only or args.motion_only or args.startup_only) and (args.pointer or args.hover_only or args.privacy_only):
     parser.error("--frames-only cannot be combined with other scenario selectors")
 if args.hover_only and args.pointer:
     parser.error("--hover-only uses Qt events and cannot be combined with --pointer")
@@ -81,6 +85,10 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
                WINDOWPEEK_TEST_INSTANT="1" if args.instant else "",
                WINDOWPEEK_TEST_SCREEN=test_monitor["name"],
                WINDOWPEEK_TEST_POINTER="1" if args.pointer else "", XDG_STATE_HOME=str(profile / "state"), XDG_CACHE_HOME=str(profile / "cache"))
+    if args.startup_only:
+        env["WINDOWPEEK_EXTERNAL_SOURCE"] = "1"
+    external_source = None
+    external_log = (profile / "source.log").open("w")
     with (profile / "runtime.log").open("w") as log:
         shell = subprocess.Popen(["quickshell", "--no-color", "-p", str(profile)], env=env, stdout=log, stderr=subprocess.STDOUT)
         def ipc(method, *arguments):
@@ -141,6 +149,9 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
             # a fully occluded client may stop submitting frames.
             evaluate("hl.dispatch(hl.dsp.focus({monitor=" + json.dumps(source_monitor["name"]) + "})); "
                      "hl.dispatch(hl.dsp.focus({workspace=" + json.dumps("name:" + identity + "-source") + "}))")
+            if args.startup_only:
+                external_source = subprocess.Popen(["qml6",str(root / "tests/startup-source.qml"),"--",identity],
+                    env=dict(env,QT_QPA_PLATFORM=args.startup_source,QT_FORCE_STDERR_LOGGING="1"),stdout=external_log,stderr=subprocess.STDOUT)
             ipc("createSources")
             address = wait(lambda: next((w["address"] for w in query("clients") if w["title"] == identity), None), "Fixture source did not open")
             sibling = wait(lambda: next((w["address"] for w in query("clients") if w["title"] == identity + "-sibling"), None), "Fixture sibling did not open")
@@ -152,6 +163,102 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
                 # hover path, including when the preview maps beside the list.
                 parking = next((m for m in old_monitors if m["name"] != test_monitor["name"]), test_monitor)
                 move_cursor({"x": parking["x"] + 2, "y": parking["y"] + 2})
+            if args.startup_only:
+                ipc("startMotion")
+                for state_name in ("visible", "hidden-tab"):
+                    if state_name == "hidden-tab":
+                        evaluate('hl.dispatch(hl.dsp.group.toggle({window="address:' + address + '"})); '
+                                 'hl.get_window("address:' + address + '").group:add(hl.get_window("address:' + sibling + '")); '
+                                 'hl.dispatch(hl.dsp.focus({window="address:' + sibling + '"}))')
+                        group_guard=('local w=hl.get_window("address:' + address + '"); '
+                                     'if not w.group or w.group.current ~= hl.get_window("address:' + sibling + '") then error("fixture tab selection changed") end')
+                        evaluate(group_guard)
+                    for surface in ("panel", "hover"):
+                        ipc("showSurface",surface)
+                        time.sleep(1.2)
+                        before=desktop_state()
+                        ipc("armStartup"); ipc("hover")
+                        time.sleep(2.5)
+                        samples=json.loads(ipc("startupResult"))
+                        source_times=[int(t) for t in re.findall(r"SOURCE_FRAME (\d+)",(profile / "source.log").read_text())]
+                        samples["source"]=[t-samples["startedAt"] for t in source_times if samples["startedAt"] <= t <= samples["startedAt"]+2500]
+                        if state_name == "visible":
+                            assert len(samples["source"])>10, "Separate source frame log is unavailable or source is not animating"
+                        def summary(times):
+                            gaps=[b-a for a,b in zip(times,times[1:])]
+                            return {"first_ms":times[0] if times else None,"count":len(times),
+                                    "first_12_ms":times[:12],"max_gap_ms":max(gaps,default=0)}
+                        print(json.dumps({"state":state_name,"surface":surface,"scale":args.scale,"backend":args.startup_source,"started_at":samples["startedAt"],
+                            "events":samples["events"],"source":summary(samples["source"]),
+                            "preview":summary(samples["preview"])}),flush=True)
+                        assert samples["preview"], "Startup preview never appeared"
+                        assert desktop_state()==before, "Capture changed focus or workspace"
+                        if state_name == "hidden-tab": evaluate(group_guard)
+                        ipc("leave"); ipc("parentClose")
+                        wait(lambda: not status()["content"],"Capture retained after startup trial")
+                ipc("stopMotion")
+                output=(profile / "runtime.log").read_text()
+                assert not re.search(r"ReferenceError|TypeError|Unable to assign|Binding loop|Error loading|Cannot capture",output),output
+                for w in query("clients"):
+                    if w["address"] in old_windows:
+                        assert (w["workspace"]["name"],sorted(w.get("grouped",[])),w["monitor"])==old_windows[w["address"]]
+                raise SystemExit(0)
+            if args.motion_only:
+                ipc("showSurface","hover"); time.sleep(.2); hover()
+                ipc("startMotion"); time.sleep(5)
+                frames=json.loads(ipc("stopMotion"))
+                def timing(samples):
+                    samples=samples[5:]
+                    gaps=sorted(b-a for a,b in zip(samples,samples[1:]))
+                    return {"frames":len(samples),"fps":round((len(samples)-1)*1000/(samples[-1]-samples[0]),1),
+                            "p95_ms":gaps[int((len(gaps)-1)*.95)],"max_ms":max(gaps)} if len(samples)>5 else {"frames":len(samples)}
+                print(json.dumps({k:timing(v) for k,v in frames.items()}),flush=True)
+                assert len(frames["preview"]) > 30, "Preview is not delivering continuous frames"
+                output=(profile / "runtime.log").read_text()
+                assert not re.search(r"ReferenceError|TypeError|Unable to assign|Binding loop|Error loading|Cannot capture",output),output
+                raise SystemExit(0)
+            if args.geometry_only:
+                evaluate('hl.dispatch(hl.dsp.window.float({window="address:' + address + '",action="set"}))')
+                for surface in ("panel", "hover"):
+                    ipc("showSurface", surface); time.sleep(.2); hover()
+                    ipc("previewOptions", "false", "true")
+                    wait(lambda: status()["imageBackingAlpha"] == 0 and status()["frameSizeLocked"], "Preview backing/initial fitted size did not settle")
+                    header_height=status()["height"]
+                    ipc("previewTitle","Short title"); time.sleep(.08)
+                    assert abs(status()["height"]-header_height)<1, "Shortened live title changes frame height"
+                    ipc("previewTitle","Fictional document — workspace navigation and thumbnail layout review, with further details beyond the second line")
+                    assert abs(status()["height"]-header_height)<1, "Wrapped live title changes frame height"
+                    for width,height in ((800,450),(320,640),(900,300)):
+                        baseline = status()
+                        evaluate('hl.dispatch(hl.dsp.window.resize({window="address:' + address + '",x=' + str(width) + ',y=' + str(height) + ',relative=false}))')
+                        def fitted():
+                            state = status()
+                            if not state["content"] or state["captureHeight"] <= 0: return False
+                            ratio = state["captureWidth"] / state["captureHeight"]
+                            return abs(ratio-width/height) < .02 and abs(state["fittedWidth"]/state["fittedHeight"]-ratio)<.002 \
+                                and abs(state["viewWidth"]-state["fittedWidth"]) < 1 and abs(state["viewHeight"]-state["fittedHeight"]) < 1
+                        wait(lambda: status()["captureHeight"] > 0 and abs(status()["captureWidth"]/status()["captureHeight"]-width/height)<.02,
+                             "Source capture did not resize")
+                        stable = status()
+                        assert abs(stable["fittedWidth"]-baseline["fittedWidth"])<1 and abs(stable["fittedHeight"]-baseline["fittedHeight"])<1, "Open preview changes its fitted image area"
+                        assert abs(stable["cardWidth"]-baseline["cardWidth"])<1 and abs(stable["height"]-baseline["height"])<1, "Open preview frame moves while the source resizes"
+                        hover()
+                        wait(fitted,"Reopened preview does not fit current source proportions")
+                        state = status()
+                        assert state["width"] <= test_monitor["width"] and state["height"] <= test_monitor["height"], state
+                        if args.image:
+                            destination=args.image.with_name(args.image.stem+'-'+surface+'-'+str(width)+'x'+str(height)+args.image.suffix)
+                            ipc("save",str(destination)); wait(destination.exists,"Preview screenshot not saved")
+                    ipc("previewOptions","true","false")
+                    wait(lambda: status()["imageBackingAlpha"] == 1 and abs(status()["fittedHeight"]-164)<1,
+                         "Fixed frame and dark backing cannot be restored")
+                    print("PASS",surface,"stable open frame, proportions on reopen and optional backing; scale",args.scale,flush=True)
+                output=(profile / "runtime.log").read_text()
+                assert not re.search(r"ReferenceError|TypeError|Unable to assign|Binding loop|Error loading|Cannot capture",output),output
+                for w in query("clients"):
+                    if w["address"] in old_windows:
+                        assert (w["workspace"]["name"], sorted(w.get("grouped", [])), w["monitor"]) == old_windows[w["address"]]
+                raise SystemExit(0)
             if args.frames_only:
                 ipc("showSurface", "panel"); time.sleep(.2); hover()
                 for value, expected in [("#7b52cc", [123,82,204]), ("#28b4c8", [40,180,200])] * 5:
@@ -350,6 +457,9 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
                 print(error.stdout, error.stderr)
             raise
         finally:
+            if external_source:
+                external_source.terminate(); external_source.wait(timeout=5)
+            external_log.close()
             shell.terminate(); shell.wait(timeout=5)
             for monitor in old_monitors:
                 if not any(m["name"] == monitor["name"] for m in query("monitors")):

@@ -5,6 +5,7 @@ Item {
     id: root
     required property string title
     property color accent: Color.accent
+    property var palette: null
     property bool expanded: false
     readonly property alias headerItem: header
     default property alias content: body.data
@@ -32,8 +33,10 @@ Item {
             Keys.onRightPressed: root.expanded = !root.LayoutMirroring.enabled
             Rectangle {
                 anchors.fill: parent; radius: Style.space(6)
-                color: root.accent
-                opacity: pointer.pressed ? 0.16 : header.hot ? 0.1 : root.expanded ? 0.075 : 0.035
+                color: root.palette && root.palette.customMenu ? root.palette.menu : root.accent
+                opacity: root.palette && root.palette.customMenu
+                    ? Math.min(1, root.palette.menuOpacity + (pointer.pressed ? 0.12 : header.hot ? 0.07 : root.expanded ? 0.04 : 0))
+                    : pointer.pressed ? 0.16 : header.hot ? 0.1 : root.expanded ? 0.075 : 0.035
                 Behavior on opacity { NumberAnimation { duration: 120 } }
             }
             Rectangle {
@@ -69,7 +72,11 @@ Item {
         Item {
             width: parent.width; height: body.implicitHeight + Style.space(16)
             visible: root.expanded
-            Rectangle { anchors.fill: parent; radius: Style.space(6); color: Qt.alpha(Color.popups.text, 0.025) }
+            Rectangle {
+                anchors.fill: parent; radius: Style.space(6)
+                color: root.palette && root.palette.customMenu
+                    ? Qt.alpha(root.palette.menu, root.palette.menuOpacity) : Qt.alpha(Color.popups.text, 0.025)
+            }
             Column {
                 id: body
                 x: Style.space(10); y: Style.space(8)

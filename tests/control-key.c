@@ -39,16 +39,24 @@ static uint32_t key_code(const char *name) {
     if (!strcmp(name, "Control_R")) return 97;
     if (!strcmp(name, "Shift_L")) return 42;
     if (!strcmp(name, "Shift_R")) return 54;
+    if (!strcmp(name, "Alt_L")) return 56;
+    if (!strcmp(name, "Alt_R")) return 100;
+    if (!strcmp(name, "Super_L")) return 125;
+    if (!strcmp(name, "Super_R")) return 126;
     return 0;
 }
 
 int main(int argc, char **argv) {
+    setvbuf(stdin, NULL, _IONBF, 0); // poll must see each queued test command.
     if (argc != 2 && argc != 3) return 2;
     uint32_t key = key_code(argv[1]);
-    if (!key) return 2;
-    if (argc == 3 && strcmp(argv[2], "Shift_L") && strcmp(argv[2], "Shift_R")) return 2;
-    uint32_t shift = argc == 3 ? key_code(argv[2]) : 0;
-    if (key == shift) return 2;
+    if (!key && strcmp(argv[1], "None")) return 2;
+    static const uint32_t keypad[] = {82, 79, 80, 81, 75, 76, 77, 71, 72, 73};
+    int chord = argc == 3 && strlen(argv[2]) == 8 && !strncmp(argv[2], "keypad:", 7)
+        && argv[2][7] >= '0' && argv[2][7] <= '9';
+    if (argc == 3 && !chord && strcmp(argv[2], "Shift_L") && strcmp(argv[2], "Shift_R")) return 2;
+    uint32_t shift = argc == 3 && !chord ? key_code(argv[2]) : 0;
+    if (key && key == shift) return 2;
     struct wl_display *display = wl_display_connect(NULL);
     if (!display) return 3;
     struct wl_registry *registry = wl_display_get_registry(display);
@@ -72,29 +80,52 @@ int main(int argc, char **argv) {
     struct sigaction action = {.sa_handler = stop};
     sigemptyset(&action.sa_mask);
     sigaction(SIGTERM, &action, NULL); sigaction(SIGINT, &action, NULL);
-    uint32_t mask = 1u << xkb_keymap_mod_get_index(keymap,
-        key == 42 || key == 54 ? XKB_MOD_NAME_SHIFT : XKB_MOD_NAME_CTRL);
-    zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_PRESSED);
+    uint32_t mask = key ? 1u << xkb_keymap_mod_get_index(keymap,
+        key == 42 || key == 54 ? XKB_MOD_NAME_SHIFT :
+        key == 56 || key == 100 ? XKB_MOD_NAME_ALT :
+        key == 125 || key == 126 ? XKB_MOD_NAME_LOGO : XKB_MOD_NAME_CTRL) : 0;
+    if (key) zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_PRESSED);
     if (shift) {
         mask |= 1u << xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
         zwp_virtual_keyboard_v1_key(keyboard, now(), shift, WL_KEYBOARD_KEY_STATE_PRESSED);
     }
     zwp_virtual_keyboard_v1_modifiers(keyboard, mask, 0, 0, 0);
+    // Send an immediate chord in the same flush, without giving the passive
+    // hover's Ctrl poll time to claim focus before the digit arrives.
+    if (chord) {
+        uint32_t digit = keypad[argv[2][7] - '0'];
+        zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_PRESSED);
+        zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_RELEASED);
+    }
     int result = wl_display_roundtrip(display);
     if (result >= 0) {
         puts("pressed"); fflush(stdout);
         struct pollfd input = {.fd = STDIN_FILENO, .events = POLLIN};
         uint32_t started = now();
         char command[32];
+        uint32_t num_lock = 1u << xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
         for (;;) {
             int remaining = 10000 - (int)(now() - started);
             if (remaining <= 0 || poll(&input, 1, remaining) <= 0) break;
             if (!fgets(command, sizeof(command), stdin)) break;
             // Tests may tap a digit on this same keyboard while Ctrl stays
             // held. A blank line retains the original release-and-exit API.
-            if (strlen(command) != 6 || strncmp(command, "tap ", 4)
-                    || command[4] < '0' || command[4] > '9' || command[5] != '\n') break;
-            uint32_t digit = command[4] == '0' ? 11 : 2 + (uint32_t)(command[4] - '1');
+            uint32_t digit;
+            if (!strcmp(command, "numlock on\n") || !strcmp(command, "numlock off\n")) {
+                zwp_virtual_keyboard_v1_modifiers(keyboard, mask, 0,
+                    !strcmp(command, "numlock on\n") ? num_lock : 0, 0);
+                if (wl_display_roundtrip(display) < 0) { result = -1; break; }
+                puts("locked"); fflush(stdout);
+                continue;
+            } else if (strlen(command) == 9 && !strncmp(command, "keypad ", 7)
+                    && command[7] >= '0' && command[7] <= '9' && command[8] == '\n') {
+                digit = keypad[command[7] - '0'];
+            } else if (strlen(command) == 6 && !strncmp(command, "tap ", 4)
+                    && command[4] >= '0' && command[4] <= '9' && command[5] == '\n') {
+                digit = command[4] == '0' ? 11 : 2 + (uint32_t)(command[4] - '1');
+            } else if (!strcmp(command, "f24\n")) {
+                digit = 194; // Isolated shortcut-recorder fixture only.
+            } else break;
             zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_PRESSED);
             zwp_virtual_keyboard_v1_key(keyboard, now(), digit, WL_KEYBOARD_KEY_STATE_RELEASED);
             if (wl_display_roundtrip(display) < 0) { result = -1; break; }
@@ -102,7 +133,7 @@ int main(int argc, char **argv) {
         }
     }
     if (shift) zwp_virtual_keyboard_v1_key(keyboard, now(), shift, WL_KEYBOARD_KEY_STATE_RELEASED);
-    zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_RELEASED);
+    if (key) zwp_virtual_keyboard_v1_key(keyboard, now(), key, WL_KEYBOARD_KEY_STATE_RELEASED);
     zwp_virtual_keyboard_v1_modifiers(keyboard, 0, 0, 0, 0);
     if (wl_display_roundtrip(display) < 0) result = -1;
     zwp_virtual_keyboard_v1_destroy(keyboard);

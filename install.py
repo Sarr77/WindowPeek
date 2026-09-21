@@ -16,11 +16,12 @@ PLUGIN_ID = "sarr.windowpeek"
 def runtime_files(source):
     for path in sorted(source.iterdir()):
         if path.is_file() and (path.suffix in (".qml", ".js", ".json")
-                               or path.name in ("qmldir", "update.py", "LICENSE", "README.md")):
+                               or path.name in ("qmldir", "update.py", "wallpaper_contrast.py", "LICENSE", "README.md")):
             yield path.relative_to(source)
-    for path in sorted((source / "vendor").rglob("*")):
-        if path.is_file():
-            yield path.relative_to(source)
+    for directory in ("vendor", "assets"):
+        for path in sorted((source / directory).rglob("*")):
+            if path.is_file():
+                yield path.relative_to(source)
 
 
 def owned(path):

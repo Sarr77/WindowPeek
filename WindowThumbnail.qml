@@ -1,8 +1,11 @@
 import QtQuick
 import QtQuick.Window
 import Quickshell
+import Quickshell.Wayland
 import qs.Commons
 import "PopupPlacement.js" as Placement
+import "PreviewGeometry.js" as Geometry
+import "Shortcuts.js" as Shortcuts
 
 // One preview shared by both lists, with pointer handoff to the card.
 Scope {
@@ -26,6 +29,16 @@ Scope {
     readonly property real uiScale: hostWidget.uiScale
     readonly property int hoverDelay: hostWidget.previewHoverDelay
     readonly property bool instant: !hostWidget.popupAnimations
+    readonly property bool glass: hostWidget.panelStyle === "glass"
+    readonly property bool wallpaper: hostWidget.panelStyle === "wallpaper"
+    readonly property point screenOrigin: {
+        if (!anchorWindow || !anchorWindow.screen) return Qt.point(0, 0);
+        var screen = anchorWindow.screen;
+        var bounds = Qt.rect(screen.x + boundsRect.x, screen.y + boundsRect.y, boundsRect.width, boundsRect.height);
+        var origin = Placement.beside(bounds, rowRect.y - boundsRect.y, rowRect.height, width, height, screen);
+        return Qt.point(origin.x, origin.y);
+    }
+    readonly property alias cardItem: card
     readonly property bool visible: ready && available && previewAllowed
     readonly property bool backingWindowVisible: popup.backingWindowVisible || (!!instantLoader.item && instantLoader.item.backingWindowVisible)
     readonly property alias contentItem: scene
@@ -33,6 +46,22 @@ Scope {
     readonly property bool available: hostWidget.windowPreviews && (!hostWidget.moveMenuOpen || menuRetained) && !!entry && !!anchorItem && anchorItem.visible
         && !!anchorWindow && anchorWindow.visible && !hostWidget.actionBusy
     readonly property bool hasContent: captureLoader.item ? captureLoader.item.hasContent : false
+    readonly property size sourceSize: hasContent ? captureLoader.item.sourceSize : Qt.size(0,0)
+    readonly property real maximumCardWidth: Math.min(Style.space(320), anchorWindow && anchorWindow.screen
+        ? (anchorWindow.screen.width - Style.space(20) - bridgeWidth*2)/uiScale : Style.space(320))
+    readonly property real maximumImageHeight: Math.max(Style.space(40), Math.min(Style.space(300),
+        anchorWindow && anchorWindow.screen ? anchorWindow.screen.height/uiScale - Style.space(120) : Style.space(300)))
+    property size sessionSourceSize: Qt.size(0,0)
+    function rememberSourceSize() {
+        if (visible && hasContent && sessionSourceSize.width <= 0 && sourceSize.width > 0 && sourceSize.height > 0)
+            sessionSourceSize = sourceSize;
+    }
+    onSourceSizeChanged: Qt.callLater(rememberSourceSize)
+    onHasContentChanged: Qt.callLater(rememberSourceSize)
+    onReadyChanged: if (ready) { sessionSourceSize = Qt.size(0,0); Qt.callLater(rememberSourceSize); }
+    readonly property var imageSize: Geometry.fit(sessionSourceSize.width, sessionSourceSize.height,
+        maximumCardWidth-Style.space(30),maximumImageHeight,Style.space(164),hostWidget.previewFit)
+
     readonly property rect rowRect: {
         watcher.transform;
         return anchorItem && anchorScene ? anchorItem.mapToItem(anchorScene, 0, 0, anchorItem.width, anchorItem.height) : Qt.rect(0, 0, 0, 0);
@@ -51,7 +80,10 @@ Scope {
         target: root.hostWidget
         function onMoveMenuOpenChanged() { if (!root.hostWidget.moveMenuOpen) root.menuRetained = false; }
     }
-    PreviewModifiers { id: modifiers; active: root.available }
+    PreviewModifiers {
+        id: modifiers; active: root.available
+        modifier: Shortcuts.normalize(root.hostWidget.shortcuts).privacy
+    }
     function schedulePreview() {
         if (!available || !previewAllowed) {
             dwell.stop(); ready = false;
@@ -92,9 +124,10 @@ Scope {
     function activate(value, modifiers, position) {
         if (!available || value !== address) return;
         var accepted;
-        var choose = (modifiers & Qt.ControlModifier) && !(modifiers & Qt.ShiftModifier);
-        if (modifiers & Qt.ControlModifier)
-            accepted = modifiers & Qt.ShiftModifier ? hostWidget.bringWindow(value) : hostWidget.chooseDestination(value, position, true);
+        var action = Shortcuts.mouseAction(hostWidget.shortcuts, modifiers);
+        var choose = action === "move";
+        if (action !== "focus")
+            accepted = action === "bring" ? hostWidget.bringWindow(value) : hostWidget.chooseDestination(value, position);
         else accepted = hostWidget.focusWindow(value);
         if (accepted && !choose) dismiss();
     }
@@ -133,6 +166,8 @@ Scope {
         visible: root.visible && !root.instant
         implicitWidth: root.width; implicitHeight: root.height
         grabFocus: false; color: "transparent"
+        BackgroundEffect.blurRegion: root.glass && visible ? blurRegion : null
+        Region { id: blurRegion; item: card; radius: card.radius * root.uiScale }
         anchor {
             window: root.anchorWindow
             edges: Edges.Right | Edges.Top
@@ -171,13 +206,31 @@ Scope {
         Rectangle {
             id: card; objectName: "windowThumbnailCard"
             x: root.bridgeWidth
-            width: Math.min(Style.space(320), root.anchorWindow && root.anchorWindow.screen
-                ? (root.anchorWindow.screen.width - Style.space(20)) / root.uiScale : Style.space(320))
+            width: root.imageSize.width + Style.space(30)
             height: implicitHeight
             implicitHeight: layout.implicitHeight + Style.space(12) * 2
             scale: root.uiScale; transformOrigin: Item.TopLeft
-            color: Color.popups.background; radius: Style.space(7)
+            color: root.glass ? Qt.alpha(root.hostWidget.surfaces.panel, root.hostWidget.glassOpacity) : root.hostWidget.surfaces.panel
+            radius: Style.space(7)
             border.width: 1; border.color: Qt.alpha(root.hostWidget.accent, 0.65)
+            Loader {
+                anchors.fill: parent; anchors.margins: 1
+                active: root.visible && (root.wallpaper || (root.glass && root.hostWidget.backgroundTexture))
+                sourceComponent: WallpaperBackdrop {
+                    objectName: "previewWallpaper"
+                    palette: root.hostWidget.surfaces
+                    source: root.hostWidget.wallpaperSource
+                    wallpaper: root.wallpaper
+                    blurred: root.hostWidget.backgroundBlur
+                    textured: root.hostWidget.backgroundTexture
+                    tintOpacity: 1 - root.hostWidget.wallpaperTransparency / 100
+                    radius: card.radius - 1
+                    displayScale: root.uiScale
+                    screenSize: root.anchorWindow && root.anchorWindow.screen
+                        ? Qt.size(root.anchorWindow.screen.width, root.anchorWindow.screen.height) : Qt.size(0, 0)
+                    screenOrigin: Qt.point(root.screenOrigin.x + card.x + root.uiScale, root.screenOrigin.y + root.uiScale)
+                }
+            }
             Accessible.role: Accessible.Button
             Accessible.name: root.entry ? root.entry.app + " · " + root.entry.title : ""
             Accessible.onPressAction: root.activate(root.address, Qt.NoModifier)
@@ -188,9 +241,13 @@ Scope {
                 LayoutMirroring.enabled: root.hostWidget.language === "ar"
                 LayoutMirroring.childrenInherit: true
                 Item {
-                    width: parent.width; height: Math.max(Style.space(34), heading.implicitHeight)
+                    // Reserve two title lines so live title changes cannot move the frame.
+                    width: parent.width
+                    height: Math.max(Style.space(34), appCaption.implicitHeight + titleMetrics.lineSpacing*2 + heading.spacing)
+                    FontMetrics { id: titleMetrics; font: previewTitle.font }
                     WindowIcon {
                         id: icon
+                        visible: card.width >= Style.space(140)
                         width: Style.space(26); height: width
                         anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
                         appId: root.entry ? root.entry.appId || root.entry.app : ""
@@ -198,16 +255,17 @@ Scope {
                     }
                     Column {
                         id: heading
-                        anchors.left: icon.right; anchors.leftMargin: Style.space(9)
+                        anchors.left: icon.visible ? icon.right : parent.left; anchors.leftMargin: icon.visible ? Style.space(9) : 0
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         spacing: Style.space(2)
                         Text {
+                            id: appCaption
                             width: parent.width; text: root.entry ? root.entry.app : ""
                             textFormat: Text.PlainText; elide: Text.ElideRight
                             color: root.hostWidget.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
                         }
                         Text {
-                            objectName: "windowThumbnailTitle"
+                            id: previewTitle; objectName: "windowThumbnailTitle"
                             width: parent.width; text: root.entry ? root.entry.title || root.words.unnamed : ""
                             textFormat: Text.PlainText; elide: Text.ElideRight
                             wrapMode: Text.Wrap; maximumLineCount: 2
@@ -216,10 +274,11 @@ Scope {
                     }
                 }
                 Rectangle {
-                    id: display
-                    width: parent.width; height: Style.space(170)
-                    color: Qt.darker(Color.popups.background, 1.25); radius: Style.space(3)
-                    border.width: 1; border.color: Qt.alpha(Color.popups.text, 0.14)
+                    id: display; objectName: "windowThumbnailDisplay"
+                    width: parent.width; height: root.imageSize.height + Style.space(6)
+                    color: root.hostWidget.previewBackdrop ? Qt.darker(Color.popups.background, 1.25) : "transparent"
+                    radius: Style.space(3)
+                    border.width: root.hostWidget.previewBackdrop ? 1 : 0; border.color: Qt.alpha(Color.popups.text, 0.14)
                     Loader {
                         id: captureLoader; objectName: "windowThumbnailCapture"
                         anchors.fill: parent; anchors.margins: Style.space(3)

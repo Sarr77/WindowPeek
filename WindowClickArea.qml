@@ -12,14 +12,17 @@ MouseArea {
     property var gesture: null
     property int sequence: 0
     readonly property string identity: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2)
+    // Acquiring hover keyboard focus does not synchronize a pre-held Ctrl in
+    // Qt. Read the compositor for native clicks even when the surface is active.
     readonly property bool needsCompositor: Quickshell.env("QT_QPA_PLATFORM") !== "offscreen"
-        && !(root.Window.window && root.Window.window.active)
 
     function query(token) {
         if (!Hyprland.usingLua) { cancel(); return; }
         Hyprland.dispatch("hl.dsp.event('windowpeek-click," + token
             + ",' .. ((hl.is_key_down('Control_L') or hl.is_key_down('Control_R')) and '1' or '0')"
-            + " .. ((hl.is_key_down('Shift_L') or hl.is_key_down('Shift_R')) and '1' or '0'))");
+            + " .. ((hl.is_key_down('Shift_L') or hl.is_key_down('Shift_R')) and '1' or '0')"
+            + " .. ((hl.is_key_down('Alt_L') or hl.is_key_down('Alt_R')) and '1' or '0')"
+            + " .. ((hl.is_key_down('Super_L') or hl.is_key_down('Super_R')) and '1' or '0'))");
     }
     function begin(modifiers, sample, position) {
         cancel();
@@ -33,11 +36,13 @@ MouseArea {
         var prefix = "windowpeek-click," + gesture.token + ",";
         if (data.slice(0, prefix.length) !== prefix) return;
         var value = data.slice(prefix.length);
-        if (!/^[01]{2}$/.test(value)) return;
+        if (!/^(?:[01]{2}|[01]{4})$/.test(value)) return;
         deadline.stop();
         gesture.token = "";
         gesture.modifiers = (value[0] === "1" ? Qt.ControlModifier : 0)
-            | (value[1] === "1" ? Qt.ShiftModifier : 0);
+            | (value[1] === "1" ? Qt.ShiftModifier : 0)
+            | (value[2] === "1" ? Qt.AltModifier : 0)
+            | (value[3] === "1" ? Qt.MetaModifier : 0);
         finish();
     }
     function complete() {

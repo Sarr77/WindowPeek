@@ -12,6 +12,7 @@ import "I18n.js" as I18n
 import "WindowPreview.js" as Preview
 import "Labels.js" as Labels
 import "Settings.js" as Settings
+import "Shortcuts.js" as Shortcuts
 
 FocusScope {
     id: root
@@ -37,6 +38,7 @@ FocusScope {
     property bool showHint: !!hostWidget && hostWidget.hints.enabled
     property string orderAddress: ""
     readonly property bool controlHeld: shortcutModifiers.known && shortcutModifiers.controlDown
+    readonly property bool quickSelection: quickSelectionTimer.running && shortcutsAvailable
     readonly property var shortcutModifierState: shortcutModifiers
     readonly property bool shortcutsAvailable: opened && mode === "windows" && !busy
         && !confirmation.opened && !!hostWidget && !hostWidget.moveMenuOpen
@@ -59,7 +61,8 @@ FocusScope {
     readonly property bool canMoveToScratchpad: !!moveWindow && !!moveWindow.workspace
         && moveWindow.workspace.name !== "special:scratchpad" && !busy
     readonly property bool busy: hostWidget && hostWidget.actionBusy
-    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels"
+    readonly property var shortcuts: Shortcuts.normalize(hostWidget ? hostWidget.shortcuts : {})
+    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels" || mode === "shortcuts"
     readonly property real listChromeHeight: header.implicitHeight + list.anchors.topMargin
         + list.anchors.bottomMargin + footer.implicitHeight
     implicitHeight: mode === "windows" ? listChromeHeight
@@ -68,10 +71,20 @@ FocusScope {
             + Math.max(moveForm.implicitHeight, destinationPicker.popupOpen
                 ? destinationPicker.y + destinationPicker.height + Style.space(4) + destinationPicker.preferredPopupHeight : 0)
         : mode === "settings" ? Style.space(640)
+        : mode === "appearance" || mode === "shortcuts" ? Math.min(maximumHeight, Math.max(Style.space(540),
+            header.implicitHeight + editorScroll.anchors.topMargin + editorColumn.implicitHeight
+            + editorScroll.anchors.bottomMargin + footer.implicitHeight))
         : Style.space(540)
     signal closeRequested()
     signal backgroundClicked()
-    ShortcutModifiers { id: shortcutModifiers; active: root.shortcutsAvailable }
+    ShortcutModifiers {
+        id: shortcutModifiers; active: root.shortcutsAvailable
+        modifier: root.shortcuts.numbers
+        onDigitPressed: function(digit) { root.activateWindowDigit(digit); }
+    }
+    Timer { id: quickSelectionTimer; interval: 5000 }
+    function startQuickSelection() { if (shortcutsAvailable && expanded) quickSelectionTimer.restart(); }
+    onShortcutsAvailableChanged: if (!shortcutsAvailable) quickSelectionTimer.stop()
     property var activateWindow: function(address, bringHere) {
         if (!opened || !hostWidget || busy || !matches.some(function(window) { return window.address === address; })) return;
         if (bringHere) hostWidget.bringWindow(address); else hostWidget.focusWindow(address);
@@ -84,6 +97,7 @@ FocusScope {
         if (destination && !destinations.some(function(item) { return item.value === root.destination; })) destination = "";
     }
     function begin(takeFocus) {
+        quickSelectionTimer.stop();
         if (takeFocus === undefined) takeFocus = true;
         opened = true;
         shortcutModifiers.reset();
@@ -104,6 +118,7 @@ FocusScope {
         Qt.callLater(function() { if (root.mode === "windows") search.forceActiveFocus(); });
     }
     function demote() {
+        quickSelectionTimer.stop();
         list.cancelFlick();
         search.focus = false;
         focus = false;
@@ -173,18 +188,21 @@ FocusScope {
     function handleSearchKey(event) {
         updateControl(event, true);
         if (handleWindowShortcut(event)) return;
-        var towardMove = event.key === (rtl ? Qt.Key_Left : Qt.Key_Right);
+        if (handleListNavigation(event)) return;
+        var towardMove = Shortcuts.matches(event, Shortcuts.actionChord(shortcuts, "moveSide", rtl));
         var atTextEdge = search.cursorPosition === (rtl ? 0 : search.text.length);
-        if (towardMove && event.modifiers === Qt.NoModifier && atTextEdge && !search.selectedText) {
+        if (towardMove && atTextEdge && !search.selectedText) {
             // At the text edge, continue into the selected row's action column.
             // Inside the query or with a selection, keep normal text editing.
             event.accepted = list.focusAction(selectedAddress, true);
-        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
-            moveSelection(event.key === Qt.Key_Down ? 1 : -1); event.accepted = true;
+        } else if (Shortcuts.matches(event, shortcuts.next) || Shortcuts.matches(event, shortcuts.previous)) {
+            moveSelection(Shortcuts.matches(event, shortcuts.next) ? 1 : -1); event.accepted = true;
+        } else if (Shortcuts.matches(event, shortcuts.move)) {
+            if (selectedAddress && !busy) openMove(selectedAddress);
+            event.accepted = true;
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             if (selectedAddress && hostWidget && !busy) {
-                if (event.modifiers & Qt.ShiftModifier) openMove(selectedAddress);
-                else hostWidget.focusWindow(selectedAddress);
+                hostWidget.focusWindow(selectedAddress);
             }
             event.accepted = true;
         } else if (event.key === Qt.Key_Escape) { closeRequested(); event.accepted = true; }
@@ -192,17 +210,48 @@ FocusScope {
     function handleWindowShortcut(event) {
         if (!opened || mode !== "windows" || confirmation.opened
                 || !hostWidget || hostWidget.moveMenuOpen) return false;
-        var modifiers = event.modifiers & ~Qt.KeypadModifier;
-        if (modifiers !== Qt.ControlModifier || event.key < Qt.Key_0 || event.key > Qt.Key_9) return false;
+        var modifiers = Shortcuts.eventMask(event, true);
+        if (modifiers !== Shortcuts.mask(shortcuts.numbers) && !(quickSelection && modifiers === Qt.NoModifier)) return false;
+        var digit = Shortcuts.digit(event);
+        if (digit < 0) {
+            if (quickSelection && event.text && event.text.length && modifiers === Qt.NoModifier)
+                quickSelectionTimer.stop();
+            return false;
+        }
         event.accepted = true;
         if (busy || event.isAutoRepeat) return true;
-        var index = event.key === Qt.Key_0 ? 9 : event.key - Qt.Key_1;
+        activateWindowDigit(digit);
+        return true;
+    }
+    function activateWindowDigit(digit) {
+        if (!shortcutsAvailable || !hostWidget || digit < 0 || digit > 9) return;
+        var index = digit === 0 ? 9 : digit - 1;
         var address = list.visibleWindowAddresses()[index];
         if (address) hostWidget.focusWindow(address);
-        return true;
     }
     function updateControl(event, pressed) {
         shortcutModifiers.key(event, pressed);
+    }
+    function handleListNavigation(event) {
+        if (!shortcutsAvailable) return false;
+        if (Shortcuts.matches(event, shortcuts.move)) {
+            if (selectedAddress && !event.isAutoRepeat) openMove(selectedAddress);
+            event.accepted = true; return true;
+        }
+        var names = ["pageUp", "pageDown", "first", "last"];
+        var index = names.findIndex(function(id) { return Shortcuts.matches(event, root.shortcuts[id]); });
+        if (index < 0) return false;
+        // Standard caret navigation in a nonempty query always keeps priority.
+        if (search.activeFocus && search.text && !Shortcuts.eventMask(event, true)
+                && (event.key === Qt.Key_Home || event.key === Qt.Key_End)) return false;
+        var action = list.focusedAction;
+        var address = list.pageAddress([Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Home, Qt.Key_End][index]);
+        if (address) {
+            selectedAddress = address;
+            if (action) list.focusAction(address, action.objectName === "windowMove");
+        }
+        event.accepted = true;
+        return true;
     }
     function ensureVisible(item) {
         editorColumn.forceLayout();
@@ -227,7 +276,10 @@ FocusScope {
         }
     }
     Keys.onEscapePressed: function(event) { if (mode === "windows") closeRequested(); else back(); event.accepted = true; }
-    Keys.onPressed: function(event) { updateControl(event, true); handleWindowShortcut(event); }
+    Keys.onPressed: function(event) {
+        updateControl(event, true);
+        if (!handleWindowShortcut(event)) handleListNavigation(event);
+    }
     Keys.onReleased: function(event) { updateControl(event, false); }
     Connections { target: root.hostWidget; function onMoveCompleted() { if (root.mode === "move") root.back(); } }
     LayoutMirroring.enabled: rtl
@@ -287,6 +339,7 @@ FocusScope {
                 placeholderText: root.words.searchWindows; accent: root.accent
                 Accessible.name: root.words.searchWindows
                 onTextEdited: {
+                    quickSelectionTimer.stop();
                     if (!root.matches.some(function(window) { return window.address === root.selectedAddress; }))
                         root.selectedAddress = root.matches.length ? root.matches[0].address : "";
                     list.cancelFlick(); list.positionViewAtBeginning();
@@ -303,7 +356,7 @@ FocusScope {
         rows: root.rows
         expanded: root.expanded; expansion: root.expansion
         opened: root.opened; selectedAddress: root.selectedAddress
-        showShortcuts: root.controlHeld && root.shortcutsAvailable
+        showShortcuts: (root.controlHeld || root.quickSelection) && root.shortcutsAvailable
         previewBoundsItem: root.previewBoundsItem
         scrollbarGutter: root.scrollbarGutter
         anchors.top: header.bottom; anchors.topMargin: Style.space(10)
@@ -332,6 +385,7 @@ FocusScope {
 
     Item {
         id: settingsBranding; objectName: "settingsBranding"
+        z: 1
         x: editorScroll.x; y: editorScroll.y
         width: editorScroll.width; height: editorScroll.height
         visible: root.mode === "settings"
@@ -349,6 +403,7 @@ FocusScope {
                 y: settingsBranding.height - height - Style.space(48) - parent.y
                 width: Math.min(parent.width * 0.72, Style.space(324))
                 height: width * 285 / 1215
+                // Effects stay in the backdrop; its texture can show through the mark.
                 color: Qt.alpha(root.accent, 0.16)
             }
         }
@@ -409,6 +464,18 @@ FocusScope {
                 }
             }
             Loader {
+                id: shortcutsEditor
+                width: parent.width
+                active: root.mode === "shortcuts"; visible: active
+                onLoaded: item.begin()
+                sourceComponent: ShortcutsEditor {
+                    hostWidget: root.hostWidget
+                    popupParent: root
+                    onFinished: root.returnToSettings()
+                    onEnsureVisible: function(item) { root.ensureVisible(item); }
+                }
+            }
+            Loader {
                 id: labelsEditor
                 width: parent.width
                 active: root.mode === "labels"; visible: active
@@ -449,6 +516,7 @@ FocusScope {
                 }
                 Choice.SearchableDropdown {
                     id: destinationPicker; objectName: "destinationPicker"
+                    hostWidget: root.hostWidget
                     width: parent.width; label: root.words.moveTo; accent: root.accent
                     uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
                     value: root.destination
@@ -523,7 +591,7 @@ FocusScope {
                 // Align the footer text with the header label inside its button.
                 anchors.rightMargin: Math.max(0, Math.round((settingsButton.width - headerActionMetrics.advanceWidth) / 2))
                 anchors.verticalCenter: parent.verticalCenter
-                text: "by Sarr"
+                text: "v" + root.hostWidget.version + " · by Sarr"
             }
         }
     }

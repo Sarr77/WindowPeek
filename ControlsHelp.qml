@@ -1,12 +1,14 @@
 import QtQuick
 import qs.Commons
 import "I18n.js" as I18n
+import "Shortcuts.js" as Shortcuts
 
 Column {
     id: root
     required property string language
     property color accent: Color.accent
-    readonly property var words: I18n.words(language)
+    property var shortcuts: ({})
+    readonly property var words: Shortcuts.applyWords(I18n.words(language), shortcuts)
     spacing: Style.space(16)
     Repeater {
         model: [
@@ -14,7 +16,7 @@ Column {
                 root.words.chooseMoveHint, root.words.bringHint, root.words.controlsPrivacy,
                 root.words.controlsBlank, root.words.controlsClose, root.words.controlsWheel]},
             {title: root.words.controlsKeyboard, entries: [root.words.searchWindows + "\n" + root.words.keyboardHint,
-                root.words.controlsWindowKeys, root.words.controlsWindowShortcuts, root.words.controlsTab, root.words.controlsActivate, root.words.controlsDropdown,
+                root.words.controlsWindowKeys, root.words.controlsPaging, root.words.controlsWindowShortcuts, root.words.controlsTab, root.words.controlsActivate, root.words.controlsDropdown,
                 root.words.controlsColor, root.words.controlsShortcut]}
         ]
         delegate: Column {

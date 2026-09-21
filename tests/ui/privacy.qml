@@ -29,9 +29,9 @@ ShellRoot {
     FakeHost {
         id: host; windowPreview: thumbnail
         Component.onCompleted: savedAppearance = Appearance.normalize({uiScale:test.scale})
-        function chooseDestination(address, position, keepPreview) {
+        function chooseDestination(address, position) {
             destinationRequested = address;
-            thumbnail.menuRetained = keepPreview === true;
+            thumbnail.menuRetained = thumbnail.visible;
             moveMenuOpen = true;
             return true;
         }

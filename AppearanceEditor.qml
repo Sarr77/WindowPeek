@@ -18,6 +18,16 @@ Column {
   property real saturation: 0
   property real value: 1
   property var draft: ({})
+  property string colorTarget: "accent"
+  readonly property bool accentTarget: colorTarget === "accent"
+  readonly property bool colorTargetVisible: colorTarget !== "wallpaper"
+  readonly property var surfaceRule: Appearance.surfaceRuleFor(draft, colorTarget, targetTheme)
+  readonly property string targetLabel: labelForTarget(colorTarget)
+  function labelForTarget(target) {
+    return target === "accent" ? words.highlight
+      : target === "panel" ? words.panelBackground : target === "windows" ? words.windowFields
+      : target === "menu" ? words.menuFields : target === "grain" ? words.backgroundTexture : words.wallpaperPanel;
+  }
   property string mode: "adaptive"
   property string colorScope: "theme"
   property string targetTheme: ""
@@ -36,7 +46,9 @@ Column {
   spacing: Style.space(12)
   readonly property string chosenHex: Appearance.fromHsv(hue, saturation, value)
   readonly property string savedColor: hostWidget
-    ? Appearance.resolve(hostWidget.savedAppearance, targetTheme, String(hostWidget.themeAccent)) : String(Color.accent).toUpperCase()
+    ? (accentTarget ? Appearance.resolve(hostWidget.savedAppearance, targetTheme, String(hostWidget.themeAccent))
+      : Appearance.surfaceColor(hostWidget.savedAppearance,colorTarget,targetTheme,hostWidget.surfaces.baseColor(colorTarget)))
+    : String(Color.accent).toUpperCase()
 
   function syncHex(text) {
     var hsv = Appearance.toHsv(text);
@@ -51,23 +63,47 @@ Column {
   function begin() {
     draft = Appearance.normalize(hostWidget.savedAppearance);
     targetTheme = hostWidget.themeId;
+    colorTarget = "accent";
     colorScope = draft.colorScope;
     saveFailed = false;
     selectedPresetId = ""; colorsExpanded = false; editingPreset = false; presetError = false;
     started = true;
     syncFromDraft();
     publishPreview();
-    hexInput.forceActiveFocus();
+    // Start at the preview; focusing HEX would scroll past it on small screens.
+    editorHeading.forceActiveFocus();
   }
   function syncFromDraft() {
-    mode = Appearance.ruleFor(draft, targetTheme).mode;
-    syncHex(Appearance.resolve(draft, targetTheme, String(hostWidget.themeAccent)));
+    colorScope = accentTarget ? draft.colorScope : Appearance.surfaceScope(draft,colorTarget);
+    mode = accentTarget ? Appearance.ruleFor(draft,targetTheme).mode : (surfaceRule.color ? "custom" : "theme");
+    syncHex(accentTarget ? Appearance.resolve(draft,targetTheme,String(hostWidget.themeAccent))
+      : Appearance.surfaceColor(draft,colorTarget,targetTheme,hostWidget.surfaces.baseColor(colorTarget)));
   }
-  function closePickers() { modePicker.close(); scopePicker.close(); started = false; }
+  function closePickers() { targetPicker.close(); modePicker.close(); scopePicker.close(); started = false; }
+  function selectTarget(target) {
+    colorTarget = target; selectedPresetId = ""; editingPreset = false;
+    syncFromDraft();
+  }
+  function withColor(settings, scope, nextMode, color) {
+    if (accentTarget) return Appearance.setRule(settings,targetTheme,scope,nextMode,color);
+    var rule = Appearance.surfaceRuleFor(settings,colorTarget,targetTheme);
+    rule.color = nextMode === "custom" ? color : "";
+    return Appearance.setSurfaceRule(settings,colorTarget,targetTheme,scope,rule);
+  }
+  function changeSurfaceValue(key, value) {
+    var rule = Appearance.surfaceRuleFor(draft,colorTarget,targetTheme);
+    rule[key] = value;
+    draft = Appearance.setSurfaceRule(draft,colorTarget,targetTheme,targetTheme ? colorScope : "all",rule);
+    publishPreview();
+  }
+  function resetStyle() {
+    draft = Appearance.applyStyle(draft,targetTheme,targetTheme ? colorScope : "all",{});
+    syncFromDraft(); publishPreview();
+  }
   // Color editing must not restore stale list density or scale from another monitor.
   function colorDraft() {
     return {accentColor: draft.accentColor, colorMode: draft.colorMode,
-      colorScope: draft.colorScope, themeColors: draft.themeColors, colorPresets: draft.colorPresets};
+      colorScope: draft.colorScope, themeColors: draft.themeColors, colorPresets: draft.colorPresets, surfaceColors: draft.surfaceColors};
   }
   function publishPreview() {
     if (!validHex) return;
@@ -75,7 +111,7 @@ Column {
   }
   function changeRule(nextMode, scope, color) {
     mode = nextMode; colorScope = scope;
-    draft = Appearance.setRule(draft, targetTheme, scope, mode, color);
+    draft = withColor(draft, scope, mode, color);
     syncFromDraft();
     publishPreview();
   }
@@ -86,16 +122,20 @@ Column {
     mode = "custom";
     syncing = true; hexInput.text = chosenHex; syncing = false;
     validHex = true;
-    draft = Appearance.setRule(draft, targetTheme, targetTheme ? colorScope : "all", mode, chosenHex);
+    draft = withColor(draft, targetTheme ? colorScope : "all", mode, chosenHex);
     publishPreview();
   }
   function choosePreset(preset) {
     selectedPresetId = preset.id || "";
     editingPreset = false; presetError = false;
-    changeRule("custom", targetTheme ? colorScope : "all", preset.color);
+    if (preset.style) {
+      draft = Appearance.applyStyle(draft,targetTheme,targetTheme ? colorScope : "all",preset.style);
+      syncFromDraft(); publishPreview();
+    } else changeRule("custom", targetTheme ? colorScope : "all", preset.color);
   }
   function restoreSavedColor() {
-    draft = Appearance.restoreColor(draft, hostWidget.savedAppearance, targetTheme);
+    draft = accentTarget ? Appearance.restoreColor(draft, hostWidget.savedAppearance, targetTheme)
+      : Appearance.restoreSurface(draft, hostWidget.savedAppearance, colorTarget, targetTheme);
     colorScope = draft.colorScope;
     selectedPresetId = "";
     syncFromDraft();
@@ -103,7 +143,11 @@ Column {
   }
   function resetColor() {
     selectedPresetId = "";
-    changeRule("adaptive", targetTheme ? colorScope : "all", "");
+    if (accentTarget) changeRule("adaptive", targetTheme ? colorScope : "all", "");
+    else {
+      draft = Appearance.setSurfaceRule(draft,colorTarget,targetTheme,targetTheme ? colorScope : "all",{});
+      syncFromDraft(); publishPreview();
+    }
     saveFailed = false;
   }
   function editPreset(id) {
@@ -114,7 +158,7 @@ Column {
     presetNameInput.forceActiveFocus();
   }
   function savePreset() {
-    var next = Appearance.upsertPreset(draft, editingPresetId, presetNameInput.text, chosenHex);
+    var next = Appearance.upsertPreset(draft, editingPresetId, presetNameInput.text, chosenHex, Appearance.captureStyle(draft,targetTheme));
     presetError = next === null;
     if (!next) return;
     draft = next;
@@ -159,6 +203,7 @@ Column {
   Keys.onEscapePressed: function(event) { root.cancel(); event.accepted = true; }
 
   Text {
+    id: editorHeading
     width: parent.width
     text: "WindowPeek · " + root.words.appearance
     textFormat: Text.PlainText
@@ -167,17 +212,66 @@ Column {
     font.pixelSize: Style.font.subtitle
     font.bold: true
   }
-  Text { text: root.words.highlight; color: root.foreground; font.pixelSize: Style.font.body }
+  Column {
+    width: parent.width; spacing: Style.space(4)
+    Text {
+      width: parent.width; text: root.words.preview + " · " + root.targetLabel
+      textFormat: Text.PlainText; elide: Text.ElideRight
+      color: root.foreground; font.pixelSize: Style.font.caption
+    }
+    Text {
+      width: parent.width; text: root.words.previewPickHint; textFormat: Text.PlainText
+      wrapMode: Text.Wrap; color: root.foreground; opacity: 0.7; font.pixelSize: Style.font.caption
+    }
+  }
+  AppearancePreview {
+    id: livePreview; width: parent.width; hostWidget: root.hostWidget
+    selectedTarget: root.colorTarget
+    onElementPicked: function(target) {
+      targetPicker.close(); modePicker.close(); scopePicker.close();
+      // All changing controls are below the sample. Keep the pointer and scroll
+      // where they are so several elements can be picked without chasing it.
+      root.selectTarget(target);
+    }
+  }
+  Choice.Dropdown {
+    id: targetPicker; objectName: "colorTargetPicker"
+    hostWidget: root.hostWidget
+    width: parent.width; uiScale: root.hostWidget.uiScale
+    label: root.words.colorElement; value: root.colorTarget; accent: root.accent
+    options: [{value:"accent",label:root.words.highlight}, {value:"panel",label:root.words.panelBackground},
+      {value:"windows",label:root.words.windowFields}, {value:"menu",label:root.words.menuFields},
+      {value:"grain",label:root.words.backgroundTexture}, {value:"wallpaper",label:root.words.wallpaperPanel}]
+    onChanged: function(value) { root.selectTarget(value); targetPicker.value = Qt.binding(function() { return root.colorTarget; }); }
+  }
+
+    Choice.Dropdown {
+      id: scopePicker
+      hostWidget: root.hostWidget
+      objectName: "colorScopePicker"
+      width: parent.width
+      uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
+      label: root.words.colorScope
+      value: root.targetTheme ? root.colorScope : "all"
+      options: (root.targetTheme ? [{value:"theme", label:I18n.format(root.words.colorThisTheme, {theme:root.themeName})}] : [])
+        .concat([{value:"all", label:root.words.colorAllThemes}])
+      accent: root.accent
+      onChanged: function(value) {
+        root.changeRule(root.mode, value, root.chosenHex);
+        scopePicker.value = Qt.binding(function() { return root.targetTheme ? root.colorScope : "all"; });
+      }
+    }
 
   Item {
     id: sv
+    visible: root.colorTargetVisible
     objectName: "colorPlane"
     width: parent.width; height: Style.space(145)
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: true
     activeFocusOnTab: true
     Accessible.role: Accessible.Slider
-    Accessible.name: root.words.highlight + " S / V"
+    Accessible.name: root.targetLabel + " S / V"
     Rectangle { anchors.fill: parent; color: Appearance.fromHsv(root.hue, 1, 1) }
     Rectangle {
       anchors.fill: parent
@@ -220,10 +314,11 @@ Column {
   }
   QQC.Slider {
     id: hueSlider
+    visible: root.colorTargetVisible
     width: parent.width
     from: 0; to: 1; value: root.hue; stepSize: 0.002
     LayoutMirroring.enabled: false
-    Accessible.name: root.words.highlight + " H"
+    Accessible.name: root.targetLabel + " H"
     onMoved: root.pick(value, root.saturation, root.value)
     background: Rectangle {
       x: hueSlider.leftPadding
@@ -242,8 +337,9 @@ Column {
     }
   }
   Row {
+    visible: root.colorTargetVisible
     width: parent.width; spacing: Style.space(10)
-    Rectangle { width: Style.space(32); height: width; color: root.accent; radius: Style.space(4); border.width: 1; border.color: Color.popups.text }
+    Rectangle { width: Style.space(32); height: width; color: root.chosenHex; radius: Style.space(4); border.width: 1; border.color: Color.popups.text }
     Ui.TextField {
       id: hexInput
       objectName: "hexInput"
@@ -262,7 +358,7 @@ Column {
           var hsv = Appearance.toHsv(normalized);
           root.hue = hsv.h; root.saturation = hsv.s; root.value = hsv.v;
           root.mode = "custom";
-          root.draft = Appearance.setRule(root.draft, root.targetTheme, root.targetTheme ? root.colorScope : "all", "custom", normalized);
+          root.draft = root.withColor(root.draft, root.targetTheme ? root.colorScope : "all", "custom", normalized);
           root.publishPreview();
         }
       }
@@ -279,6 +375,7 @@ Column {
   }
   Ui.Button {
     objectName: "restoreSavedColorButton"
+    visible: root.colorTargetVisible
     width: parent.width
     text: root.words.restoreSavedColor + " · " + root.savedColor
     accent: root.accent
@@ -287,18 +384,48 @@ Column {
   }
   DefaultValue {
     objectName: "colorDefault"
-    width: parent.width; words: root.words; label: root.words.highlight; accent: root.accent
-    valueText: Appearance.resolve({}, root.targetTheme, String(root.hostWidget.themeAccent))
+    width: parent.width; words: root.words; label: root.targetLabel; accent: root.accent
+    valueText: root.accentTarget ? Appearance.resolve({}, root.targetTheme, String(root.hostWidget.themeAccent))
+      : root.colorTargetVisible ? Appearance.hex(root.hostWidget.surfaces.baseColor(root.colorTarget)) : "0%"
     description: root.colorScope === "theme" && root.targetTheme
       ? I18n.format(root.words.colorThisTheme, {theme: root.themeName}) : root.words.colorAllThemes
-    modified: root.mode !== "adaptive" || !root.validHex
+    modified: root.accentTarget ? root.mode !== "adaptive" || !root.validHex
+      : !!root.surfaceRule.color || root.surfaceRule.brightness !== 0 || root.surfaceRule.opacity !== null || !root.validHex
     onResetRequested: root.resetColor()
     onEnsureVisible: root.ensureVisible(this)
+  }
+  StyleValueControl {
+    objectName: "surfaceBrightnessControl"
+    width: parent.width; visible: !root.accentTarget && root.colorTarget !== "grain"
+    words: root.words; label: root.words.brightness; accent: root.accent
+    from: -100; to: 100; value: root.surfaceRule.brightness; defaultValue: 0
+    modified: root.surfaceRule.brightness !== 0
+    onChanged: function(value) { root.changeSurfaceValue("brightness",value); }
+    onResetRequested: root.changeSurfaceValue("brightness",0)
+    onEnsureVisible: root.ensureVisible(this)
+  }
+  StyleValueControl {
+    objectName: "surfaceOpacityControl"
+    width: parent.width; visible: ["windows","menu","grain"].indexOf(root.colorTarget) >= 0
+    words: root.words; label: root.colorTarget === "grain" ? root.words.grainStrength : root.words.transparency
+    accent: root.accent; from:0; to:100; stepSize:0.5
+    readonly property real opacityValue: root.surfaceRule.opacity === null ? root.hostWidget.surfaces.defaultOpacity(root.colorTarget) : root.surfaceRule.opacity
+    value: root.colorTarget === "grain" ? opacityValue : 100-opacityValue
+    defaultValue: root.colorTarget === "grain" ? root.hostWidget.surfaces.defaultOpacity(root.colorTarget) : 100-root.hostWidget.surfaces.defaultOpacity(root.colorTarget)
+    modified: root.surfaceRule.opacity !== null
+    onChanged: function(value) { root.changeSurfaceValue("opacity",root.colorTarget === "grain" ? value : 100-value); }
+    onResetRequested: root.changeSurfaceValue("opacity",null)
+    onEnsureVisible: root.ensureVisible(this)
+  }
+  Ui.Button {
+    objectName: "resetStyleButton"; width: parent.width
+    text: root.words.resetStyle; accent: root.accent; focusable:true
+    onClicked: root.resetStyle()
   }
   Ui.Button {
     objectName: "colorPresetsDisclosure"
     width: parent.width
-    text: (root.colorsExpanded ? "▾ " : "▸ ") + root.words.colorPresets
+    text: (root.colorsExpanded ? "▾ " : "▸ ") + root.words.stylePresets
     leftAlign: true
     focusable: true
     accent: root.accent
@@ -313,36 +440,23 @@ Column {
     spacing: Style.space(10)
     Choice.Dropdown {
       id: modePicker
+      hostWidget: root.hostWidget
       objectName: "colorModePicker"
       width: parent.width
       uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
       label: root.words.colorMode
       value: root.mode
-      options: [{value:"adaptive", label:root.words.colorAdaptive},
-        {value:"theme", label:root.words.colorTheme}, {value:"custom", label:root.words.customLabels}]
+      options: (root.accentTarget ? [{value:"adaptive",label:root.words.colorAdaptive}] : [])
+        .concat([{value:"theme",label:root.accentTarget ? root.words.colorTheme : root.words.followTheme},{value:"custom",label:root.words.customLabels}])
       accent: root.accent
       onChanged: function(value) {
         root.changeRule(value, root.targetTheme ? root.colorScope : "all", root.chosenHex);
         modePicker.value = Qt.binding(function() { return root.mode; });
       }
     }
-    Choice.Dropdown {
-      id: scopePicker
-      objectName: "colorScopePicker"
-      width: parent.width
-      uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
-      label: root.words.colorScope
-      value: root.targetTheme ? root.colorScope : "all"
-      options: (root.targetTheme ? [{value:"theme", label:I18n.format(root.words.colorThisTheme, {theme:root.themeName})}] : [])
-        .concat([{value:"all", label:root.words.colorAllThemes}])
-      accent: root.accent
-      onChanged: function(value) {
-        root.changeRule(root.mode, value, root.chosenHex);
-        scopePicker.value = Qt.binding(function() { return root.targetTheme ? root.colorScope : "all"; });
-      }
-    }
     Text {
       width: parent.width
+      visible: root.accentTarget
       text: root.words.colorAdaptiveHelp
       color: root.foreground; opacity: 0.7
       font.pixelSize: Style.font.caption
@@ -351,7 +465,7 @@ Column {
     }
     Row {
       width: parent.width
-      Text { width: parent.width; text: root.words.colorPresets; color: root.foreground; font.pixelSize: Style.font.body }
+      Text { width: parent.width; text: root.words.stylePresets; color: root.foreground; font.pixelSize: Style.font.body }
     }
     Flow {
       width: parent.width; spacing: Style.space(6)
@@ -377,7 +491,7 @@ Column {
       width: parent.width; spacing: Style.space(8)
       Ui.Button {
         width: (parent.width-parent.spacing)/2
-        text: "+ " + root.words.saveColor
+        text: "+ " + root.words.saveStylePreset
         fontSize: Style.font.caption
         focusable: true; bordered: true; accent: root.accent
         enabled: root.validHex && (root.draft.colorPresets || []).length < 24
@@ -415,7 +529,7 @@ Column {
         width: parent.width; spacing: Style.space(6)
         Ui.Button {
           width: (parent.width-parent.spacing)/2
-          text: root.editingPresetId ? root.words.updatePreset : root.words.saveColor
+          text: root.editingPresetId ? root.words.updatePreset : root.words.saveStylePreset
           fontSize: Style.font.caption
           focusable: true; bordered: true; accent: root.accent
           enabled: root.validHex && Appearance.presetName(presetNameInput.text) !== ""
@@ -436,8 +550,6 @@ Column {
       wrapMode: Text.Wrap
     }
   }
-  Text { text: root.words.preview; color: root.foreground; font.pixelSize: Style.font.caption }
-  TooltipContent { width: parent.width; hostWidget: root.hostWidget; maximumHeight: Style.space(240); interactive: false }
   Row {
     width: parent.width; spacing: Style.space(10)
     Ui.Button { objectName: "cancelButton"; width: (parent.width-parent.spacing)/2; text: root.words.cancel; focusable: true; onClicked: root.cancel() }

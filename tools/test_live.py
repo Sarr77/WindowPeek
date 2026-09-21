@@ -4,6 +4,8 @@ import argparse
 from contextlib import ExitStack
 import json
 import os
+import select
+import shlex
 from pathlib import Path
 import shutil
 import subprocess
@@ -26,6 +28,13 @@ def evaluate(code):
         raise AssertionError("Compositor rejected test operation: " + result)
 
 
+def evaluate_ready(code):
+    try:
+        return run("hyprctl", "eval", code) == "ok"
+    except subprocess.CalledProcessError:
+        return False
+
+
 def wait(predicate, message, seconds=6):
     end = time.monotonic() + seconds
     while time.monotonic() < end:
@@ -45,6 +54,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--installed", action="store_true", help="Also exercise the installed WindowPeek bar widget")
 parser.add_argument("--window-shortcuts", action="store_true", help="Only test Ctrl+digit window and group-tab navigation at both scales")
 parser.add_argument("--held-shortcuts", action="store_true", help="Test Ctrl held before opening hover/search with native virtual-keyboard digits")
+parser.add_argument("--keypad-shortcuts", action="store_true", help="Test Ctrl+numpad with Num Lock on/off in both views and scales")
+parser.add_argument("--fast-keypad", action="store_true", help="Send Ctrl+numpad immediately after passive hover opens, without waiting for Ctrl focus")
+parser.add_argument("--quick-selection", action="store_true", help="Test five-second keyboard opening with unmodified number and keypad keys")
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 identity = "windowpeek-test-" + str(os.getpid())
@@ -72,6 +84,21 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-native-") as directory:
     for name in ("Ui", "Commons"):
         (config / name).symlink_to(Path("/usr/share/omarchy/shell") / name, target_is_directory=True)
     shutil.copyfile(root / "tests/live.qml", config / "shell.qml")
+    # A disposable terminal counts input bytes, never their contents. An
+    # immediate chord must not reach this application underneath the hover.
+    if args.fast_keypad:
+        (config / "input-count").write_text("0")
+        (config / "input-probe.py").write_text("""import os,select,sys,termios,time,tty
+from pathlib import Path
+path=Path(sys.argv[1]); old=termios.tcgetattr(0); count=0
+try:
+    tty.setraw(0); path.write_text('0'); deadline=time.monotonic()+120
+    while time.monotonic()<deadline:
+        if select.select([0],[],[],0.1)[0]:
+            count+=len(os.read(0,256)); path.write_text(str(count))
+finally:
+    termios.tcsetattr(0,termios.TCSANOW,old)
+""")
     env = dict(os.environ, XDG_STATE_HOME=str(config / "state"), XDG_CACHE_HOME=str(config / "cache"))
     with (config / "runtime.log").open("w") as log:
         shell = subprocess.Popen(["quickshell", "--no-color", "-p", str(config)], env=env, stdout=log, stderr=subprocess.STDOUT)
@@ -123,12 +150,15 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-native-") as directory:
             for label, workspace in (("A", "name:" + source), ("B", "name:" + source),
                                      ("C", "name:" + destination), ("D", special_workspace)):
                 command = f"foot --app-id={identity} --title=WindowPeek-Test-{label} sleep 180"
+                if args.fast_keypad and label == "A":
+                    command = shlex.join(["foot", "--app-id=" + identity, "--title=WindowPeek-Test-A",
+                                          "python", str(config / "input-probe.py"), str(config / "input-count")])
                 evaluate("hl.dispatch(hl.dsp.exec_cmd(" + json.dumps(command) + ", {workspace = "
                          + json.dumps(workspace + " silent") + ", no_initial_focus = true}))")
             wait(lambda: len(windows()) == 4, "Test windows did not open")
             a, b, c, d = [w["address"] for w in sorted(windows(), key=lambda w: w["title"])]
             assert all(set(w.get("grouped", [])) <= {a, b, c, d} for w in windows())
-            if args.window_shortcuts or args.held_shortcuts:
+            if args.window_shortcuts or args.held_shortcuts or args.keypad_shortcuts or args.fast_keypad or args.quick_selection:
                 if len(monitors) > 1:
                     other = next(m for m in monitors if m["id"] != window(c).get("monitor"))
                     evaluate("hl.dispatch(hl.dsp.workspace.move({workspace = " + json.dumps("name:" + destination)
@@ -140,6 +170,62 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-native-") as directory:
                 placements = {w["address"]: (w["workspace"]["name"], w["monitor"], sorted(w.get("grouped", []))) for w in windows()}
                 for scale in (1, 2):
                     assert ipc("shortcutScale", str(scale)) == "true"
+                    if args.quick_selection:
+                        for kind, lock in (("tap", "off"), ("keypad", "off"), ("keypad", "on")):
+                            for target in (b, c):
+                                with held_keys(keyboard, "None") as keys:
+                                    keys.stdin.write("numlock " + lock + "\n"); keys.stdin.flush()
+                                    assert select.select([keys.stdout], [], [], 3)[0] and keys.stdout.readline().strip() == "locked"
+                                    ipc("quickOpen")
+                                    wait(lambda: status().get("quickSelection"), "Quick selection did not start")
+                                    wait(lambda: ipc("shortcutFilter") == "true", "Test rows not ready")
+                                    digit = wait(lambda: ipc("passiveDigit", target), "No visible test row")
+                                    keys.stdin.write(kind + " " + digit + "\n"); keys.stdin.flush()
+                                    wait(lambda: not status().get("panelMapped") and not status().get("hoverBusy"), "Bare digit did not close the list")
+                                    wait(lambda: query("activewindow").get("address") == target, "Bare digit selected the wrong window/tab")
+                            print("PASS quick selection", kind, "Num Lock", lock, "scale", scale, flush=True)
+                        ipc("quickOpen")
+                        wait(lambda: status().get("quickSelection"), "Timeout test did not start")
+                        wait(lambda: not status().get("quickSelection"), "Quick selection did not expire", seconds=6)
+                        assert status().get("panelOpen"), "Timeout closed the search panel"
+                        ipc("panelClose")
+                        wait(lambda: not status().get("panelMapped"), "Timeout panel did not close")
+                        assert all((w["workspace"]["name"], w["monitor"], sorted(w.get("grouped", []))) == placements[w["address"]] for w in windows()), "Quick selection moved a window"
+                        continue
+                    if args.fast_keypad:
+                        for view in ("hover", "panel"):
+                            for attempt in range(3):
+                                action("focus", a)
+                                wait(lambda: query("activewindow").get("address") == a, "Test source did not get focus")
+                                ipc("hoverOpen" if view == "hover" else "panelOpen")
+                                wait(lambda: ipc("shortcutFilter") == "true", "Test rows not ready")
+                                digit = wait(lambda: ipc("passiveDigit", b), "No visible test row")
+                                if view == "hover":
+                                    assert not status().get("shortcutKeyboard"), "Hover already takes the keyboard"
+                                with held_keys(keyboard, chord=digit):
+                                    wait(lambda: not status().get("panelMapped") and not status().get("hoverBusy"), "Immediate Ctrl+numpad did not close " + view)
+                                    wait(lambda: query("activewindow").get("address") == b, "Immediate chord did not focus exact tab")
+                                assert (config / "input-count").read_text() == "0", "Shortcut leaked to the application below"
+                            print("PASS immediate Ctrl+numpad", view, "scale", scale, flush=True)
+                        continue
+                    if args.keypad_shortcuts:
+                        for view in ("hover", "panel"):
+                            for lock in ("off", "on"):
+                                for target in (b, c):
+                                    with held_keys(keyboard) as keys:
+                                        keys.stdin.write("numlock " + lock + "\n"); keys.stdin.flush()
+                                        assert select.select([keys.stdout], [], [], 3)[0] and keys.stdout.readline().strip() == "locked"
+                                        ipc("hoverOpen" if view == "hover" else "panelOpen")
+                                        wait(lambda: status().get("shortcutControl") and status().get("shortcutFocused"), "Held Ctrl did not reach the opening list")
+                                        wait(lambda: ipc("shortcutFilter") == "true", "Test rows not ready")
+                                        digit = wait(lambda: ipc("shortcutDigit", target), "No visible shortcut label")
+                                        keys.stdin.write("keypad " + digit + "\n"); keys.stdin.flush()
+                                        wait(lambda: not status().get("panelMapped") and not status().get("hoverBusy"), "Numpad key did not close the list")
+                                        wait(lambda: query("activewindow").get("address") == target, "Numpad selected the wrong row")
+                                        assert not status().get("hoverError"), "Window action failed"
+                                print("PASS Ctrl+numpad", view, "Num Lock", lock, "scale", scale, flush=True)
+                        assert all((w["workspace"]["name"], w["monitor"], sorted(w.get("grouped", []))) == placements[w["address"]] for w in windows()), "Shortcut changed window placement"
+                        continue
                     if args.held_shortcuts:
                         for view in ("hover", "panel"):
                             for control, target in (("Control_L", b), ("Control_R", c), ("Control_L", d)):
@@ -205,6 +291,20 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-native-") as directory:
                 for item in query("clients"):
                     if item["address"] in initial_windows:
                         assert (item["workspace"]["name"], sorted(item.get("grouped", [])), item.get("monitor")) == initial_windows[item["address"]]
+                if args.fast_keypad:
+                    released = "local s=_windowpeek_shortcuts_v1; if s then for _,b in ipairs(s.binds) do if b:is_enabled() then error('still enabled') end end end"
+                    wait(lambda: evaluate_ready(released), "Closing list did not release bindings")
+                    action("focus", a)
+                    wait(lambda: query("activewindow").get("address") == a, "Input probe did not get focus")
+                    with held_keys(keyboard, chord="6"):
+                        wait(lambda: int((config / "input-count").read_text() or "0") > 0,
+                             "Closed list still consumes shortcuts or input probe cannot detect them")
+                    ipc("hoverOpen")
+                    wait(lambda: status().get("panelMapped"), "Crash fixture did not open")
+                    wait(lambda: evaluate_ready("assert(_windowpeek_shortcuts_v1 and _windowpeek_shortcuts_v1.owner)"), "Lease was not armed")
+                    shell.kill(); shell.wait(timeout=3)
+                    wait(lambda: evaluate_ready(released), "Dead shell left shortcuts enabled", seconds=2)
+                    print("PASS no input leakage, normal input after closing, automatic lease expiry after shell termination", flush=True)
                 print("PASS existing windows and groups untouched", flush=True)
                 raise SystemExit(0)
             action("focus", a)

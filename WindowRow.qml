@@ -1,4 +1,5 @@
 import QtQuick
+import "Shortcuts.js" as Shortcuts
 import QtQuick.Window
 import Quickshell
 import qs.Commons
@@ -29,13 +30,31 @@ Item {
     function focusAction(moveAction) {
         if (root.expanded) (moveAction ? move : main).forceActiveFocus(Qt.OtherFocusReason);
     }
+    // Geometry only: the appearance sample never invokes the row's actions.
+    function appearanceElementAt(x, y) {
+        for (var item of [activeMarker, activeLabel, shortcutLabel]) {
+            if (!item.visible) continue;
+            var point = item.mapFromItem(root, x, y);
+            var margin = Style.space(3);
+            if (point.x >= -margin && point.y >= -margin
+                    && point.x < item.width + margin && point.y < item.height + margin) return "accent";
+        }
+        return "windows";
+    }
+    function appearanceItems(target) {
+        return target === "windows" ? [main] : [activeMarker, activeLabel, shortcutLabel];
+    }
     function navigate(event, moveAction) {
-        if (!root.expanded || event.modifiers !== Qt.NoModifier) return;
-        if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
-            root.navigateRequested(root.window.address, event.key === Qt.Key_Down ? 1 : -1, moveAction);
-        } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Right) {
-            var towardMove = event.key === (root.LayoutMirroring.enabled ? Qt.Key_Left : Qt.Key_Right);
-            root.focusAction(towardMove);
+        if (!root.expanded) return;
+        var config = Shortcuts.normalize(root.hostWidget.shortcuts);
+        if (Shortcuts.matches(event, config.move)) {
+            if (!root.busy && !event.isAutoRepeat) root.moveRequested(root.window.address);
+        } else if (Shortcuts.matches(event, config.previous) || Shortcuts.matches(event, config.next)) {
+            root.navigateRequested(root.window.address, Shortcuts.matches(event, config.next) ? 1 : -1, moveAction);
+        } else if (Shortcuts.matches(event, Shortcuts.actionChord(config, "windowSide", root.LayoutMirroring.enabled))) {
+            root.focusAction(false);
+        } else if (Shortcuts.matches(event, Shortcuts.actionChord(config, "moveSide", root.LayoutMirroring.enabled))) {
+            root.focusAction(true);
         } else return;
         event.accepted = true;
     }
@@ -45,6 +64,9 @@ Item {
 
     RowSurface {
         id: main
+        glass: !!root.hostWidget && root.hostWidget.glassPanels === true
+        fillColor: root.hostWidget.surfaces.windows
+        fillOpacity: root.hostWidget.surfaces.windowOpacity
         objectName: "windowFocus"
         anchors.left: parent.left
         width: parent.width - (move.width + Style.space(6)) * root.expansion
@@ -60,10 +82,11 @@ Item {
         Accessible.role: Accessible.Button
         Accessible.name: root.window.app + " · " + root.window.title
         Accessible.onPressAction: if (!root.busy) root.focusRequested(root.window.address)
-        Keys.onReturnPressed: if (!root.busy) root.focusRequested(root.window.address)
-        Keys.onEnterPressed: if (!root.busy) root.focusRequested(root.window.address)
+        Keys.onReturnPressed: function(event) { event.accepted=false; root.navigate(event, false); if (!event.accepted && !root.busy) root.focusRequested(root.window.address); }
+        Keys.onEnterPressed: function(event) { event.accepted=false; root.navigate(event, false); if (!event.accepted && !root.busy) root.focusRequested(root.window.address); }
         Keys.onSpacePressed: if (!root.busy) root.focusRequested(root.window.address)
         Rectangle {
+            id: activeMarker
             objectName: "activeWindowMarker"
             anchors.left: parent.left; anchors.leftMargin: 1
             anchors.verticalCenter: parent.verticalCenter
@@ -137,11 +160,11 @@ Item {
             cursorShape: Qt.PointingHandCursor
             address: root.window.address
             onActivated: function(address, modifiers, position) {
-                if (modifiers & Qt.ControlModifier) {
-                    if (modifiers & Qt.ShiftModifier) root.bringRequested(address);
-                    else root.hostWidget.chooseDestination(address,
-                        pointer.mapToItem(pointer.Window.window.contentItem, position.x, position.y));
-                } else root.focusRequested(address);
+                var action = Shortcuts.mouseAction(root.hostWidget.shortcuts, modifiers);
+                if (action === "bring") root.bringRequested(address);
+                else if (action === "move") root.hostWidget.chooseDestination(address,
+                    pointer.mapToItem(pointer.Window.window.contentItem, position.x, position.y));
+                else root.focusRequested(address);
             }
         }
         WindowPreviewTarget {
@@ -159,6 +182,9 @@ Item {
     }
     RowSurface {
         id: move
+        glass: !!root.hostWidget && root.hostWidget.glassPanels === true
+        fillColor: root.hostWidget.surfaces.windows
+        fillOpacity: root.hostWidget.surfaces.windowOpacity
         objectName: "windowMove"
         anchors.right: parent.right; height: parent.height
         opacity: root.expansion

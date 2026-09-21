@@ -91,7 +91,7 @@ Column {
   }
   Text { text: root.words.preview; color: Color.popups.text; font.pixelSize: Style.font.caption }
   // The surrounding panel already supplies the selected scale.
-  TooltipContent { width: parent.width; hostWidget: root.hostWidget; maximumHeight: Style.space(240); interactive: false }
+  AppearancePreview { width: parent.width; hostWidget: root.hostWidget }
   Text {
     visible: root.saveFailed
     width: parent.width

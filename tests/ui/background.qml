@@ -92,6 +92,13 @@ ShellRoot {
                     var header = test.find(panel, "panelHeader");
                     events.mouseClick(header, 20, 12, Qt.RightButton, Qt.NoModifier, 0);
                     test.check(test.closes === 2 && test.toggles === 2, "right-click on the hover header closes instead of expanding");
+                    test.list.cancelFlick(); test.list.contentY = 0;
+                    events.mouseClick(test.list.itemAtIndex(0), 80, 12, Qt.MiddleButton, Qt.NoModifier, 0);
+                    test.check(test.toggles === 3, "middle click expands the hover list");
+                    panel.expanded = true;
+                    events.mouseClick(test.list.itemAtIndex(0), 80, 12, Qt.MiddleButton, Qt.NoModifier, 0);
+                    test.check(test.toggles === 4, "middle click returns the expanded list to hover");
+                    test.check(test.find(panel,"authorCredit").text === "v" + host.version + " · by Sarr", "footer shows installed version");
                     console.info("WINDOWPEEK_TEST_PASS: background input routing"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL: " + error); stop(); Qt.quit(); }

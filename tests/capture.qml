@@ -16,6 +16,11 @@ ShellRoot {
     property bool sourceVisible: false
     property bool siblingVisible: false
     property int sourceFrames: 0
+    property bool motion: false
+    property var previewFrameTimes: []
+    property var sourceFrameTimes: []
+    property double startupAt: 0
+    property var startupEvents: []
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     property var panel: null
     property var overview: null
@@ -72,11 +77,32 @@ ShellRoot {
         Rectangle { x: 24; y: 24; width: 180; height: 46; radius: 6; color: "#202437"
             Text { anchors.centerIn: parent; text: "Fictional document"; color: "white"; font.pixelSize: 17 }
         }
+        Rectangle {
+            id: movingMark; y: source.height * 0.65; width: 40; height: 40; radius: 20; color: "#ff8844"
+            visible: fixture.motion
+            SequentialAnimation on x {
+                running: fixture.motion; loops: Animation.Infinite
+                NumberAnimation { from:0; to:Math.max(0,source.width-40); duration:1600; easing.type:Easing.InOutSine }
+                NumberAnimation { from:Math.max(0,source.width-40); to:0; duration:1600; easing.type:Easing.InOutSine }
+            }
+        }
         Column { x: 24; y: 95; spacing: 12
             Repeater { model: 4; Rectangle { required property int index; width: 220 - index * 25; height: 8; color: "#ffffff"; opacity: 0.6 } }
         }
     }
-    Connections { target: source; function onFrameSwapped() { fixture.sourceFrames++; } }
+    Connections { target: source; function onFrameSwapped() {
+        fixture.sourceFrames++;
+        if (fixture.motion) fixture.sourceFrameTimes.push(Date.now());
+    } }
+    Connections {
+        target: thumbnail.cardItem.Window.window
+        function onFrameSwapped() { if (fixture.motion && thumbnail.hasContent) fixture.previewFrameTimes.push(Date.now()); }
+    }
+    Connections {
+        target: thumbnail
+        function onVisibleChanged() { if (fixture.startupAt && thumbnail.visible) fixture.startupEvents.push({event:"visible",ms:Date.now()-fixture.startupAt}); }
+        function onHasContentChanged() { if (fixture.startupAt && thumbnail.hasContent) fixture.startupEvents.push({event:"content",ms:Date.now()-fixture.startupAt}); }
+    }
     Window {
         title: Quickshell.env("WINDOWPEEK_CAPTURE_ID") + "-sibling"
         visible: fixture.siblingVisible; width: 300; height: 200; color: "#ed6688"
@@ -99,7 +125,9 @@ ShellRoot {
     IpcHandler {
         target: "windowpeek-capture-test"
         function ping(): bool { return true; }
-        function createSources(): void { fixture.sourceVisible = true; fixture.siblingVisible = true; }
+        function createSources(): void {
+            fixture.sourceVisible = !Quickshell.env("WINDOWPEEK_EXTERNAL_SOURCE"); fixture.siblingVisible = true;
+        }
         function configure(address: string): void {
             fixture.panel = fixture.find(plugin, "windowPeekContent");
             fixture.overview = plugin.body;
@@ -203,11 +231,34 @@ ShellRoot {
         }
         function changeColor(value: string): void { fixture.sourceColor = value; }
         function closeSource(): void { fixture.sourceVisible = false; }
+        function previewTitle(value: string): void {
+            var data=JSON.parse(JSON.stringify(host.snapshot)); data.clients[0].title=value; host.snapshot=data;
+        }
+        function startMotion(): void { fixture.sourceFrameTimes=[]; fixture.previewFrameTimes=[]; fixture.motion=true; }
+        function armStartup(): void {
+            fixture.sourceFrameTimes=[]; fixture.previewFrameTimes=[]; fixture.startupEvents=[]; fixture.startupAt=Date.now();
+        }
+        function startupResult(): string {
+            return JSON.stringify({startedAt:fixture.startupAt,events:fixture.startupEvents,
+                source:fixture.sourceFrameTimes.map(function(t) { return t-fixture.startupAt; }),
+                preview:fixture.previewFrameTimes.map(function(t) { return t-fixture.startupAt; })});
+        }
+        function stopMotion(): string {
+            fixture.motion=false;
+            return JSON.stringify({source:fixture.sourceFrameTimes,preview:fixture.previewFrameTimes});
+        }
+        function previewOptions(backing: bool, fit: bool): void { host.persistSettings({previewBackdrop:backing,previewFit:fit}); }
         function hints(value: string): void { host.persistSettings({hintsMode:value,hintsUsed:99}); }
         function status(): string {
             var title = fixture.find(thumbnail.contentItem, "windowThumbnailTitle");
             return JSON.stringify({surface:fixture.surface, screen:bar.screen.name, nativePointer:fixture.nativePointer, pointerPoint:JSON.parse(pointerPoint("row")), visible:thumbnail.visible, mapped:thumbnail.backingWindowVisible,
                 content:thumbnail.hasContent, address:thumbnail.address,
+                captureWidth:thumbnail.sourceSize.width, captureHeight:thumbnail.sourceSize.height,
+                frameSizeLocked:thumbnail.sessionSourceSize.width > 0,
+                fittedWidth:thumbnail.imageSize.width, fittedHeight:thumbnail.imageSize.height,
+                imageBackingAlpha:fixture.find(thumbnail.contentItem,"windowThumbnailDisplay").color.a,
+                viewWidth:fixture.find(thumbnail.contentItem,"windowCaptureView") ? fixture.find(thumbnail.contentItem,"windowCaptureView").width : 0,
+                viewHeight:fixture.find(thumbnail.contentItem,"windowCaptureView") ? fixture.find(thumbnail.contentItem,"windowCaptureView").height : 0,
                 promotionRetained: !!fixture.promotionOwner && thumbnail.anchorItem === fixture.promotionOwner
                     && !!fixture.promotionCapture && fixture.find(thumbnail.contentItem, "windowCaptureView") === fixture.promotionCapture,
                 sourceColor:String(fixture.sourceColor), sourceFrames:fixture.sourceFrames,

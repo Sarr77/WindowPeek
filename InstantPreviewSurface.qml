@@ -15,6 +15,9 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     color: "transparent"
+    BackgroundEffect.blurRegion: preview && preview.glass && visible ? blurRegion : null
+    Region { id: blurRegion; item: root.preview ? root.preview.cardItem : null
+        radius: root.preview ? root.preview.cardItem.radius * root.preview.uiScale : 0 }
     implicitWidth: preview ? preview.width : 1
     implicitHeight: preview ? preview.height : 1
     // The parent panel spans its monitor. Layer-shell does not expose global

@@ -89,9 +89,11 @@ Ui.Panel {
         moveMenu.show(address, position || Qt.point(panel.cardOrigin.x + panel.padding, panel.cardOrigin.y + panel.padding));
         return true;
     }
-    function open() {
+    property bool quickSelectionRequested: false
+    function open(quickSelection) {
         moveMenu.close();
         if (opened || opening) return;
+        quickSelectionRequested = !!quickSelection;
         hideDelay.stop();
         if (hoverRetained && panel.backingWindowVisible) {
             panel.retainedOrigin = panel.cardOrigin;
@@ -137,7 +139,7 @@ Ui.Panel {
     }
     function close() {
         var pending = opening;
-        opening = false; settingsRequested = false; moveMenu.close();
+        opening = false; settingsRequested = false; quickSelectionRequested = false; moveMenu.close();
         // Hold the expanded geometry during fade-out; reset after unmap.
         promoted = false;
         controller.hide();
@@ -159,13 +161,18 @@ Ui.Panel {
             root.expandedGeometry = false;
             if (root.opening) Qt.callLater(function() {
                 if (!root.opening) return;
-                root.opening = false; root.open();
+                root.opening = false; root.open(root.quickSelectionRequested);
             });
         }
     }
     onOpenedChanged: {
         if (opened) {
             if (promoted) content.promote(); else content.begin();
+            if (quickSelectionRequested) {
+                quickSelectionRequested = false;
+                // Let expanded/available bindings settle after controller.show().
+                Qt.callLater(function() { if (root.opened) content.startQuickSelection(); });
+            }
             if (settingsRequested) { settingsRequested = false; content.showSettings(); }
         } else if (!collapsing) {
             content.dismiss();
@@ -222,6 +229,32 @@ Ui.Panel {
         }
     }
     Native.WindowPanel {
+        panelColor: root.hostWidget ? root.hostWidget.surfaces.panel : Color.popups.background
+        glassEnabled: !!root.hostWidget && root.hostWidget.panelStyle === "glass"
+        glassOpacity: root.hostWidget ? root.hostWidget.glassOpacity : 0.92
+        backgroundComponent: root.hostWidget && (root.hostWidget.panelStyle === "wallpaper"
+            || (root.hostWidget.glassPanels && root.hostWidget.backgroundTexture)) ? styledBackground : null
+        property Component styledBackground: WallpaperBackdrop {
+                id: background
+                objectName: "panelWallpaper"
+                palette: root.hostWidget.surfaces
+                source: root.hostWidget.wallpaperSource
+                pending: root.hostWidget.wallpaperPending || contrast.pending
+                wallpaper: root.hostWidget.panelStyle === "wallpaper"
+                blurred: root.hostWidget.backgroundBlur
+                textured: root.hostWidget.backgroundTexture
+                tintOpacity: 1 - root.hostWidget.wallpaperTransparency / 100
+                screenSize: Qt.size(panel.screenW, panel.screenH)
+                screenOrigin: Qt.point(panel.cardItem.x + 1, panel.cardItem.y + 1)
+                radius: Math.max(0, panel.cornerRadius - 1)
+                WallpaperContrast {
+                    id: contrast
+                    hostWidget: root.hostWidget
+                    active: background.wallpaper && (root.opened || root.opening || root.hoverRetained)
+                    screenSize: background.screenSize
+                    panelRect: Qt.rect(background.screenOrigin.x, background.screenOrigin.y, background.width, background.height)
+                }
+        }
         id: panel
         objectName: "windowPeekPanel"
         anchorItem: root.anchorItem

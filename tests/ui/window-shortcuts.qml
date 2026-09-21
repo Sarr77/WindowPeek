@@ -108,6 +108,22 @@ ShellRoot {
                     for (var n = 1; n <= 9; n++) { test.key(Qt.Key_0 + n); test.expect("0x" + n.toString(16), "digit " + n + " follows window position"); }
                     test.key(Qt.Key_0); test.expect("0xa", "zero chooses the tenth window");
                     test.key(Qt.Key_0, Qt.ControlModifier | Qt.KeypadModifier); test.expect("0xa", "numeric keypad works");
+                    var keypad = [Qt.Key_Insert, Qt.Key_End, Qt.Key_Down, Qt.Key_PageDown,
+                        Qt.Key_Left, Qt.Key_Clear, Qt.Key_Right, Qt.Key_Home, Qt.Key_Up, Qt.Key_PageUp];
+                    for (var expanded of [true, false]) {
+                        panel.expanded = expanded;
+                        for (var digit = 0; digit <= 9; digit++) {
+                            test.key(keypad[digit], Qt.ControlModifier | Qt.KeypadModifier);
+                            test.expect("0x" + (digit || 10).toString(16), "navigation keypad " + digit + " in expanded=" + expanded);
+                            test.key(Qt.Key_0 + digit, Qt.ControlModifier | Qt.KeypadModifier);
+                            test.expect("0x" + (digit || 10).toString(16), "numeric keypad " + digit + " in expanded=" + expanded);
+                        }
+                        test.check(panel.searchField.text === "", "keypad shortcuts do not edit the search");
+                    }
+                    panel.expanded = true;
+                    var ordinaryArrow = {key:Qt.Key_Left,modifiers:Qt.ControlModifier,accepted:false};
+                    test.check(!panel.handleWindowShortcut(ordinaryArrow) && !ordinaryArrow.accepted,
+                        "dedicated navigation keys remain outside number shortcuts");
                     events.keyRelease(Qt.Key_Control, Qt.NoModifier, 0);
                     test.check(!test.find(test.row("0x1"), "windowShortcutLabel").visible, "hints are hidden without Ctrl");
                     events.keyPress(Qt.Key_Control, Qt.NoModifier, 0);
@@ -124,6 +140,7 @@ ShellRoot {
                         && test.find(test.row("0x7"), "windowShortcutLabel").text === "1", "visible label is renumbered after scrolling");
                     test.check(!test.find(test.row("0x1"), "windowShortcutLabel").visible, "offscreen row has no shortcut hint");
                     test.key(Qt.Key_1); test.expect("0x7", "Ctrl+1 activates the same row as the visible one label");
+                    test.key(Qt.Key_End, Qt.ControlModifier | Qt.KeypadModifier); test.expect("0x7", "keypad follows the scrolled viewport");
                     test.key(Qt.Key_0); test.check(!host.focused, "zero cannot choose an offscreen tenth row");
                     test.find(panel, "windowList").contentY = test.row("0x9").y;
                     break;
@@ -141,6 +158,7 @@ ShellRoot {
                     test.check(panel.controlHeld && test.find(test.row("0x1"), "windowShortcutLabel").visible,
                         "Ctrl already held at hover opening shows numbers without a key press");
                     panel.forceActiveFocus(); test.key(Qt.Key_2); test.expect("0x2", "number activates a hover group tab");
+                    test.key(Qt.Key_Down, Qt.ControlModifier | Qt.KeypadModifier); test.expect("0x2", "keypad activates a hover group tab");
                     panel.shortcutModifierState.pending = "stale";
                     events.keyRelease(Qt.Key_Control, Qt.NoModifier, 0);
                     panel.shortcutModifierState.receive("custom", "windowpeek-shortcut-control,stale,1");

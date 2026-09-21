@@ -8,9 +8,12 @@ monitor; **Hidden** means the workspace is not currently shown on any monitor.
 Scroll with the wheel or drag the scrollbar.
 
 Click the bar label to expand the same panel, adding search, Move and Settings.
-The list keeps its position. Clicking unused space inside the list also expands
+The list keeps its position. The expanded footer shows the installed version
+next to **by Sarr**. Clicking unused space inside the list also expands
 it; another click on unused space returns to the hover view and clears search.
-Buttons, window rows and the scrollbar keep their own actions.
+The middle mouse button also toggles between these views when used on empty
+space or a workspace heading. Buttons, window rows and the scrollbar keep their
+own left-click actions.
 
 <img src="preview-panel.png" alt="Expanded WindowPeek panel with search and Move controls" width="490">
 
@@ -45,9 +48,12 @@ A plain click switches to the selected window or group tab on its existing
 monitor. This also applies to windows in the scratchpad.
 
 **Ctrl + click** a row or preview for a small workspace menu at the pointer.
+It follows the selected panel style, including the aligned wallpaper used by
+Wallpaper dropdowns.
 Search or scroll to a destination, then click it to move the window. **Move to
-Scratchpad** stays at the bottom. Opening this menu on a preview keeps the
-preview visible. Escape, right-click or an outside click cancels the menu.
+Scratchpad** stays at the bottom. Any preview already open stays visible while
+choosing, whether you open the menu from its row or the preview itself.
+Escape, right-click or an outside click cancels the menu.
 
 **Move** opens a larger form showing the window’s current workspace and monitor.
 Choose a destination and press **Move now**, or use **Move to Scratchpad** above
@@ -65,20 +71,43 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 
 | Key | Action |
 | --- | --- |
+| Super + Alt + P | Open WindowPeek on the focused monitor; show quick-selection numbers for five seconds |
+| 1–9 / 0 during quick selection | Switch to the numbered visible window or tab without Ctrl; numpad works with Num Lock on or off |
+| Page Up / Page Down in the list | Scroll by a page and select a visible window |
+| Home / End in the list | Select the first or last window; in a nonempty search field, move the text cursor |
 | ↑ / ↓ in search | Select a result |
 | Enter in search | Switch to the selected window |
 | Shift + Enter in search | Open its Move form |
 | ← / → on a window row | Switch between the window and Move |
 | ↑ / ↓ on a row action | Change rows, keeping the same action |
 | Hold Ctrl in the window list | Show shortcut numbers beside visible windows and tabs |
-| Ctrl + 1–9 / 0 in the window list | Switch to the matching numbered window or tab; 0 means tenth |
+| Ctrl + 1–9 / 0 in the window list | Switch to the matching numbered window or tab; 0 means tenth. The numeric keypad works with Num Lock on or off |
 | Tab / Shift + Tab | Move through visible controls |
 | Enter / Space on a control | Activate it |
 | Escape | Close a picker, go back, or close the main list |
 
 Arrows within search text edit the text normally. At the text’s edge, the arrow
 toward Move enters that column. Window and Move sides are mirrored in Arabic.
-**Controls** in Settings also covers dropdowns, color editing and mouse gestures.
+**Controls → Keyboard & mouse shortcuts** lets you change WindowPeek’s actions:
+opening the panel, the modifier for visible-window numbers, holding a key to hide
+previews, moving a selected window, list navigation and modified mouse clicks.
+The table above shows the defaults. Number selection always includes the numeric
+keypad; the five-second quick selection after keyboard opening stays available.
+
+Click the key combination beside an action. You can record a new combination
+or select its modifiers and key with the mouse. Recording starts only when the
+compositor grants shortcut protection; if unavailable, use the buttons instead.
+Conflicts with another WindowPeek action or an existing Hyprland binding are
+shown before saving. Tab, Shift+Tab, Enter, Space and Esc retain normal control
+navigation; plain letters remain available for search.
+
+Each row has a reset button. **Restore default shortcuts** resets the whole draft;
+**Apply** saves it for both views and all monitors, and **Cancel** discards it.
+Help and hover hints follow the saved bindings. Manually added Hyprland shortcuts
+remain active alongside WindowPeek’s managed opening shortcut; the editor does
+not rewrite your Hyprland configuration.
+
+**Controls** also covers dropdowns, color editing and mouse gestures.
 
 Number shortcuts count the first ten window rows in the visible part of the
 list, including individual group tabs; workspace headings do not count. Numbers
@@ -93,15 +122,31 @@ These shortcuts work in hover and the expanded window list, including when Ctrl
 was pressed before opening. Hover takes keyboard focus only while Ctrl is held,
 then returns it on release without expanding. Settings and move menus keep their own keys.
 
-An optional shortcut can open search on the focused monitor. After checking
-that it is free, add this to `~/.config/hypr/bindings.lua`:
+**Super + Alt + P** is registered automatically when WindowPeek is enabled,
+including after installing from the catalog. Existing bindings take precedence;
+WindowPeek never replaces one. Its automatic binding is released when the plugin
+is disabled or removed and does not edit Hyprland configuration files.
+
+Opening with this shortcut, or the `open`/`toggle` IPC commands, starts a
+five-second quick-selection period. Press a visible **1–9 / 0** without Ctrl,
+on either the number row or the numeric keypad. Scrolling updates the numbers.
+Typing a search query ends quick selection immediately; after five seconds,
+digits also become ordinary search text. **Ctrl + 1–9 / 0** remains available.
+Opening by mouse keeps the usual search behavior.
+
+To use a different shortcut, choose **Settings → Controls → Keyboard & mouse
+shortcuts → Open WindowPeek**. This also works when the default combination
+is already assigned to another action.
+
+For a manually managed binding instead, add the following to
+`~/.config/hypr/bindings.lua` (replace the key combination as needed):
 
 ```lua
 o.bind("SUPER + ALT + P", "WindowPeek", 'omarchy-shell sarr.windowpeek toggle ""')
 ```
 
 Run `hyprctl reload`, then `hyprctl configerrors` to check the configuration.
-WindowPeek does not install or replace keybindings for you.
+An existing manual WindowPeek binding to this command also starts quick selection.
 
 ## Settings
 
@@ -116,27 +161,98 @@ wide header. The header stays in place while its contents expand below it.
 - **Window list:** special workspaces, Spacious or Compact rows, springy
   scrolling, and shortcut-number placement. Compact affects both lists without shrinking the text. Special
   workspaces and springy scrolling start enabled.
-- **Personalization:** colors, panel and bar size, bar label and custom text.
-- **Controls:** the mouse and keyboard guide.
+- **Personalization:** panel background, colors, panel and bar size, bar label
+  and custom text.
+- **Controls:** editable action shortcuts and mouse modifiers, plus the keyboard and mouse guide.
 
 Switches, language, delays and list choices save as you change them. A failed
 save shows an error and leaves the previous choice in effect.
 
+### Panel background
+
+Choose a background under **Settings → Personalization**:
+
+- **Solid** uses the usual theme-colored surface.
+- **Wallpaper**, the default, shows the current wallpaper, aligned with its position on your
+  monitor. Applications behind the panel stay hidden. You can add **Blur wallpaper**
+  and **Subtle grain** for a glass effect.
+- **Transparency** shows what is actually behind the panel, including other
+  windows. It starts at just 8% transparency to keep text easy to read.
+
+The **Transparency** slider runs from 0% to 100%. Wallpaper normally starts at
+70%. On first use in a theme, WindowPeek checks the wallpaper beneath the panel.
+Only widespread, very poor contrast lowers this initial transparency, including
+contrast for small descriptions. Acceptable backgrounds keep their existing value.
+The check uses the theme's actual text color: a light wallpaper with readable dark
+text can stay at 70%. During a theme switch, it waits for the new colors to load.
+
+Wallpaper remembers the slider and its initial level separately for each theme.
+The reset arrow restores **that theme’s initial level**. Your later adjustments
+take priority; reopening, restarting or changing wallpaper does not repeat the
+automatic adjustment for a theme already initialized. Transparency mode keeps
+its separate value and 8% reset level. Existing settings are kept as the starting
+point for themes without a saved value.
+**Subtle grain** starts enabled and is also available with Transparency.
+**Blur wallpaper** starts disabled. Both can be changed independently.
+
+These choices apply to the hover list, search panel and window-preview frame.
+Text, icons and the preview itself stay fully visible; rows retain a theme-colored
+fill. Wallpaper dropdowns show the matching part of the wallpaper with the same
+effects and a stronger tint for readable options. Controls underneath do not
+show through. If the wallpaper cannot be loaded, its background falls back to
+solid. Wallpaper blur works without changing Hyprland settings;
+the Transparency mode follows the compositor’s blur setting when supported.
+Switching modes keeps your colors, presets and other preferences.
+
+The **Panel and previews** section also contains **Dark backing behind preview
+image**. Turn it off to expose the preview frame’s own background instead of the
+dark inset; it does not remove dark areas that belong to the captured application.
+**Fit preview to window proportions** is on by default. The card follows portrait
+and landscape windows within the monitor’s size limit. Once the first captured
+frame sets its proportions, the frame stays the same size until closed. If the
+source window is resized, its live image fits inside that frame; reopening the
+preview fits the new proportions. Turn it off for the previous fixed frame. The app icon and title remain above the image.
+
 ### Colors
 
-Use the palette, hue slider or HEX field. Expand **Color presets** for modes,
-per-theme choices and saved colors. **Adapted** uses `#D898F5` in Tokyo Night and
-the theme accent elsewhere. **Omarchy accent** always follows the theme;
-**Custom** uses your chosen color.
+The color editor expands to fit its contents when the monitor has enough room.
+On smaller screens it uses the available height and keeps the controls scrollable.
+
+Choose **Color element** to edit the accent, panel background, window/tab fields,
+menu sections, grain or wallpaper. Colors use the palette, hue slider and HEX
+field. Panel, row and menu fills have brightness controls; wallpaper has its
+own brightness slider. Row and menu transparency are independent of the main
+panel slider. Grain has a separate color and strength.
+
+The panel tint works with Solid, Wallpaper and Transparency. For the accent,
+**Adapted** uses `#D898F5` in Tokyo Night and the theme accent elsewhere.
+**Omarchy accent** always follows the theme. Other elements can follow their
+theme color or use a custom one. The editor preview shows the chosen background
+mode, window fields and menu fill.
+
+Click a panel background, window row, accent or menu section in **Live preview**
+to select its color element. The preview sits at the top of the editor, above
+the controls; clicking does not scroll it away. A contrasting outline marks the
+selected element, and the heading names it. Both follow the **Color element**
+dropdown as well as clicks on the preview.
+Selections retain your draft; **Apply** saves it. The sample rows do not switch
+windows. Grain remains selectable through **Color element**.
 
 **Only [theme]** keeps a separate choice for that theme. **All themes** uses
-one mode everywhere, retaining the individual theme choices for later use.
-You can save up to 24 named color presets. Each preset shows its color and HEX code.
+that element’s settings everywhere, retaining individual theme choices for later.
+Expand **Appearance presets** to save up to 24 named sets of accent and surface
+colors, brightness and field transparency. Applying a preset uses the selected
+theme scope. Presets retain theme-following colors; existing single-color
+presets still work. Background mode, its main transparency slider, blur and grain
+switches remain separate settings.
 
-**Restore saved color** returns to the last applied color. The **↺** action
-returns to Adapted for the scope shown beside it, without deleting presets
-or other theme rules. **Apply** saves the draft; Cancel, Back or closing the
-panel discards it.
+Each slider has a reset arrow. The element’s **↺** resets its color, brightness
+and transparency together. **Restore default colors** restores the default colors,
+brightness and field transparency for the selected scope, retaining presets and
+other themes. It does not reload a saved preset. **Restore saved color**
+restores that element’s last applied settings. **Apply** saves the draft;
+Cancel, Back or closing the panel discards changes, including preset edits and
+resets.
 
 ### Interface size
 

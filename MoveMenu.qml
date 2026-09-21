@@ -63,18 +63,20 @@ FocusScope {
         onPressed: root.close()
         onWheel: function(wheel) { wheel.accepted = true; }
     }
-    Rectangle {
+    DropdownSurface {
         id: card; objectName: "moveMenuCard"
+        hostWidget: root.hostWidget; uiScale: root.uiScale
+        fallbackBackground: root.hostWidget ? root.hostWidget.surfaces.pickerBackground : Color.popups.background
         x: Math.max(Style.space(8), Math.min(root.invocation.x / root.uiScale, root.width - width - Style.space(8)))
         y: Math.max(Style.space(8), Math.min(root.invocation.y / root.uiScale, root.height - height - Style.space(8)))
         width: Math.min(Style.space(280), root.width - Style.space(16))
-        property real padding: Style.space(10)
+        padding: Style.space(10)
         height: Math.min(heading.implicitHeight + search.implicitHeight
             + Math.max(Style.space(32), Math.min(root.filtered.length * Style.space(34), Style.space(216)))
             + (error.visible ? error.implicitHeight + layout.spacing : 0)
             + footer.implicitHeight + layout.spacing * 3 + padding * 2, root.height - Style.space(16))
-        color: Color.popups.background; radius: Style.space(7)
-        border.width: 1; border.color: root.accent
+        radius: Style.space(7)
+        borderSpec: Border.flat(root.accent,1)
         // The list handles scrolling first. Consume anything it leaves behind,
         // including wheel events at its edges and over non-scrollable content.
         MouseArea {

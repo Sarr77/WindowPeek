@@ -23,6 +23,8 @@ class InstallationTests(unittest.TestCase):
             self.assertEqual(json.loads((target / "manifest.json").read_text())["id"], install.PLUGIN_ID)
             self.assertTrue((target / "vendor/omarchy/LICENSE").is_file())
             self.assertTrue((target / "vendor/omarchy/OmarchyLogo.qml").is_file())
+            self.assertTrue((target / "assets/grain.svg").is_file())
+            self.assertTrue((target / "wallpaper_contrast.py").is_file())
             self.assertFalse((target / ".reference").exists())
             self.assertFalse((target / "HANDOFF.md").exists())
             install.install(ROOT, profile / "config")

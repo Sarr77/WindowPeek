@@ -82,6 +82,21 @@ Flickable {
         return last || Math.min(limit, Math.max(minimum, total));
     }
     function positionViewAtBeginning() { contentY = 0; }
+    function pageAddress(key) {
+        cancelFlick();
+        var last = key === Qt.Key_End;
+        var boundary = last || key === Qt.Key_Home;
+        contentY = boundary ? (last ? Math.max(0, contentHeight - height) : 0)
+            : Math.max(0, Math.min(Math.max(0, contentHeight - height), contentY + (key === Qt.Key_PageDown ? height : -height)));
+        var address = "";
+        for (var i = 0; i < windowRepeater.count; i++) {
+            var item = itemAtIndex(i);
+            if (!item || !item.item || item.model.kind !== "window") continue;
+            if (last) address = item.model.address;
+            else if (item.y >= contentY && item.y < contentY + height) return item.model.address;
+        }
+        return address || visibleWindowAddresses()[0] || "";
+    }
     function ensureRowVisible(index) {
         var item = itemAtIndex(index);
         if (!item) return;
@@ -118,7 +133,7 @@ Flickable {
         width: list.width; height: Math.max(list.height, list.contentHeight)
         z: -1
         enabled: list.opened && !list.busy
-        acceptedButtons: Qt.LeftButton
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
         onClicked: function(mouse) { if (mouse.modifiers === Qt.NoModifier) list.backgroundClicked(); }
         onWheel: function(wheel) { wheel.accepted = false; }
     }

@@ -28,6 +28,13 @@ ShellRoot {
           suite.check(preferences.values.includeSpecial && preferences.values.barLabel === "name", "WindowPeek choices restored");
           suite.check(preferences.values.scrollBounce === false, "disabled springy scrolling survives restart");
           suite.check(preferences.values.shortcutNumbersRight === true, "shortcut number alignment survives restart");
+          suite.check(preferences.values.previewBackdrop === false && preferences.values.previewFit === false,
+            "preview backing and sizing options survive restart");
+          suite.check(preferences.values.panelStyle === "glass", "glass background survives restart");
+          suite.check(preferences.values.glassTransparency === 8 && preferences.values.wallpaperTransparency === 45
+            && preferences.values.backgroundBlur && preferences.values.backgroundTexture, "separate transparency and effects survive restart");
+          suite.check(preferences.values.surfaceColors.windows.themes["tokyo-night"].brightness === 12
+            && preferences.values.colorPresets[0].style.surfaces.windows.opacity === 35, "surface choices and style presets survive restart");
           suite.check(preferences.values.windowPreviews === false, "disabled window previews survive restart");
           suite.check(preferences.values.labelStyle === "custom" && preferences.values.customLabels.barText === "Okna {count}",
             "custom text survives a process restart");
@@ -38,6 +45,9 @@ ShellRoot {
           suite.check(!preferences.failed, "first start without file works");
           suite.check(preferences.save({id:"sarr.windowpeek",language:"de",hintsUsed:199,hintsMode:"auto"}), "first save");
           suite.check(preferences.save({id:"sarr.windowpeek",language:"pl",hintsUsed:200,hintsMode:"on",includeSpecial:true,barLabel:"name",scrollBounce:false,windowPreviews:false,shortcutNumbersRight:true,
+            previewBackdrop:false,previewFit:false,panelStyle:"glass",glassTransparency:8,wallpaperTransparency:45,backgroundBlur:true,backgroundTexture:true,
+            surfaceColors:{windows:{scope:"theme",themes:{"tokyo-night":{color:"#204060",brightness:12,opacity:35}}}},
+            colorPresets:[{id:"preset-1",name:"Night",color:"#204060",style:{surfaces:{windows:{color:"#204060",brightness:12,opacity:35}}}}],
             labelStyle:"custom",customLabels:{barText:"Okna {count}"}}), "rapid second save");
         }
         console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();

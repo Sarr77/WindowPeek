@@ -9,14 +9,22 @@ Rectangle {
     property bool pressed: false
     property bool selected: false
     property bool currentWindow: false
+    property bool glass: false
+    property color fillColor: Color.popups.background
+    property real fillOpacity: glass ? 0.52 : 0
     readonly property bool emphasized: selected || activeFocus || pressed
 
     radius: Style.space(5)
-    color: pressed ? Qt.alpha(accent, 0.22)
-        : hovered ? Qt.alpha(accent, 0.12)
-        : selected || activeFocus ? Qt.alpha(accent, 0.08)
-        : currentWindow ? Qt.alpha(accent, 0.045) : Qt.alpha(Color.popups.text, 0.025)
-    Behavior on color { ColorAnimation { duration: 120 } }
+    color: Qt.alpha(fillColor, fillOpacity)
+    Rectangle {
+        anchors.fill: parent
+        radius: root.radius
+        color: root.pressed ? Qt.alpha(root.accent, 0.22)
+            : root.hovered ? Qt.alpha(root.accent, 0.12)
+            : root.selected || root.activeFocus ? Qt.alpha(root.accent, 0.08)
+            : root.currentWindow ? Qt.alpha(root.accent, 0.045) : Qt.alpha(Color.popups.text, 0.025)
+        Behavior on color { ColorAnimation { duration: 120 } }
+    }
 
     // Crossfade static outlines instead of animating the fill rectangle's pen.
     // These passive items leave pointer delivery and scroll handling unchanged.

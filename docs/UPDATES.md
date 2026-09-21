@@ -8,8 +8,12 @@ file before restarting the shell; it is never silently overwritten.
 
 ## Schedule and storage
 
-The first check is due about a minute after startup, then every 24 hours while
-WindowPeek runs. An open panel, hover popup or window operation postpones
+About a minute after startup, WindowPeek checks if no attempt has been recorded
+on the current local calendar day. Later checks are due six hours after the
+previous attempt. Restarts on the same day keep that deadline; they do not add
+startup requests or restart the six-hour wait. An overdue check runs on the next
+available timer tick. Crossing midnight without a restart keeps the regular cadence.
+An open panel, hover popup or window operation postpones
 starting a check. This does not cancel a check already in progress.
 
 Preferences, the schedule and the process lock live separately from code in
@@ -74,7 +78,8 @@ reload); their process groups are killed before staging cleanup.
 `updates.json` records `current`, `updated`, `unverified`, `local-changes`,
 `disabled` or `failed`. `restart-pending` means installation succeeded but
 shell reload failed; restart the shell to load the installed version. Failures
-are retried at the next daily deadline. An interrupted worker can leave
+are retried at the next six-hour deadline (or the first startup on a new day).
+An interrupted worker can leave
 `checking` until that deadline; its lock is released when the process exits.
 
 Atomic exchange needs Linux and a filesystem supporting it; staging and the

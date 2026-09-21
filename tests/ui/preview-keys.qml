@@ -39,6 +39,9 @@ ShellRoot {
                     test.check(thumbnail.contentItem.activeFocus, "preview receives keyboard events");
                     events.keyClick(Qt.Key_2, Qt.ControlModifier, 0);
                     test.check(host.focused === "0x2", "preview forwards Ctrl+digit to the source list");
+                    host.focused = "";
+                    events.keyClick(Qt.Key_Down, Qt.ControlModifier | Qt.KeypadModifier, 0);
+                    test.check(host.focused === "0x2", "preview forwards keypad navigation codes as digit shortcuts");
                     events.keyRelease(Qt.Key_Control, Qt.NoModifier, 0);
                     events.keyClick(Qt.Key_A, Qt.NoModifier, 0);
                     test.check(panel.searchField.text.toLowerCase() === "a", "preview preserves typing into the focused search field: " + panel.searchField.text);

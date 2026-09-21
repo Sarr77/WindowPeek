@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 version = json.loads((root / "manifest.json").read_text())["version"]
 files = [p for p in root.iterdir() if p.is_file() and (
     p.suffix in (".qml", ".js", ".json", ".py") or p.name in ("README.md", "CHANGELOG.md", "LICENSE", "qmldir", ".gitignore", "preview.png"))]
-for directory in ("docs", "tests", "tools", "vendor", ".github"):
+for directory in ("docs", "tests", "tools", "vendor", "assets", ".github"):
     files.extend(p for p in (root / directory).rglob("*") if p.is_file() and "__pycache__" not in p.parts)
 output = root / "dist" / ("WindowPeek-" + version + ".zip")
 output.parent.mkdir(exist_ok=True)

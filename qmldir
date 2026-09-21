@@ -1,4 +1,7 @@
 singleton Runtime 1.0 Runtime.qml
+WallpaperSource 1.0 WallpaperSource.qml
+WallpaperBackdrop 1.0 WallpaperBackdrop.qml
+TransparencyControl 1.0 TransparencyControl.qml
 Widget 1.0 Widget.qml
 Panel 1.0 Panel.qml
 PanelContent 1.0 PanelContent.qml
@@ -40,3 +43,11 @@ SettingsContent 1.0 SettingsContent.qml
 ControlsHelp 1.0 ControlsHelp.qml
 SettingsSection 1.0 SettingsSection.qml
 SettingsRow 1.0 SettingsRow.qml
+SurfacePalette 1.0 SurfacePalette.qml
+StyleValueControl 1.0 StyleValueControl.qml
+AppearancePreview 1.0 AppearancePreview.qml
+DropdownSurface 1.0 DropdownSurface.qml
+OpenShortcut 1.0 OpenShortcut.qml
+ShortcutsEditor 1.0 ShortcutsEditor.qml
+ShortcutRecorder 1.0 ShortcutRecorder.qml
+WallpaperContrast 1.0 WallpaperContrast.qml

@@ -33,11 +33,12 @@ Hyprland events → WindowState → WindowModel → Widget / PanelContent
 | `WindowClickArea.qml`, `MoveMenu.qml` | Modifier-aware clicks on passive surfaces and compact destination selection |
 | `PreviewModifiers.qml` | Bounded Shift-state observation for preview privacy without keyboard focus |
 | `ShortcutModifiers.qml` | Ctrl state on opening and while the window list is visible |
+| `OpenShortcut.qml`, `OpenShortcut.js` | Register an unused Super+Alt+P chord for the enabled plugin |
 | `Preferences.qml`, `Settings.js` | Atomic durable preferences and revision handling |
 | `Appearance.js` and editors | Color rules, presets, preview, apply/cancel and scaling |
 | `Labels.js`, `LabelsEditor.qml`, `LabelButton.qml` | Text templates, grouped editing and bounded action labels |
 | `I18n.js` | Locale detection and 30 catalogs without changing Qt's global translator |
-| `Updates.qml`, `update.py` | Shared daily schedule, verified immutable releases and atomic replacement |
+| `Updates.qml`, `update.py` | Shared six-hour schedule, verified immutable releases and atomic replacement |
 
 ## Inventory and identity
 
@@ -81,12 +82,37 @@ preserve the action column and reveal the next window across workspace headings.
 At the search text edge, the arrow toward Move transfers focus into that column.
 Cursor movement and text selection inside the search field retain their normal behavior.
 
+IPC open/toggle and the automatic Super+Alt+P binding request quick selection.
+After the expanded controller's bindings settle, PanelContent starts a five-second
+timer. The existing visible-row numbers and digit mapping also accept unmodified
+keys during this interval, including Num Lock-off keypad navigation keysyms.
+Physical Ctrl state is unchanged. Text editing, collapse, closing or leaving the
+available window list cancels the timer. Ordinary mouse opening does not start it.
+Page Up/Down scroll a viewport and select a visible row; Home/End select an endpoint.
+Row actions retain their column. Home/End in a nonempty search keep text editing.
+
+Only the widget owning IPC registers the default opening shortcut. It first reads
+`hyprctl -j binds`, preserving existing chords. Its private Lua handle is reused
+and disabled on teardown, with a 15-second compositor expiry renewed every five
+seconds in case the shell dies. Config reload rechecks conflicts. No config files
+are changed and user bindings are never unbound.
+
 Ctrl+1–9/0 uses the first ten window rows intersecting the current list viewport,
 including search, special-workspace filtering and the opening active-window
 promotion. Workspace headings do not count; each group tab has its own position.
 `WindowList.visibleWindowAddresses()` supplies both the Ctrl hints beside the
 app/tab labels and the key handler's targets. Scrolling recomputes their numbering.
-Zero selects the tenth visible row. `ShortcutModifiers` samples both Ctrl keys
+Zero selects the tenth visible row. `ShortcutBindings.js` leases Ctrl+digits and
+physical numpad digits to the visible main list through Hyprland. This catches
+fast chords before the asynchronous Ctrl focus request reaches the compositor,
+so the digit cannot reach the application underneath. The event carries the
+current opening's token; stale events and events outside the main list are ignored.
+The ordinary Qt handler remains available for focused events and offline tests.
+Closing, settings, menus and busy actions disable only the plugin's binding
+handles. Handles are reused, without editing config files or unbinding user keys.
+A compositor timer disables them after 750 ms without renewal, including when
+the shell terminates unexpectedly. Bindings do not repeat or run through a lock.
+`ShortcutModifiers` samples both Ctrl keys
 on opening and every 50 ms while a main list is available, with one outstanding
 request, a per-instance token and a 250 ms timeout. Focused Qt key events update
 the state immediately and invalidate older pending samples. Closing, settings,
@@ -102,8 +128,7 @@ popup receives the keyboard. Local focus follows search and row navigation even
 while the source window is inactive; hover forwards directly to the list.
 Held Ctrl also retains the hover: claiming the keyboard may remove the bar's
 pointer hover, which must not trigger a close/reopen loop under a stationary cursor.
-This routes Ctrl+digits to the list instead of the
-application underneath. The expanded main list also handles these keys; modal menus, settings, busy
+The expanded main list also handles these keys; modal menus, settings, busy
 actions and auto-repeat cannot start another action. The chosen row's address
 uses the same validated focus and panel-unmap path as a plain click.
 `shortcutNumbersRight` is a persisted boolean, false by default. It places the
@@ -121,6 +146,8 @@ the live window object. Hyprland's window-focus dispatcher otherwise summons
 the whole special workspace onto the currently focused monitor.
 
 Ctrl+click opens `MoveMenu` at the pointer position in a transient overlay layer.
+`chooseDestination` retains any visible preview before mapping the menu, whether
+invoked from a row or the preview card, preserving its anchor and capture.
 It owns keyboard focus and an outside-click shield while visible; the main panel
 temporarily releases keyboard ownership without changing its mode, dimensions
 or scroll position. This places the menu above a retained native preview popup.
@@ -402,7 +429,7 @@ hint budget. The preview has no instruction footer and does not consume that
 budget; its title and image remain available when hints are off.
 
 Holding Shift suppresses previews, with an exception for the preview card under
-the pointer or the card whose move menu is open. The latter retains its anchor,
+the pointer or a card retained while the move menu is open. The latter retains its anchor,
 address and capture, ignores other row hover requests, and releases retention when
 the menu closes. It still respects disabled previews and busy window actions.
 `WindowThumbnail` retains the hovered row while suppressed, cancels
@@ -465,7 +492,13 @@ the last saved UI values and permit a retry. Corrupt or unreadable files block
 saving and updating until repaired and reloaded.
 
 `Updates.qml` defers starting a worker while a panel, hover popup or window
-operation is active. `update.py` owns the persistent 24-hour deadline and an
+operation is active. Each widget's minute timer shares the runtime scheduler.
+The first eligible tick can request the day's first check via `--startup`;
+later ticks follow six hours from `lastCheck`. The worker rechecks the same
+local-calendar condition under its lock, preventing duplicate requests across
+restarts or monitors. Valid `lastCheck` migrates old 24-hour deadlines to six hours.
+Attempts, including failures, are recorded before network access.
+`update.py` owns the persistent deadline and an
 interprocess lock under WindowPeek's state directory. It uses fixed WindowPeek
 endpoints, independently checks GitHub release immutability and the official
 catalog's exact approved SHA, then verifies a fresh staged checkout. The tag,
@@ -478,6 +511,68 @@ old QML components and singletons. Reload failure is recorded separately as
 and filesystem limits. The real public update test follows publication.
 
 See [TESTING.md](TESTING.md) for executable checks and their limits.
+
+## Panel backgrounds
+
+`panelStyle` selects `solid`, `wallpaper` (the default) or `glass` (displayed as
+Transparency). Missing values use Wallpaper; malformed saved values fall back
+to Solid. `glassTransparency` and
+`wallpaperTransparency` are independent percentages, defaulting to 8 and 70.
+The latter is the legacy/global starting value. `wallpaperThemeTransparencies`
+stores `{value, defaultValue}` by theme: manual changes update only `value`, and
+reset restores that theme's `defaultValue`. Missing entries retain the old setting.
+The main panel's `WallpaperContrast` samples the first loaded wallpaper crop
+before its opening animation. `wallpaper_contrast.py` downsamples the local image
+through ImageMagick (an Omarchy base package); it does not capture desktop pixels.
+Correction requires median full-text contrast below 2.5 and at least a quarter of
+samples below 2. It then lowers transparency until the tenth-percentile contrast
+for 65%-opacity descriptions reaches 4.5, or the palette's opaque limit. This
+conservative trigger deliberately leaves imperfect but acceptable images alone;
+it is not a claim of accessibility conformance for all labels or backgrounds.
+Both adjusted and unchanged defaults are saved once per theme. Manual edits,
+theme changes and the other monitor's completed result invalidate pending work.
+Because Omarchy publishes the theme name before applying its palette, the helper
+checks the requested name, base colors and theme shell roles against the current
+theme files before and after sampling. A mismatch retries within the opening
+deadline. Live text, tint or palette changes invalidate an in-flight result.
+This prevents an outgoing dark theme's pale text from lowering the saved default
+of an incoming light theme. Manual slider changes remain scoped to that theme.
+Missing files, helper failures and save failures preserve the old value; a bounded
+deadline releases opening. Later wallpaper changes do not override saved defaults.
+`backgroundBlur` defaults to false and `backgroundTexture` to true. Preferences are shared
+between monitors and survive restarts. Alpha affects background fills only.
+`RowSurface` retains a theme-colored fill; child text and icons are unaffected.
+
+`Runtime.wallpaper` observes Omarchy’s
+`$HOME/.local/state/omarchy/current/background` link while any wallpaper panel
+or thumbnail is open. A one-second `stat` probe detects symlink changes and
+in-place edits. Its signature invalidates Qt’s image cache. There is no polling
+with no consumers. This uses the same fixed path as Omarchy’s background plugin,
+independently of the plugin’s XDG state directory.
+
+`WallpaperBackdrop` reproduces Omarchy’s centered `PreserveAspectCrop` fit for
+each monitor, translated into the card’s local coordinates. Rounded clipping
+keeps the image inside the card. Its backing stays opaque while loading or if
+the file is missing, so applications behind it cannot leak through. The slider
+controls the theme tint over this image. Optional Qt Quick blur samples the
+surrounding wallpaper pixels; a small tiled SVG supplies subtle grain. Neither
+effect changes global compositor settings or captures the desktop.
+
+The main card starts its opening animation only after the wallpaper lookup and
+image load have settled. A missing or unreadable image opens with the opaque
+fallback. Readiness is latched for that opening so refreshing the wallpaper does
+not fade out a panel in use, and closing can finish without waiting for the image.
+Image replacement retains the previous pixels during loading. A lookup from an
+earlier observation session cannot release a newer opening prematurely.
+
+`WindowPanel` and both thumbnail surfaces request `BackgroundEffect.blurRegion`
+only in Transparency mode and only for their rounded card, excluding transparent
+dismissal and pointer bridges. The request is removed in other modes or when the
+surface closes. The
+[Quickshell background effect](https://quickshell.org/docs/v0.3.1/types/Quickshell.Wayland/BackgroundEffect/)
+uses the compositor’s `ext-background-effect-v1` support and respects its blur
+setting; no global layer rules are needed. Without compositor blur, the theme
+tint and translucent row backgrounds still render.
 
 ## Background view switching
 
@@ -507,3 +602,84 @@ The Settings wordmark is decorative and takes no input. It is fixed near the
 bottom of the viewport and clipped to the space below the settings content.
 Expanding or scrolling sections covers it without moving headers or adding
 scrollable space. It is hidden in the window list and all editors.
+
+
+## Surface colors and presets
+
+`SurfacePalette` resolves panel tint, window fields, menu fields and grain from
+`Appearance.surfaceColors`. Each role has an independent theme/all scope,
+a global rule and keyed theme rules. Rules hold optional RGB, brightness
+(-100–100) and opacity (0–100 or null for the native default). Missing rules
+preserve the original theme styling. Wallpaper brightness uses Qt MultiEffect;
+RGB fills mix toward white or black. Grain colorization uses a monochrome copy
+of the original SVG mask, leaving the default two-tone texture intact.
+Theme colors are converted to opaque RGB before entering the color editor;
+Qt's `#AARRGGBB` serialization must not be passed to RGB-only normalization.
+An unmodified Solid panel retains the theme's original alpha. Wallpaper and
+Transparency use their own transparency settings over the theme's RGB tint.
+
+New entries in `colorPresets` include a normalized `style` snapshot of the accent
+and all surface roles. Older color-only entries are still accepted. Applying a
+snapshot writes each role to the selected scope; resetting uses default rules
+without deleting unrelated themes or the preset library. The existing shared
+preview owner and atomic preferences path handle Apply/Cancel and save failures.
+Background mode, per-theme Wallpaper transparency, the shared Transparency
+percentage and effect switches stay
+independent of color presets. `AppearancePreview` demonstrates both backdrop modes
+and observes wallpaper only while mounted and visible.
+Its overlay selects appearance roles using the actual sample/row geometry,
+including RTL, clipping and scale. Sample window actions stay disabled. Picking
+a role calls the same draft-preserving selector as the dropdown without requesting
+a scroll. The sample precedes the controls whose visibility changes by role.
+Passive outlines attach to the selected sample items, inheriting their geometry
+and clipping. The outline uses the current interface accent over a thin theme
+background edge. The preview caption follows the selected role, not hover.
+Initial focus stays at the editor heading rather than revealing HEX below the
+sample; keyboard navigation still reveals focused controls. Wheel events continue
+to the parent scroll area. Colors and Interface size entries use a resting accent
+border and chevron to distinguish them from inline settings.
+Dropdown popovers share `DropdownSurface`. Wallpaper paints the same desktop
+crop at the popup's window coordinates over an opaque backing; a minimum 40%
+theme tint keeps text readable without showing controls underneath. Drawing in
+unscaled window pixels preserves crop and blur/grain density at every UI scale.
+Transparency uses `SurfacePalette.pickerBackground`, mixing a little menu color
+into the panel tint with 94% coverage. Solid keeps its native surface; trigger
+rows, text and focus styling remain native.
+
+The footer and status use `Runtime.version`, checked against the manifest. Both
+native-card and list-background input paths accept unmodified middle clicks to
+toggle the hover/search view through the existing guarded transition.
+
+
+`previewBackdrop` controls only the inset behind captured content. It defaults
+true; disabling it removes the dark fill and inset border, leaving the card’s
+chosen Solid/Wallpaper/Transparency background. `previewFit`, also true by
+default, fits the image using the capture’s raw sourceSize within a bounded
+290 × 300 logical-pixel content area (subject to theme metrics and screen size).
+Unknown sources and the opt-out use the previous 290 × 164 content area. Padding
+and the title sit outside the image, so portrait previews do not inherit a
+landscape viewport. No capture dimensions depend on their displayed dimensions.
+
+The first valid captured sourceSize is latched for each opening. A source resize
+updates live pixels within the existing area without moving the card or click
+target; the next opening measures again. Two title lines are always reserved
+so a live title update does not resize the frame either. The cached ratio can
+still be constrained by a changed monitor or UI scale.
+
+## Editable action shortcuts
+
+`Shortcuts.js` defines canonical chords and resolves saved preferences. Invalid
+or conflicting external data falls back to the defaults. `ShortcutsEditor` keeps
+a separate draft, rechecks Hyprland bindings before Apply and persists through
+the existing atomic settings path. It does not touch compositor config files.
+`ShortcutRecorder` is a modal, stable-size popup; its `ShortcutInhibitor` targets
+the Quickshell proxy window and accepts recorded chords only while inhibition
+is active. Closing, cancelling or unloading the popup releases inhibition.
+Mouse composition remains available without compositor support.
+
+The number modifier is shared by Qt handling, held-state polling and the leased
+Hyprland digit bindings. Modifier families reuse their own handles and disable
+previous families when switching. The opener similarly leases its chosen chord
+only when unused. Existing manual bindings are preserved. Preview suppression
+and both row/thumbnail click paths read the same configuration. Ordinary field
+editing and standard control activation stay independent of these action keys.

@@ -1,12 +1,14 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import "Shortcuts.js" as Shortcuts
 
 // Unfocused Wayland surfaces do not receive keyboard modifiers. Read only the
 // two Shift keys while a preview has an owner; no keybinds or input grabs.
 QtObject {
     id: root
     property bool active: false
+    property string modifier: "Shift"
     property bool enabled: Quickshell.env("QT_QPA_PLATFORM") !== "offscreen"
     property bool known: false
     property bool shiftDown: false
@@ -18,7 +20,7 @@ QtObject {
         if (!active || !enabled || !Hyprland.usingLua || pending) return;
         pending = identity + ":" + (++sequence);
         Hyprland.dispatch("hl.dsp.event('windowpeek-preview-shift," + pending
-            + ",' .. ((hl.is_key_down('Shift_L') or hl.is_key_down('Shift_R')) and '1' or '0'))");
+            + ",' .. ((" + Shortcuts.modifierQuery(modifier) + ") and '1' or '0'))");
         deadline.restart();
     }
     function receive(name, data) {
@@ -35,6 +37,7 @@ QtObject {
     }
     onActiveChanged: reset()
     onEnabledChanged: reset()
+    onModifierChanged: reset()
     property Timer poll: Timer {
         interval: 50; repeat: true; running: root.active && root.enabled
         onTriggered: root.refresh()

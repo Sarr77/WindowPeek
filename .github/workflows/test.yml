@@ -13,7 +13,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
-      - run: node --test tests/model.test.cjs tests/contracts.test.cjs
+      - run: sudo apt-get update && sudo apt-get install -y lua5.4
+      - run: node --test tests/model.test.cjs tests/contracts.test.cjs tests/shortcut-bindings.test.cjs
       - run: python3 -B -m unittest discover -s tests -p 'test_*.py'
       - run: python3 tools/package.py
       - name: Check manifest and package
@@ -35,6 +36,11 @@ jobs:
               assert 'windowpeek/vendor/omarchy/LICENSE' in names
               assert 'windowpeek/vendor/omarchy/OmarchyLogo.qml' in names
               assert 'windowpeek/update.py' in names
+              for runtime in ('wallpaper_contrast.py', 'WallpaperContrast.qml',
+                              'WallpaperBackdrop.qml', 'SurfacePalette.qml',
+                              'OpenShortcut.qml', 'Shortcuts.js', 'ShortcutBindings.js',
+                              'assets/grain.svg', 'assets/grain-tint.svg'):
+                  assert 'windowpeek/' + runtime in names
               assert 'windowpeek/docs/UPDATES.md' in names
               assert 'windowpeek/CHANGELOG.md' in names
               assert 'windowpeek/docs/GUIDE.md' in names

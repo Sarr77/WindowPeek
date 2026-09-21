@@ -20,6 +20,7 @@ ShellRoot {
     property int previewUnmaps: 0
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     readonly property bool compileOnly: Quickshell.env("WINDOWPEEK_TEST_COMPILE_ONLY") === "1"
+    readonly property bool rowMenu: Quickshell.env("WINDOWPEEK_TEST_ROW_MENU") === "1"
     function check(ok, message) { if (!ok) throw new Error(message); }
     function find(object, name, seen) {
         if (!object || seen.indexOf(object) >= 0) return null;
@@ -168,6 +169,10 @@ ShellRoot {
                 case 0:
                     if (!owner || !owner.settingsReady) { test.check(test.waits++ < 15, "widget ready"); test.step--; break; }
                     test.panel = test.find(owner, "windowPeekController", []);
+                    if (test.rowMenu) {
+                        owner.persistSettings({windowPreviews:true});
+                        test.showHover(); test.step = 33; break;
+                    }
                     test.showHover(); break;
                 case 1: test.hold("Control_L"); break;
                 case 2:
@@ -187,17 +192,20 @@ ShellRoot {
                     test.check(actions.moved === "0x1:4" && !test.panel.destinationMenu.opened && test.panel.hoverOpened,
                         "choosing a workspace moves and returns to hover");
                     owner.open(); break;
-                case 9: test.clickRow(Qt.ControlModifier); break;
+                case 8: test.hold("Control_L"); break;
+                case 9: test.clickRow(Qt.NoModifier); break;
                 case 10:
                     test.check(test.panel.destinationMenu.opened && test.panel.opened && test.panel.body.mode === "windows",
                         "expanded panel uses the same small menu");
-                    events.keyClick(Qt.Key_Escape, Qt.NoModifier, 0); break;
+                    events.keyClick(Qt.Key_Escape, Qt.NoModifier, 0);
+                    keys.running = false; break;
                 case 11:
                     test.check(!test.panel.destinationMenu.opened && test.panel.opened, "Escape keeps the expanded list");
-                    test.clickRow(Qt.ControlModifier | Qt.ShiftModifier); break;
+                    test.hold("Control_L", "Shift_L"); break;
+                case 12: test.clickRow(Qt.NoModifier); break;
                 case 14:
                     test.check(actions.brings === 1 && actions.released === 1 && !test.panel.mapped, "expanded bring releases surfaces");
-                    test.showHover(); break;
+                    keys.running = false; test.showHover(); break;
                 case 15: test.hold("Control_R", "Shift_R"); break;
                 case 16:
                     test.check(keys.ready && test.panel.body.controlHeld, "right Ctrl+Shift on hover");
@@ -228,6 +236,7 @@ ShellRoot {
                     test.moveCursor(point.x, point.y); break;
                 case 37:
                     if (!owner.windowPreview.visible) { test.check(test.waits++ < 25, "preview ready"); test.step--; break; }
+                    if (test.rowMenu) break;
                     var card = test.find(owner.windowPreview.contentItem, "windowThumbnailPointer", []);
                     var point = owner.windowPreview.menuPosition(Qt.point(card.width / 2, card.height / 2));
                     test.moveCursor(point.x, point.y); break;
@@ -236,7 +245,8 @@ ShellRoot {
                         pointer: owner.windowPreview.pointerOnCard, keyboard: test.panel.surface.keyboardActive}));
                     test.hold("Control_L"); break;
                 case 39:
-                    test.check(keys.ready && owner.windowPreview.visible && owner.windowPreview.pointerOnCard,
+                    test.check(keys.ready && owner.windowPreview.visible
+                        && (test.rowMenu ? test.named("windowFocusPointer").containsMouse : owner.windowPreview.pointerOnCard),
                         "Ctrl keeps hovered preview clickable: " + JSON.stringify({keys: keys.ready,
                             visible: owner.windowPreview.visible, pointer: owner.windowPreview.pointerOnCard,
                             shiftKnown: owner.windowPreview.modifierState.known,
@@ -246,9 +256,9 @@ ShellRoot {
                     test.retainedCapture = test.find(owner.windowPreview.contentItem, "windowThumbnailCapture", []).item;
                     test.check(!!test.retainedCapture, "capture exists before opening the move menu");
                     test.previewUnmaps = 0; test.watchingPreview = true;
-                    var card = test.find(owner.windowPreview.contentItem, "windowThumbnailPointer", []);
-                    // A focused preview receives native Qt modifiers; only a
-                    // passive surface needs the compositor fallback under test.
+                    var card = test.rowMenu ? test.named("windowFocusPointer")
+                        : test.find(owner.windowPreview.contentItem, "windowThumbnailPointer", []);
+                    // Exercise held physical Ctrl even when Qt supplies no modifier.
                     events.mouseClick(card, card.width / 2, card.height / 2, Qt.LeftButton,
                         card.needsCompositor ? Qt.NoModifier : Qt.ControlModifier, 0); break;
                 case 40:
@@ -257,7 +267,7 @@ ShellRoot {
                 case 42:
                     test.check(test.panel.destinationMenu.opened && owner.windowPreview.visible && owner.windowPreview.backingWindowVisible
                         && owner.windowPreview.menuRetained && owner.windowPreview.anchorItem === test.retainedAnchor,
-                        "preview Ctrl+click keeps its original preview mapped while choosing");
+                        "Ctrl+click keeps its original preview mapped while choosing");
                     test.check(test.previewCase % 2 ? test.panel.opened : test.panel.hoverOpened, "chooser keeps the list mode");
                     var menu = test.panel.destinationMenu;
                     menu.searchField.hoverEnabled = true;
@@ -274,8 +284,8 @@ ShellRoot {
                     var origin = owner.windowPreview.menuPosition(Qt.point(0, 0));
                     var previewCard = test.find(owner.windowPreview.contentItem, "windowThumbnailPointer", []);
                     var sx = sample.x * test.scale, sy = sample.y * test.scale;
-                    test.check(sx > origin.x && sx + 4 < origin.x + previewCard.width * test.scale
-                        && sy > origin.y && sy + 4 < origin.y + previewCard.height * test.scale,
+                    test.check(test.rowMenu || (sx > origin.x && sx + 4 < origin.x + previewCard.width * test.scale
+                        && sy > origin.y && sy + 4 < origin.y + previewCard.height * test.scale),
                         "pixel probe must overlap both menu and preview");
                     pixels.result = -1;
                     pixels.command = ["python3", Quickshell.env("WINDOWPEEK_TEST_PIXEL_PROBE"),

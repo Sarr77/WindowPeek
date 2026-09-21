@@ -32,7 +32,9 @@ python3 install.py remove
 ```
 
 Preferences remain in `~/.local/state/windowpeek`, or under `XDG_STATE_HOME`.
-The installer does not manage shortcuts; see the [user guide](GUIDE.md).
+The enabled widget registers Super + Alt + P if it is unused; both local and
+catalog installations use the same lifecycle. No Hyprland config files are
+modified. See the [user guide](GUIDE.md#keyboard-controls).
 
 ## Checks
 
@@ -42,7 +44,7 @@ python3 tools/test_lifecycle.py
 ```
 
 The first command runs model, update, preferences and offscreen UI checks.
-It needs Node.js, Python 3, Qt Quick Test, Quickshell and installed Omarchy
+It needs Node.js, Python 3, Lua, Qt Quick Test, Quickshell and installed Omarchy
 components. The lifecycle test additionally uses bubblewrap to check install,
 restart, removal and reinstall in a separate profile without desktop or network access.
 
@@ -56,14 +58,15 @@ for responsibilities and [product scope](PRODUCT.md) for supported behavior.
 python3 tools/package.py
 ```
 
-This creates `dist/WindowPeek-0.1.0.zip` with source, documentation, licenses
+This creates `dist/WindowPeek-<version>.zip` with source, documentation, licenses
 and tests. It excludes Git state, development notes and caches. No commit or
 upload is made. The ZIP is a source archive; install it using `install.py`
 after extracting it, or use Omarchy’s Git installation for automatic updates.
 
 The root `preview.png` is used by README and the marketplace. Its editable
-source is [preview.svg](preview.svg). The panel images use actual QML controls
-with fictional windows; see [preview generation](PREVIEW.md).
+source is [preview.svg](preview.svg). It shows real windows and an Instagram
+preview in Chromium, captured with the application's QML controls. The separate
+expanded-panel example uses fictional windows; see [preview generation](PREVIEW.md).
 
 Publication follows [Publishing](PUBLISHING.md). Public CI checks JavaScript,
 Python and packaging; QML and Wayland checks run locally on Omarchy.
