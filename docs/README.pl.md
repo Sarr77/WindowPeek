@@ -9,7 +9,7 @@ w grupach okien Hyprlanda.
 
 [English](../README.md) · [Instrukcja (EN)](GUIDE.md) · [Historia zmian (EN)](../CHANGELOG.md)
 
-![Lista okien i tabów po najechaniu na WindowPeek, z podglądem Chromium](../preview.png)
+![WindowPeek w stylu Wallpaper, z listą po najechaniu i podglądem Instagramu w Chromium](../preview.png)
 
 ## Instalacja
 

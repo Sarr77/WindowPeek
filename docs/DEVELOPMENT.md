@@ -63,10 +63,11 @@ and tests. It excludes Git state, development notes and caches. No commit or
 upload is made. The ZIP is a source archive; install it using `install.py`
 after extracting it, or use Omarchy’s Git installation for automatic updates.
 
-The root `preview.png` is used by README and the marketplace. Its editable
-source is [preview.svg](preview.svg). It shows real windows and an Instagram
-preview in Chromium, captured with the application's QML controls. The separate
-expanded-panel example uses fictional windows; see [preview generation](PREVIEW.md).
+The root `preview.png` is used by README and the marketplace. Its original
+PNG is [preview-wallpaper.png](preview-wallpaper.png), a promotional illustration
+of the Wallpaper style. Earlier compositions, their SVG sources and captures
+are preserved in [the artwork history](PREVIEW.md#earlier-versions). The separate
+expanded-panel example uses fictional windows; see [preview artwork](PREVIEW.md).
 
 Publication follows [Publishing](PUBLISHING.md). Public CI checks JavaScript,
 Python and packaging; QML and Wayland checks run locally on Omarchy.

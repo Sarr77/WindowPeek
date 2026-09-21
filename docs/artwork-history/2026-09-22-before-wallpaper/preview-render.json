@@ -1,0 +1,37 @@
+{
+  "png_sha256": "9dc935ac1d1162d6d5f5ecd3ed4596d19d9e793ec41da94097a13a34ed55c7f2",
+  "svg_sha256": "64403db42faea442657fca3319c3f33f494bc548b07097104dac58605bb523b8",
+  "environment": {
+    "renderer": "rsvg-convert version 2.62.3\n\nlibraries used:\n  cairo 1.18.4\n  pango 1.58.2\n  harfbuzz 14.4.0\n  fontconfig 2.18.3\n",
+    "fonts": [
+      {
+        "requested": "DejaVu Sans",
+        "family": "Liberation Sans",
+        "style": "Regular",
+        "file": "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+        "sha256": "baccc64becc3eb7d104b7c84d99f5314a0a1f896e2b3ea6c2f22fc08d2003bee"
+      },
+      {
+        "requested": "DejaVu Sans:weight=bold",
+        "family": "Liberation Sans",
+        "style": "Bold",
+        "file": "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+        "sha256": "769673c4355020b1e28a14c366a152da410ab6b16239fe883ebc35b73624835b"
+      },
+      {
+        "requested": "DejaVu Sans:weight=demibold",
+        "family": "Liberation Sans",
+        "style": "Bold",
+        "file": "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+        "sha256": "769673c4355020b1e28a14c366a152da410ab6b16239fe883ebc35b73624835b"
+      },
+      {
+        "requested": "DejaVu Sans Mono",
+        "family": "JetBrainsMono Nerd Font,JetBrainsMono NF",
+        "style": "Regular",
+        "file": "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf",
+        "sha256": "1c680e8cde9fcf8b88a5605ce8d1fb94dd3fb15841f7ca7bf4c55664855e5611"
+      }
+    ]
+  }
+}
