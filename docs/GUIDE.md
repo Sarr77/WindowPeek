@@ -12,6 +12,8 @@ The list keeps its position. Clicking unused space inside the list also expands
 it; another click on unused space returns to the hover view and clears search.
 Buttons, window rows and the scrollbar keep their own actions.
 
+<img src="preview-panel.png" alt="Expanded WindowPeek panel with search and Move controls" width="490">
+
 Click the bar label again to close the panel. It will not reopen on hover until
 you leave the label and return. Right-clicking the main panel closes it too.
 In menus, right-click or Escape goes back one step; inside a dropdown it closes

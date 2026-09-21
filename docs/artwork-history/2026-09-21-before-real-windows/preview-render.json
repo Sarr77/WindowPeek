@@ -1,6 +1,6 @@
 {
-  "png_sha256": "9dc935ac1d1162d6d5f5ecd3ed4596d19d9e793ec41da94097a13a34ed55c7f2",
-  "svg_sha256": "64403db42faea442657fca3319c3f33f494bc548b07097104dac58605bb523b8",
+  "png_sha256": "944b10e8bbf7ae033d45411bf0065c269c91403281452017f5c8873d3125cb4b",
+  "svg_sha256": "0eb1c097fcd77e59fdba795fc08bfd0f5e73368f9fd2a6951393f4734f8042b7",
   "environment": {
     "renderer": "rsvg-convert version 2.62.3\n\nlibraries used:\n  cairo 1.18.4\n  pango 1.58.2\n  harfbuzz 14.4.0\n  fontconfig 2.18.3\n",
     "fonts": [

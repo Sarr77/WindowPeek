@@ -8,7 +8,7 @@ somewhere else. You'll never lose a tab in Hyprland window groups again.
 
 [Polski](docs/README.pl.md) · [User guide](docs/GUIDE.md) · [Changelog](CHANGELOG.md)
 
-![WindowPeek window list, search and workspace controls](preview.png)
+![WindowPeek hover list with application windows, group tabs and a Chromium preview](preview.png)
 
 ## Installation
 
