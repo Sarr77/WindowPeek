@@ -26,7 +26,7 @@ Wymagane jest Omarchy Quattro z paskiem Quickshell oraz API okien Hyprlanda w Lu
 Testowano na Omarchy 4.0.4, Hyprlandzie 0.56.2, Quickshell 0.3.1 i Qt 6.11.2.
 Instalacja i automatyczne aktualizacje używają Pythona 3 i Gita, dostępnych w Omarchy.
 Pierwsza kontrola kontrastu tapety używa ImageMagick, również dostępnego w Omarchy.
-Instalację lokalną opisuje [dokumentacja deweloperska (EN)](DEVELOPMENT.md).
+Pracę nad kodem i testy opisuje [dokumentacja deweloperska (EN)](DEVELOPMENT.md).
 
 ## Obsługa
 

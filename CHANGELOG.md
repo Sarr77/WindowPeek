@@ -2,6 +2,9 @@
 
 ## 0.7.0
 
+- Use Omarchy's standard plugin commands for installation and removal; omit
+  the separate installer from the public source and release archive.
+
 - Start with Wallpaper and subtle grain enabled, with blur off. Preserve
   existing saved choices and assess wallpaper contrast per theme.
 

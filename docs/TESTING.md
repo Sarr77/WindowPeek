@@ -347,8 +347,9 @@ python3 tools/package.py
 ```
 
 The reproducible ZIP includes the source, docs, licenses and tests. Private
-handoff files, the pinned reference export, Git state and build caches are
-excluded. Packaging neither creates a commit nor contacts a remote service.
+handoff files, the pinned reference export, Git state, local Python helpers and
+build caches are excluded. CI checks that the archive has no separate installer.
+Packaging neither creates a commit nor contacts a remote service.
 
 ## Validation limits
 

@@ -479,10 +479,10 @@ API reference: [ScreencopyView](https://quickshell.org/docs/v0.3.1/types/Quicksh
 
 ## Installation and updates
 
-`install.py` validates the manifest and copies selected runtime files, or links
-the checkout for development. Replacement uses Linux atomic directory exchange.
-It refuses to replace an unrelated installation. Removal targets only this
-plugin and keeps preferences.
+Installation and removal use Omarchy's standard `plugin add` and `plugin remove`
+commands. The public source and release archive contain no separate installer.
+WindowPeek stores preferences outside the plugin directory so they survive
+removal and reinstall.
 
 `Runtime.qml` owns one `Preferences` and `Updates` instance across monitors.
 Panel edits and host settings both save to the durable preferences file before

@@ -36,6 +36,8 @@ jobs:
               assert 'windowpeek/vendor/omarchy/LICENSE' in names
               assert 'windowpeek/vendor/omarchy/OmarchyLogo.qml' in names
               assert 'windowpeek/update.py' in names
+              assert 'windowpeek/install.py' not in names
+              assert 'windowpeek/tests/test_install.py' not in names
               for runtime in ('wallpaper_contrast.py', 'WallpaperContrast.qml',
                               'WallpaperBackdrop.qml', 'SurfacePalette.qml',
                               'OpenShortcut.qml', 'Shortcuts.js', 'ShortcutBindings.js',

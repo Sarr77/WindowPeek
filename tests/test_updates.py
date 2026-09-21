@@ -599,7 +599,7 @@ class UpdatesTest(unittest.TestCase):
         for name in [str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
                      if p.is_file() and not any(part in (".git", ".reference", "dist", "__pycache__")
                                                 for part in p.relative_to(ROOT).parts)
-                     and p.name not in ("AGENTS.md", "HANDOFF.md", "NEW_CHAT.txt")]:
+                     and p.name not in ("AGENTS.md", "HANDOFF.md", "NEW_CHAT.txt", "install.py")]:
             if not name:
                 continue
             source, destination = ROOT / name, self.remote / name
@@ -615,12 +615,28 @@ class UpdatesTest(unittest.TestCase):
         self.entry.update(listingValidatedCommit=target, verificationCommit=target)
         self.assertEqual(self.worker.run(now=1000 + updates.CHECK_INTERVAL), "updated")
         self.assertEqual(self.worker.git(self.worker.plugin, "rev-parse", "HEAD"), target)
+        self.assertFalse((self.worker.plugin / "install.py").exists())
         for name in ("update.py", "Updates.qml", "manifest.json", "preview.png", "vendor/omarchy/LICENSE"):
             self.assertEqual((self.worker.plugin / name).read_bytes(), (ROOT / name).read_bytes())
         self.assertEqual(self.prefs.read_bytes(), self.saved)
 
 
 class MetadataTest(unittest.TestCase):
+    def test_updater_without_saved_preferences_does_not_write_or_access_network(self):
+        with tempfile.TemporaryDirectory() as directory:
+            class OfflineUpdater(updates.Updater):
+                def latest(self):
+                    raise AssertionError("Network must not be used")
+            worker = OfflineUpdater(Path(directory) / "home", Path(directory) / "state")
+            self.assertEqual(worker.run(), "disabled")
+            self.assertFalse(worker.state.exists())
+
+    def test_stable_versions_reject_drafts_and_invalid_tags(self):
+        self.assertEqual(updates.version("0.1.0"), (0, 1, 0))
+        for value in ("01.0.0", "v1.0.0", "1.0.0-beta", "1.0", None):
+            with self.assertRaises(ValueError):
+                updates.version(value)
+
     def test_plugin_identity_and_authorities_are_windowpeek_only(self):
         manifest = json.loads((ROOT / "manifest.json").read_text())
         source = json.loads((ROOT / "release.json").read_text())

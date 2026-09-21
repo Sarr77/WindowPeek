@@ -75,6 +75,7 @@ def inside(base):
             assert enabled()
             installed = profile / '.config/omarchy/plugins' / PLUGIN
             assert (installed / 'manifest.json').is_file()
+            assert not (installed / 'install.py').exists()
             run('omarchy', 'plugin', 'validate', str(installed))
             print('PASS clean installation through actual Omarchy CLI and PluginRegistry', flush=True)
             wait_saved(lambda: json.loads(run('omarchy-shell','shell','testState'))['ready'])
@@ -170,7 +171,7 @@ def main():
                 env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GIT_CONFIG_GLOBAL='/dev/null'))
         else:
             source.mkdir()
-            for name in [str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and not any(part in ('.git','.reference','dist','__pycache__') for part in p.relative_to(root).parts) and p.name not in ('AGENTS.md','HANDOFF.md','NEW_CHAT.txt')]:
+            for name in [str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and not any(part in ('.git','.reference','dist','__pycache__') for part in p.relative_to(root).parts) and p.name not in ('AGENTS.md','HANDOFF.md','NEW_CHAT.txt','install.py')]:
                 if not (root/name).is_file(): continue  # Tracked files may be deleted locally.
                 dest=source/name; dest.parent.mkdir(parents=True,exist_ok=True)
                 shutil.copyfile(root/name,dest)

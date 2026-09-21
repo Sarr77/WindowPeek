@@ -3,3 +3,5 @@ dist/
 *.jsc
 __pycache__/
 .DS_Store
+# Local development installer; not distributed.
+/install.py

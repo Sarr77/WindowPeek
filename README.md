@@ -25,7 +25,7 @@ Requires Omarchy Quattro with its Quickshell bar and Hyprland’s Lua window API
 Tested on Omarchy 4.0.4, Hyprland 0.56.2, Quickshell 0.3.1 and Qt 6.11.2.
 Installation and automatic updates use Python 3 and Git, already included in Omarchy.
 The first-use Wallpaper contrast check uses ImageMagick, also included in Omarchy.
-See the [development guide](docs/DEVELOPMENT.md) for local and linked installs.
+See the [development guide](docs/DEVELOPMENT.md) for local development and testing.
 
 ## Using it
 
