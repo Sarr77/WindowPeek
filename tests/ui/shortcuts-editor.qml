@@ -12,6 +12,13 @@ ShellRoot {
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     property var editor: null
     function check(ok,message) { if (!ok) throw new Error(message); }
+    function checkMouseHints(move, bring) {
+        check(host.words.chooseMoveHint === move + " + click to choose a destination workspace", "move hint follows saved shortcut");
+        check(host.words.bringHint === bring + " + click to move to this monitor’s active workspace and focus", "bring hint follows saved shortcut");
+        check(Shortcuts.mouseAction(host.shortcuts, Shortcuts.mask(host.shortcuts.moveMouse)) === "move", "advertised move modifiers open destination selection");
+        check(Shortcuts.mouseAction(host.shortcuts, Shortcuts.mask(host.shortcuts.bringMouse)) === "bring", "advertised bring modifiers move and focus");
+        check(Shortcuts.mouseAction(host.shortcuts, Qt.NoModifier) === "focus", "plain click focuses");
+    }
     function key(code,modifiers) { events.keyClick(code,modifiers || Qt.NoModifier,0); }
     function find(item,name) {
         if (item.objectName === name) return item;
@@ -38,6 +45,7 @@ ShellRoot {
                     test.editor=test.find(panel,"shortcutsEditor");
                     test.check(!!test.editor && test.editor.probeReady,"editor loaded and probe ready");
                     test.check(!Object.keys(test.editor.errors).length,"default bindings valid");
+                    test.checkMouseHints("Ctrl", "Ctrl + Shift");
                     var button=test.find(test.editor,"shortcut-numbers");
                     test.editor.edit(Shortcuts.definitions[1],button); break;
                 case 2:
@@ -53,9 +61,13 @@ ShellRoot {
                     test.editor.setValue("previous","Ctrl+B");
                     test.editor.setValue("move","Alt+M");
                     test.editor.setValue("privacy","Ctrl+Shift");
+                    test.editor.setValue("moveMouse","Alt");
+                    test.editor.setValue("bringMouse","Ctrl+Alt");
+                    test.checkMouseHints("Ctrl", "Ctrl + Shift");
                     test.editor.apply(); break;
                 case 3:
                     test.check(panel.mode==="settings" && host.shortcuts.numbers==="Alt","Apply saves and returns to settings");
+                    test.checkMouseHints("Alt", "Ctrl + Alt");
                     panel.back(); break;
                 case 4:
                     host.focused=""; test.key(Qt.Key_2,Qt.AltModifier);
@@ -73,17 +85,21 @@ ShellRoot {
                 case 6:
                     test.editor=test.find(panel,"shortcutsEditor");
                     test.editor.setValue("numbers","Shift");
+                    test.editor.setValue("moveMouse","Shift");
                     test.editor.cancel();
                     test.check(host.shortcuts.numbers==="Alt","Cancel discards draft");
+                    test.checkMouseHints("Alt", "Ctrl + Alt");
                     panel.mode="shortcuts"; break;
                 case 7:
                     test.editor=test.find(panel,"shortcutsEditor");
                     test.editor.draft=Shortcuts.normalize({}); host.rejectSave=true;
                     test.editor.apply();
                     test.check(panel.mode==="shortcuts" && test.editor.saveFailed && host.shortcuts.numbers==="Alt","save failure retains editor and previous settings");
+                    test.checkMouseHints("Alt", "Ctrl + Alt");
                     host.rejectSave=false; test.editor.apply(); break;
                 case 8:
                     test.check(host.shortcuts.numbers==="Ctrl" && host.shortcuts.privacy==="Shift","restore defaults is durable only on Apply");
+                    test.checkMouseHints("Ctrl", "Ctrl + Shift");
                     panel.back(); break;
                 case 9:
                     test.key(Qt.Key_Right); test.key(Qt.Key_Left); host.focused=""; test.key(Qt.Key_Return);

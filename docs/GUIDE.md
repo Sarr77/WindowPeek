@@ -277,7 +277,7 @@ Technical settings, errors and the author credit keep their application wording.
 
 ## Hints and saved preferences
 
-The **?** button turns hover hints on or off. Automatic hints stop after 200
+The **?** button turns hover hints on or off. Automatic hints stop after 100
 actual displays, shared across monitors. Turning them back on manually keeps
 them on until manually disabled. Hints and content previews are separate.
 

@@ -30,7 +30,7 @@ ShellRoot {
     FakeHost {
         id: host; bar: barApi; includeSpecial: false
         function focusWindow(address) { focused = address; tip.close(); return true; }
-        settings: ({hintsMode: "auto", hintsUsed: 199})
+        settings: ({hintsMode: "auto", hintsUsed: 99})
         Component.onCompleted: savedAppearance = Appearance.normalize({uiScale: test.scale})
     }
     Ui.PluginBarApi {
@@ -63,7 +63,7 @@ ShellRoot {
                     tip.hoverRequested = true; break;
                 case 1:
                     test.check(tip.mapped && test.card.preview.count === 4, "native preview shows real QML rows");
-                    test.check(host.hints.used === 200 && test.card.showHint, "200th help footer stays readable");
+                    test.check(host.hints.used === 100 && test.card.showHint, "100th help footer stays readable");
                     test.check(keyTarget.activeFocus, "opening preview does not steal focus");
                     test.check(tip.surface.contentHeight + bar.height + 28 <= bar.screen.height, "scaled native preview fits screen");
                     events.mouseMove(test.card, 30, 50, 0, Qt.NoButton, Qt.NoModifier);
@@ -77,7 +77,7 @@ ShellRoot {
                     test.check(!tip.mapped, "preview closes after pointer leaves");
                     tip.hoverRequested = true; break;
                 case 4:
-                    test.check(tip.mapped && !test.card.showHint && host.hints.used === 200,
+                    test.check(tip.mapped && !test.card.showHint && host.hints.used === 100,
                         "windows remain available after the automatic help budget expires");
                     host.persistSettings({includeSpecial:true}); break;
                 case 5:

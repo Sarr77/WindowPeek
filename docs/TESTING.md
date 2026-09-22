@@ -552,7 +552,7 @@ text selection, busy actions and removal of the focused window. Repeat with `--s
 `preview-keys` activates the preview popup and checks that Ctrl+digits, search
 input, Right and Enter reach the source list's current control. It catches keys
 sent to a stale search field after focus has moved to a row's Move button.
-`hints` checks that display 200 remains readable, 201 stays hidden, and the help
+`hints` checks that display 100 remains readable, 101 stays hidden, and the help
 button enables unlimited hints until turned off. `widget` checks the shared
 budget across monitors; `preferences` checks manual on/off across process restarts.
 `scrolling` samples hover after rendered frames, alongside pixel alignment, rather

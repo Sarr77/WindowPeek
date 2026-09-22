@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+- Stop automatic hover hints after 100 displays; manually enabled hints stay on
+  until switched off.
+- Use consistent spacing around shortcut separators in hints and help.
+
 ## 0.7.0
 
 - Use Omarchy's standard plugin commands for installation and removal; omit

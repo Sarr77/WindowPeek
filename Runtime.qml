@@ -6,7 +6,7 @@ import "Appearance.js" as Appearance
 
 QtObject {
     id: root
-    readonly property string version: "0.7.0"
+    readonly property string version: "0.7.1"
     property WindowState state: WindowState { }
     property WindowActions actions: WindowActions { state: root.state }
     property Preferences preferences: Preferences { }

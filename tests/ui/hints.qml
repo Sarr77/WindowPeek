@@ -13,7 +13,7 @@ ShellRoot {
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     TestEvent { id: events }
     function check(value, message) { if (!value) throw new Error(message); }
-    FakeHost { id: host; settings: ({hintsMode: "auto", hintsUsed: 199}) }
+    FakeHost { id: host; settings: ({hintsMode: "auto", hintsUsed: 99}) }
     Window {
         id: window
         visible: true; width: 500 * test.scale; height: 300 * test.scale
@@ -47,17 +47,17 @@ ShellRoot {
                     keyTarget.forceActiveFocus();
                     hint.requested = true; break;
                 case 1:
-                    test.check(host.hints.used === 200 && hint.visible, "200th displayed hint stays readable");
+                    test.check(host.hints.used === 100 && hint.visible, "100th displayed hint stays readable");
                     events.keyClick(Qt.Key_Escape, Qt.NoModifier, 0);
                     test.check(test.escapes === 1, "visible hint does not consume Escape: windowActive="
                         + window.active + " keyTargetActive=" + keyTarget.activeFocus);
                     hint.requested = false; break;
                 case 2: hint.requested = true; break;
                 case 3:
-                    test.check(!hint.visible && host.hints.used === 200, "201st automatic hover stays hidden");
+                    test.check(!hint.visible && host.hints.used === 100, "101st automatic hover stays hidden");
                     events.mouseClick(toggle, toggle.width / 2, toggle.height / 2, Qt.LeftButton, Qt.NoModifier, 0); break;
                 case 4:
-                    test.check(hint.visible && host.hints.used === 200 && host.hints.mode === "on", "help button enables unlimited manual hints");
+                    test.check(hint.visible && host.hints.used === 100 && host.hints.mode === "on", "help button enables unlimited manual hints");
                     var point = hint.contentItem.mapToItem(underHint, 10, 10);
                     var surface = hint.contentItem.parent;
                     var bounds = surface.mapToItem(underHint, 0, 0, surface.width, surface.height);

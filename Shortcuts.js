@@ -154,7 +154,7 @@ function applyWords(words,values) {
             if (token==="Shift+Enter") return display(c.move);
             if (/^Ctrl\s*\+$/.test(token)) return display(name==="chooseMoveHint" ? c.moveMouse : c.numbers)+" +";
             return display(token==="Shift" ? c.privacy : c.numbers);
-        });
+        }).replace(/\s*\+\s*/g," + ");
     }
     return result;
 }

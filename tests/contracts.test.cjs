@@ -141,12 +141,14 @@ test('new durable settings win over stale inline values without dropping unrelat
     assert.equal(restored.barLabel, 'name');
     assert.equal(restored.hintsUsed, 80);
     assert.ok(settings.stamp(restored, saved)._windowpeekRevision > 20);
-    assert.equal(settings.hints({}).remaining, 200);
+    assert.equal(settings.hints({}).remaining, 100);
     assert.equal(settings.hints({}).enabled, true);
-    assert.equal(settings.hints({ hintsUsed: 100, hintsMode: 'auto' }).enabled, true);
-    assert.equal(settings.hints({ hintsUsed: 199, hintsMode: 'auto' }).remaining, 1);
+    assert.equal(settings.hints({ hintsUsed: 50, hintsMode: 'auto' }).enabled, true);
+    assert.equal(settings.hints({ hintsUsed: 99, hintsMode: 'auto' }).remaining, 1);
+    assert.equal(settings.hints({ hintsUsed: 100, hintsMode: 'auto' }).enabled, false);
     assert.equal(settings.hints({ hintsUsed: 200, hintsMode: 'auto' }).enabled, false);
     assert.equal(settings.hints({ hintsUsed: 200, hintsMode: 'on' }).enabled, true);
+    assert.equal(settings.hints({ hintsUsed: 0, hintsMode: 'off' }).enabled, false);
 });
 
 test('scratchpad moves also work before the workspace exists, without accepting arbitrary special destinations', () => {

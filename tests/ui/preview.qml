@@ -61,7 +61,7 @@ ShellRoot {
                     shown.monitors[1].activeWorkspace = {id: -1337};
                     shown.monitors[1].specialWorkspace = {id: -99};
                     host.snapshot = shown;
-                    host.persistSettings({hintsUsed:200, hintsMode:"auto"}); break;
+                    host.persistSettings({hintsUsed:100, hintsMode:"auto"}); break;
                 case 2:
                     test.check(!preview.showHint && preview.preview.count === 5, "preview remains after help budget expires");
                     test.check(test.find(test.header(preview, 4), "hiddenWorkspace").visible

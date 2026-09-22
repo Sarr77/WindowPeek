@@ -110,7 +110,7 @@ obrazem można wyłączyć. Środkowy klik w wolnym miejscu panelu przełącza m
 listą po najechaniu a widokiem rozwiniętym.
 
 Przycisk **?** steruje podpowiedziami po najechaniu kursorem. Początkowo są
-włączone i wyłączają się po 200 wyświetleniach łącznie na wszystkich monitorach.
+włączone i wyłączają się po 100 wyświetleniach łącznie na wszystkich monitorach.
 Po ręcznym włączeniu działają do ręcznego wyłączenia. Ustawienia pozostają
 zapisane po restarcie, aktualizacji i ponownej instalacji.
 

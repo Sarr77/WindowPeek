@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "sarr.windowpeek",
   "name": "WindowPeek",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Sarr",
   "license": "MIT",
   "description": "Find, preview and switch to windows across workspaces, monitors and Hyprland group tabs from Omarchy’s bar. Hover to browse, click to search, or move windows between workspaces and the scratchpad. Hold Shift to hide previews. Includes keyboard shortcuts, 30 languages, native themes, scaling, custom labels, saved color presets and instant popups. Keep Omarchy's look and workflow, without adding a macOS-style dock, Launchpad, Mission Control, or a Windows-style desktop.",

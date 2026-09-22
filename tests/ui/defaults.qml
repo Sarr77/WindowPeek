@@ -92,7 +92,8 @@ ShellRoot {
                     test.check(!test.reset("previewHoverDelayControl").enabled, "dependent controls stay disabled with previews off");
                     host.persistSettings({windowPreviews: true});
                     test.reset("previewHoverDelayControl").clicked();
-                    test.check(host.previewHoverDelay === 400 && host.hints.mode === "on" && host.hints.used === 200
+                    test.check(host.previewHoverDelay === 400 && host.hints.mode === "on" && host.hints.used === 100
+                        && host.settings.hintsUsed === 200
                         && host.settings.autoUpdates === false && !host.scrollBounce, "resets preserve unrelated choices and hint history");
                     host.persistSettings({panelHoverDelay: 900});
                     test.check(test.reset("panelHoverDelayControl").enabled, "reset follows a saved change from another view");

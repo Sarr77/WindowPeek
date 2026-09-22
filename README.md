@@ -97,7 +97,7 @@ Window previews can fit the source window’s proportions, with an optional dark
 backing behind the image. Middle-click unused panel space to switch between the
 hover list and expanded view.
 
-The **?** button controls hover hints. They start enabled and stop after 200
+The **?** button controls hover hints. They start enabled and stop after 100
 displays across all monitors. Turn them back on yourself and they stay on until
 you switch them off. Settings survive restarts, updates and reinstalls.
 

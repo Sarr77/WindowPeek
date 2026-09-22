@@ -336,7 +336,7 @@ another widget cannot cancel it. Back from an editor returns to Settings.
 Tab navigation reveals the focused control within its scrollable view.
 The bar tooltip uses the
 same style and scale as its preview. Automatic hints count actual displays,
-remain readable on the 200th display and stop on subsequent hovers.
+remain readable on the 100th display and stop on subsequent hovers.
 Hover hints never consume Escape or take keyboard focus. Manual
 on/off and the help explanation remain available independently of that budget.
 

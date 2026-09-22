@@ -27,7 +27,7 @@ function initial(layout, id, fallback) {
     }
     return fallback;
 }
-var hintLimit = 200;
+var hintLimit = 100;
 function hints(settings) {
     var mode = ["auto", "on", "off"].indexOf(settings.hintsMode) >= 0 ? settings.hintsMode : "auto";
     var used = Number.isFinite(settings.hintsUsed) ? Math.max(0, Math.min(hintLimit, Math.floor(settings.hintsUsed))) : 0;

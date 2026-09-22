@@ -199,7 +199,7 @@ Carry over these established design decisions where they fit WindowPeek:
   Apply. Explain and validate each field's available variables. Technical
   settings, error messages and author attribution keep their application text.
 - A small help control at the left of the footer, with its own explanation
-  always available. Automatic hints use the first 200 displayed hovers, shared
+  always available. Automatic hints use the first 100 displayed hovers, shared
   across monitors and persisted; manually enabled hints stay on until disabled.
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.

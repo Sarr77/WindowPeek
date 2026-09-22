@@ -45,8 +45,8 @@ ShellRoot {
                     && a.backgroundTexture && b.backgroundTexture && !a.backgroundBlur,
                     "fresh widgets default to Wallpaper with grain and no blur");
                 test.check(a.wallpaperTransparency === 70 && !a.wallpaperTransparencyRule.initialized
-                    && a.hints.mode === "auto" && a.hints.used === 0 && a.hints.remaining === 200 && a.hints.enabled,
-                    "fresh defaults leave theme assessment pending and start the full 200-display hint budget");
+                    && a.hints.mode === "auto" && a.hints.used === 0 && a.hints.remaining === 100 && a.hints.enabled,
+                    "fresh defaults leave theme assessment pending and start the full 100-display hint budget");
                 test.check(a.persistSettings({panelStyle:"glass"}) && a.glassPanels && b.glassPanels,
                     "glass setting synchronizes across monitors");
                 test.check(b.persistSettings({panelStyle:"solid",backgroundTexture:false}) && !a.glassPanels && !b.glassPanels
@@ -70,10 +70,10 @@ ShellRoot {
                     "enabling springy scrolling updates both monitors");
                 test.check(a.persistSettings({ scrollBounce: false }) && !a.scrollBounce && !b.scrollBounce,
                     "disabling springy scrolling updates both monitors");
-                test.check(a.persistSettings({ hintsMode: "auto", hintsUsed: 198 }), "save hint budget");
+                test.check(a.persistSettings({ hintsMode: "auto", hintsUsed: 98 }), "save hint budget");
                 test.check(a.recordHintShown() && b.recordHintShown(), "shared hint budget across monitors");
-                test.check(a.hints.used === 200 && b.hints.used === 200 && !a.hints.enabled, "budget exhausted exactly once");
-                test.check(!b.recordHintShown(), "no 201st automatic hint");
+                test.check(a.hints.used === 100 && b.hints.used === 100 && !a.hints.enabled, "budget exhausted exactly once");
+                test.check(!b.recordHintShown(), "no 101st automatic hint");
                 test.check(a.toggleHints() && b.hints.enabled, "manual hints override budget");
                 test.check(a.runtime.preferences.values.hintsMode === "on", "manual on is durable");
                 for (var hover = 0; hover < 250; hover++) {
@@ -85,7 +85,7 @@ ShellRoot {
                 test.check(a.persistSettings({ includeSpecial: false }) && !a.includeSpecial && !b.includeSpecial,
                     "explicit exclusion overrides the new default on both monitors");
                 test.check(a.persistSettings({ includeSpecial: true }), "special preference saved");
-                test.check(b.includeSpecial && shell.saved.hintsUsed === 200, "rapid saves preserve other values");
+                test.check(b.includeSpecial && shell.saved.hintsUsed === 100, "rapid saves preserve other values");
                 test.check(a.runtime.preferences.values.language === "pl", "durable preferences keep language");
                 test.check(a.runtime.preferences.values.scrollBounce === false, "scroll preference survives other settings changes");
                 test.check(a.updatesAvailable && !a.runtime.updates.runtimeAvailable, "isolated UI tests cannot start the updater");

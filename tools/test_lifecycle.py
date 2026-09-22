@@ -84,7 +84,7 @@ def inside(base):
             assert initial['backgroundBlur'] is False and initial['wallpaperTransparency'] == 70
             assert initial['wallpaperInitialized'] is False, 'New install copied theme assessment history'
             assert initial['hintsMode'] == 'auto' and initial['hintsUsed'] == 0
-            assert initial['hintsRemaining'] == 200 and initial['hintsEnabled'] is True
+            assert initial['hintsRemaining'] == 100 and initial['hintsEnabled'] is True
             print('PASS fresh install uses Wallpaper/grain and a new automatic hint budget', flush=True)
             preferences = {'language':'pl','accentColor':'#EF98F5','hintsUsed':37,'hintsMode':'auto','autoUpdates':False,
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
