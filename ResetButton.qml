@@ -1,9 +1,8 @@
 import QtQuick
-import qs.Ui as Ui
 import qs.Commons
 import "I18n.js" as I18n
 
-Ui.Button {
+HintButton {
     id: root
     objectName: "resetDefaultButton"
     required property var words
@@ -14,7 +13,7 @@ Ui.Button {
     signal ensureVisible()
     width: Style.space(32); height: Style.space(32)
     text: "↺"; fontSize: Style.font.subtitle
-    tooltipText: words.resetValue + " · " + I18n.format(words.defaultValue, {value: valueText})
+    hintText: words.resetValue + " · " + I18n.format(words.defaultValue, {value: valueText})
     // Keep the default value discoverable on hover without saving it again.
     focusable: modified || activeFocus
     foreground: hot || activeFocus ? accent : Qt.alpha(Color.popups.text, modified ? 0.95 : 0.7)

@@ -30,6 +30,14 @@ Flickable {
     readonly property bool busy: !!hostWidget && hostWidget.actionBusy
     readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
     readonly property bool interacting: windowScrollbar.pressed || dragging
+    readonly property bool rowHovered: {
+        for (var i = 0; i < windowRepeater.count; i++) {
+            var loader = itemAtIndex(i);
+            if (loader && loader.item && loader.model.kind === "window" && loader.item.hovered)
+                return true;
+        }
+        return false;
+    }
     property alias scrollbar: windowScrollbar
     signal focusRequested(string address)
     signal bringRequested(string address)
@@ -115,6 +123,7 @@ Flickable {
     // Match ScratchPeek's window list: use Qt's default edge rebound.
     boundsBehavior: list.hostWidget && list.hostWidget.scrollBounce ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
     onBoundsBehaviorChanged: if (boundsBehavior === Flickable.StopAtBounds) { cancelFlick(); returnToBounds(); }
+    WheelScroll { view: list; speed: list.hostWidget ? list.hostWidget.wheelScrollSpeed : 102 }
     QQC.ScrollBar.vertical: ScrollHandle {
         id: windowScrollbar; objectName: "windowScrollbar"
         parent: list.scrollbarParent
@@ -129,14 +138,22 @@ Flickable {
         y: listOrigin.y; height: list.height; accent: list.accent
     }
     MouseArea {
+        id: backgroundPointer
         objectName: "windowListBackground"
         width: list.width; height: Math.max(list.height, list.contentHeight)
         z: -1
         enabled: list.opened && !list.busy
+        hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-        onClicked: function(mouse) { if (mouse.modifiers === Qt.NoModifier) list.backgroundClicked(); }
+        onClicked: function(mouse) {
+            if (mouse.modifiers === Qt.NoModifier && (mouse.button === Qt.MiddleButton || !list.hostWidget.doubleClickExpand)) list.backgroundClicked();
+        }
+        onDoubleClicked: function(mouse) {
+            if (list.hostWidget.doubleClickExpand && mouse.button === Qt.LeftButton && mouse.modifiers === Qt.NoModifier) list.backgroundClicked();
+        }
         onWheel: function(wheel) { wheel.accepted = false; }
     }
+    readonly property bool backgroundHovered: backgroundPointer.containsMouse
     Column {
         id: windowColumn
         width: list.width
@@ -176,7 +193,8 @@ Flickable {
                         enabled: list.opened
                         busy: list.busy
                         previewAllowed: list.opened && list.visible && !list.busy
-                        hintsAllowed: list.expanded && list.opened && list.visible && !list.busy
+                        hintsAllowed: list.opened && list.visible && !list.busy && !list.interacting
+                            && !list.hostWidget.moveMenuOpen
                         onFocusRequested: function(address) { list.focusRequested(address); }
                         onBringRequested: function(address) { list.bringRequested(address); }
                         onMoveRequested: function(address) { list.moveRequested(address); }

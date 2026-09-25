@@ -12,6 +12,7 @@ Rectangle {
     property bool glass: false
     property color fillColor: Color.popups.background
     property real fillOpacity: glass ? 0.52 : 0
+    readonly property color readabilityBackground: Qt.alpha(fillColor, fillOpacity)
     readonly property bool emphasized: selected || activeFocus || pressed
 
     radius: Style.space(5)

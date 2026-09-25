@@ -26,6 +26,22 @@ ShellRoot {
     property var overview: null
     property var promotionOwner: null
     property var promotionCapture: null
+    property bool traceResize: false
+    property var resizeFrames: []
+    function resizeFrame() {
+        if (!traceResize || resizeFrames.length >= 400) return;
+        var p=plugin.surface.cardItem, v=thumbnail.cardItem;
+        var panelOrigin=p.mapToGlobal(0,0), previewOrigin=v.mapToGlobal(0,0);
+        var gapError=Math.min(Math.abs(previewOrigin.x-panelOrigin.x-p.width-thumbnail.bridgeWidth),
+            Math.abs(panelOrigin.x-previewOrigin.x-v.width*fixture.scale-thumbnail.bridgeWidth));
+        resizeFrames.push({width:p.width,gapError:gapError,mapped:thumbnail.backingWindowVisible,
+            retained:thumbnail.anchorItem===promotionOwner && fixture.find(thumbnail.contentItem,"windowCaptureView")===promotionCapture,
+            shared:thumbnail.embedded && thumbnail.contentItem.Window.window===plugin.surface.layerScene.Window.window});
+    }
+    Connections {
+        target: plugin.surface.cardItem.Window.window
+        function onFrameSwapped() { fixture.resizeFrame(); }
+    }
     function find(item, name, seen) {
         if (!item) return null;
         seen = seen || [];
@@ -217,8 +233,13 @@ ShellRoot {
         function promote(): void {
             fixture.promotionOwner = thumbnail.anchorItem;
             fixture.promotionCapture = fixture.find(thumbnail.contentItem, "windowCaptureView");
+            fixture.resizeFrames=[]; fixture.traceResize=true;
             plugin.open(); fixture.surface = "panel";
         }
+        function resizeCompact(compact: bool): void {
+            if (compact) plugin.collapse(); else plugin.open();
+        }
+        function finishResizeTrace(): string { fixture.traceResize=false;return JSON.stringify(fixture.resizeFrames); }
         function parentClose(): void { plugin.close(); plugin.dismissHover(); plugin.hoverRequested = false; }
 
         function wheel(): void {

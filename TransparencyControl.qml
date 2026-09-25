@@ -5,6 +5,7 @@ import "I18n.js" as I18n
 
 Column {
     id: root
+    property var hostWidget: null
     required property var words
     property color accent: Color.accent
     property int value: 8
@@ -18,20 +19,21 @@ Column {
     }
     Item {
         width: parent.width; height: Math.max(Style.space(32), label.implicitHeight)
-        Text {
+        ReadableText {
             id: label
             anchors.left: parent.left; anchors.right: percent.left; anchors.rightMargin: Style.space(12)
             anchors.verticalCenter: parent.verticalCenter
             text: root.words.transparency; textFormat: Text.PlainText; wrapMode: Text.Wrap
-            color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
         }
-        Text {
+        ReadableText {
             id: percent; objectName: "transparencyPercent"
             anchors.right: reset.left; anchors.rightMargin: Style.space(8); anchors.verticalCenter: parent.verticalCenter
             text: root.value + "%"; textFormat: Text.PlainText
-            color: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         ResetButton {
+            hostWidget: root.hostWidget
             id: reset
             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
             words: root.words; valueText: root.defaultValue + "%"; label: root.words.transparency; accent: root.accent
@@ -52,13 +54,13 @@ Column {
             onMoved: root.choose(value)
             onActiveFocusChanged: if (activeFocus) root.ensureVisible()
         }
-        Text {
+        ReadableText {
             id: caption
             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
             width: Math.min(implicitWidth, parent.width * 0.45)
             text: I18n.format(root.words.defaultValue, {value: root.defaultValue + "%"})
             textFormat: Text.PlainText; wrapMode: Text.Wrap
-            color: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
         }
     }
 }

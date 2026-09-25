@@ -52,6 +52,7 @@ for responsibilities and [product scope](PRODUCT.md) for supported behavior.
 
 ```sh
 python3 tools/package.py
+python3 tools/check_package.py --validate
 ```
 
 This creates `dist/WindowPeek-<version>.zip` with source, documentation, licenses

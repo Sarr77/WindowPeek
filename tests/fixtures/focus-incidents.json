@@ -1,0 +1,692 @@
+[
+  {
+    "name": "tiled",
+    "expectedOffer": true,
+    "events": [
+      {
+        "kind": "focus",
+        "at": 0,
+        "active": true,
+        "eligible": true
+      },
+      {
+        "kind": "geometry",
+        "at": 8,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 258,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 509,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 759,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1009,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1259,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "focus",
+        "at": 1260,
+        "active": false,
+        "eligible": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1509,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1759,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2009,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2259,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2509,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2759,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3009,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3260,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3510,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3760,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4010,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4260,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4380,
+        "id": "0x123",
+        "width": 933,
+        "height": 1038,
+        "synthetic": false,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4381,
+        "id": "0x123",
+        "width": 933,
+        "height": 1038,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4381,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1038,
+        "synthetic": false,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4381,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1038,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4381,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1038,
+        "synthetic": true,
+        "atRisk": true
+      }
+    ]
+  },
+  {
+    "name": "none",
+    "expectedOffer": false,
+    "events": [
+      {
+        "kind": "focus",
+        "at": 0,
+        "active": true,
+        "eligible": true
+      },
+      {
+        "kind": "reason",
+        "at": 3811,
+        "reason": 1
+      },
+      {
+        "kind": "focus",
+        "at": 3812,
+        "active": false,
+        "eligible": false
+      }
+    ]
+  },
+  {
+    "name": "floating",
+    "expectedOffer": false,
+    "events": [
+      {
+        "kind": "focus",
+        "at": 0,
+        "active": true,
+        "eligible": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 254,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 504,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 754,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 1006,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 1254,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 1504,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 1754,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 2004,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 2255,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 2505,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 2755,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 3005,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 3255,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 3505,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 3755,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "focus",
+        "at": 3805,
+        "active": false,
+        "eligible": false
+      },
+      {
+        "kind": "reason",
+        "at": 3805,
+        "reason": 1
+      },
+      {
+        "kind": "geometry",
+        "at": 4005,
+        "id": "0x123",
+        "width": 421,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 4255,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": false,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 4381,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": true,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 4382,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": true,
+        "atRisk": false
+      },
+      {
+        "kind": "geometry",
+        "at": 4382,
+        "id": "0x123",
+        "width": 420,
+        "height": 300,
+        "synthetic": true,
+        "atRisk": false
+      }
+    ]
+  },
+  {
+    "name": "intentional",
+    "expectedOffer": false,
+    "events": [
+      {
+        "kind": "focus",
+        "at": 0,
+        "active": true,
+        "eligible": true
+      },
+      {
+        "kind": "geometry",
+        "at": 6,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 256,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 506,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 757,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1007,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "reason",
+        "at": 1057,
+        "reason": 3
+      },
+      {
+        "kind": "focus",
+        "at": 1058,
+        "active": false,
+        "eligible": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1257,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1507,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 1757,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2007,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2257,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2507,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 2757,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3007,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3257,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3507,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 3758,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4008,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4258,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4379,
+        "id": "0x123",
+        "width": 933,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4380,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1012,
+        "synthetic": false,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4380,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4380,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1012,
+        "synthetic": true,
+        "atRisk": true
+      },
+      {
+        "kind": "geometry",
+        "at": 4382,
+        "id": "0x123",
+        "width": 1878,
+        "height": 1038,
+        "synthetic": false,
+        "atRisk": true
+      }
+    ]
+  }
+]

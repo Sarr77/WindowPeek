@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 
-Ui.Button {
+ReadableButton {
   id: root
   property var hostWidget: null
   property bool hintsAllowed: true

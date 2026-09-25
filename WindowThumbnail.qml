@@ -20,6 +20,11 @@ Scope {
     property bool menuRetained: false
     property var hiddenCallback: null
     readonly property var anchorWindow: anchorItem ? anchorItem.QsWindow.window : null
+    // Share the panel layer so animated placement is one scene update, not a
+    // separate Wayland popup configure/swap on every animation frame.
+    readonly property var panelWindow: anchorWindow && anchorWindow.overlayWindow ? anchorWindow.overlayWindow : anchorWindow
+    readonly property bool embedded: !!panelWindow && !!panelWindow.panelScene
+    readonly property point overlayOffset: anchorWindow && anchorWindow.overlayOffset ? anchorWindow.overlayOffset : Qt.point(0, 0)
     // WindowPanel aliases contentItem to a list. Window.window exposes the
     // actual scene root, independently of that component's public aliases.
     readonly property Item anchorScene: anchorItem && anchorItem.Window.window ? anchorItem.Window.window.contentItem : null
@@ -34,13 +39,16 @@ Scope {
     readonly property point screenOrigin: {
         if (!anchorWindow || !anchorWindow.screen) return Qt.point(0, 0);
         var screen = anchorWindow.screen;
-        var bounds = Qt.rect(screen.x + boundsRect.x, screen.y + boundsRect.y, boundsRect.width, boundsRect.height);
+        var bounds = Qt.rect(screen.x + overlayOffset.x + boundsRect.x, screen.y + overlayOffset.y + boundsRect.y, boundsRect.width, boundsRect.height);
         var origin = Placement.beside(bounds, rowRect.y - boundsRect.y, rowRect.height, width, height, screen);
         return Qt.point(origin.x, origin.y);
     }
+    readonly property point globalOrigin: Qt.point(
+        (anchorWindow && anchorWindow.screen ? anchorWindow.screen.x : 0) + screenOrigin.x,
+        (anchorWindow && anchorWindow.screen ? anchorWindow.screen.y : 0) + screenOrigin.y)
     readonly property alias cardItem: card
     readonly property bool visible: ready && available && previewAllowed
-    readonly property bool backingWindowVisible: popup.backingWindowVisible || (!!instantLoader.item && instantLoader.item.backingWindowVisible)
+    readonly property bool backingWindowVisible: (embedded && root.visible && panelWindow.backingWindowVisible) || popup.backingWindowVisible || (!!instantLoader.item && instantLoader.item.backingWindowVisible)
     readonly property alias contentItem: scene
     readonly property real bridgeWidth: Style.space(8) * uiScale
     readonly property bool available: hostWidget.windowPreviews && (!hostWidget.moveMenuOpen || menuRetained) && !!entry && !!anchorItem && anchorItem.visible
@@ -116,7 +124,7 @@ Scope {
     }
     function menuPosition(position) {
         var screen = anchorWindow.screen;
-        var bounds = Qt.rect(screen.x + boundsRect.x, screen.y + boundsRect.y, boundsRect.width, boundsRect.height);
+        var bounds = Qt.rect(screen.x + overlayOffset.x + boundsRect.x, screen.y + overlayOffset.y + boundsRect.y, boundsRect.width, boundsRect.height);
         var origin = Placement.beside(bounds, rowRect.y - boundsRect.y, rowRect.height, width, height, screen);
         var local = pointer.mapToItem(scene, position.x, position.y);
         return Qt.point(origin.x + local.x, origin.y + local.y);
@@ -163,7 +171,7 @@ Scope {
     }
     PopupWindow {
         id: popup
-        visible: root.visible && !root.instant
+        visible: root.visible && !root.instant && !root.embedded
         implicitWidth: root.width; implicitHeight: root.height
         grabFocus: false; color: "transparent"
         BackgroundEffect.blurRegion: root.glass && visible ? blurRegion : null
@@ -184,18 +192,26 @@ Scope {
     // preview an instant path without changing global Hyprland animation rules.
     LazyLoader {
         id: instantLoader
-        source: root.instant && root.available ? Qt.resolvedUrl("InstantPreviewSurface.qml") : ""
+        source: !root.embedded && root.instant && root.available ? Qt.resolvedUrl("InstantPreviewSurface.qml") : ""
         // LazyLoader must receive its component before activation.
         active: source !== ""
     }
     Binding { target: instantLoader.item; property: "preview"; value: root; when: !!instantLoader.item }
     Item {
         id: scene
+        // This scene follows its owning panel layer, with a popup fallback for
+        // standalone hosts that do not expose a layer scene.
+        // Its visual ancestors do not include the owning Scope.
+        readonly property var hostWidget: root.hostWidget
         // An XDG preview may receive keys belonging to its parent layer even
         // without a keyboard grab. Keep list shortcuts on the original list.
         focus: true
         Keys.forwardTo: root.shortcutTarget ? [root.shortcutTarget] : []
-        parent: root.instant && instantLoader.item ? instantLoader.item.contentItem : popup.contentItem
+        parent: root.embedded ? root.panelWindow.panelScene : root.instant && instantLoader.item ? instantLoader.item.contentItem : popup.contentItem
+        visible: root.visible
+        x: root.embedded ? root.screenOrigin.x : 0
+        y: root.embedded ? root.screenOrigin.y : 0
+        z: 10000
         width: root.width; height: root.height
         HoverHandler { id: listPointer; parent: root.boundsItem || card; enabled: root.visible }
         Item {
@@ -258,23 +274,24 @@ Scope {
                         anchors.left: icon.visible ? icon.right : parent.left; anchors.leftMargin: icon.visible ? Style.space(9) : 0
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         spacing: Style.space(2)
-                        Text {
-                            id: appCaption
+                        ReadableText {
+                            id: appCaption; objectName: "windowThumbnailApp"
                             width: parent.width; text: root.entry ? root.entry.app : ""
                             textFormat: Text.PlainText; elide: Text.ElideRight
-                            color: root.hostWidget.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                            textColor: root.hostWidget.accent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall
                         }
-                        Text {
+                        ReadableText {
                             id: previewTitle; objectName: "windowThumbnailTitle"
                             width: parent.width; text: root.entry ? root.entry.title || root.words.unnamed : ""
                             textFormat: Text.PlainText; elide: Text.ElideRight
                             wrapMode: Text.Wrap; maximumLineCount: 2
-                            color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                            textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                         }
                     }
                 }
                 Rectangle {
                     id: display; objectName: "windowThumbnailDisplay"
+                    readonly property color readabilityBackground: color
                     width: parent.width; height: root.imageSize.height + Style.space(6)
                     color: root.hostWidget.previewBackdrop ? Qt.darker(Color.popups.background, 1.25) : "transparent"
                     radius: Style.space(3)
@@ -285,12 +302,13 @@ Scope {
                         active: root.visible && root.backingWindowVisible
                         sourceComponent: WindowCapture { address: root.address; active: true }
                     }
-                    Text {
+                    ReadableText {
+                        objectName: "windowThumbnailPlaceholder"
                         anchors.centerIn: parent; width: parent.width - Style.space(24)
                         visible: !root.hasContent
                         text: loading.running ? root.words.previewLoading : root.words.previewUnavailable
                         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter
-                        color: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                        textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
                     }
                     Timer { id: loading; interval: 1200; running: root.visible && !root.hasContent }
                 }

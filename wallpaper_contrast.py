@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 from urllib.parse import unquote, urlsplit
 
 
@@ -115,9 +116,75 @@ def sample_wallpaper(source, screen, panel, tint=(0, 0, 0)):
     return [tuple(result.stdout[i:i + 3]) for i in range(0, len(result.stdout), 3)]
 
 
+
+def text_readability(message):
+    """Batched counterpart of TextReadability.js, off the UI thread.
+
+    The JS policy also handles immediate rendering fallbacks. Differential
+    tests keep this worker and that policy equivalent across colors and modes.
+    Background luminance is shared between roles with the same backing.
+    """
+    started = time.monotonic()
+    host = message["context"]
+    surfaces = host["surfaces"]
+    tint = surfaces["panel"]
+    style = host["panelStyle"]
+    amount = host["glassTransparency" if style == "glass" else "wallpaperTransparency"] / 100
+    brightness = surfaces.get("wallpaperBrightness", 0) if style == "wallpaper" else 0
+    samples = host.get("textShadowSamples") or [[tint[c] * 255 for c in "rgb"]]
+    if style == "glass":
+        samples = [[0, 0, 0], [255, 255, 255]]
+    base = [tuple(max(0, min(1, s / 255 + brightness)) * amount + tint[c] * (1 - amount)
+                  for s, c in zip(sample, "rgb")) for sample in samples]
+
+    def light(color):
+        return sum(w * (c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4)
+                   for w, c in zip((.2126, .7152, .0722), color))
+
+    def blend(front, back):
+        alpha = front.get("a", 1)
+        return tuple(front[c] * alpha + b * (1 - alpha) for c, b in zip("rgb", back))
+
+    backgrounds = {}
+    results = {}
+    for job in message["jobs"][:64]:
+        backing, color = job["backing"], job["color"]
+        key = tuple(backing.get(c, 1) for c in "rgba")
+        if key not in backgrounds:
+            backgrounds[key] = [(b, light(b)) for b in (blend(backing, sample) for sample in base)]
+
+        def score(text):
+            ratios = []
+            for back, bg_light in backgrounds[key]:
+                text_light = light(blend(text, back))
+                ratios.append((max(text_light, bg_light) + .05) / (min(text_light, bg_light) + .05))
+            return sorted(ratios)[max(0, math.ceil(len(ratios) * .2) - 1)]
+
+        selected = host.get("textShadowMode", "auto")
+        active = selected == "on" if selected in ("on", "off") else style in ("wallpaper", "glass") and score(color) < 4.5
+        ink = color
+        if active and style in ("wallpaper", "glass"):
+            solid = dict(color, a=1)
+            lum = light(tuple(solid[c] for c in "rgb"))
+            ink = solid if lum >= .4 or lum <= .06 or score(solid) >= 4.5 else dict(job["theme"], a=1)
+        results[job["key"]] = {"active": active, "ink": ink}
+    return {"epoch": message["epoch"], "results": results,
+            "elapsed": round((time.monotonic() - started) * 1000)}
+
 def main():
     try:
+        if sys.argv[1] == "--text-readability-worker":
+            for line in sys.stdin:
+                print(json.dumps(text_readability(json.loads(line))), flush=True)
+            return 0
         args = json.loads(sys.argv[1])
+        if args.get("mode") == "text-readability":
+            print(json.dumps(text_readability(args)))
+            return 0
+        if args.get("mode") == "text-shadow":
+            samples = sample_wallpaper(args["source"], args["screen"], args["panel"])
+            print(json.dumps({"samples": [samples[y * 32 + x] for y in range(2, 32, 4) for x in range(2, 32, 4)]}))
+            return 0
         theme_state = args.get("themeState")
         if theme_state is not None and not palette_matches(theme_state):
             print(json.dumps({"retry": True}))

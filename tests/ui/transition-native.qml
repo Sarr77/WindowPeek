@@ -84,8 +84,8 @@ ShellRoot {
                     plugin.hoverRequested = true; break;
                 case 1:
                     test.check(plugin.hoverOpened && plugin.mapped, "hover maps");
-                    test.check(keyTarget.activeFocus, "hover steals keyboard focus");
-                    test.check(plugin.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.None, "hover keyboard mode");
+                    test.check(plugin.body.searchField.activeFocus, "hover is ready for typing");
+                    test.check(plugin.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.OnDemand, "hover keyboard mode");
                     test.check(plugin.surface.mask.width === Math.ceil(plugin.surface.cardItem.width), "hover input extends outside card");
                     test.check(!barApi.activePopout, "hover takes popup coordinator ownership");
                     test.firstRow = test.list.itemAtIndex(1);
@@ -98,8 +98,8 @@ ShellRoot {
                     test.check(plugin.opened && !plugin.hoverOpened && plugin.mapped, "promotion state");
                     test.check(plugin.body.searchField.activeFocus, "promotion focuses search");
                     test.check(plugin.surface.focusPrimed && plugin.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.OnDemand,
-                        "exclusive keyboard prime ends");
-                    test.check(plugin.surface.mask.width === plugin.surface.screenW, "expanded outside-click region");
+                        "expanded search retains keyboard focus");
+                    test.check(plugin.surface.mask.width === Math.ceil(plugin.surface.cardItem.width), "expanded mouse input stays bounded to card");
                     test.check(barApi.activePopout === plugin, "expanded popup registers");
                     events.keyClick(Qt.Key_F, Qt.NoModifier, 0); break;
                 case 3:

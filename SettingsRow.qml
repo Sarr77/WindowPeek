@@ -1,8 +1,9 @@
 import QtQuick
+import QtQuick.Controls as QQC
 import qs.Commons
 
 // The owner supplies saved state; clicking never changes the switch optimistically.
-Item {
+QQC.Control {
     id: root
     required property string text
     property string description: ""
@@ -11,16 +12,18 @@ Item {
     property bool checked: false
     property color accent: Color.accent
     property var palette: null
-    readonly property bool hot: pointer.containsMouse || activeFocus
+    readonly property bool hot: pointer.containsMouse || visualFocus
+    property int activationFocusReason: Qt.MouseFocusReason
     signal clicked()
     implicitHeight: Math.max(Style.space(48), captions.implicitHeight + Style.space(20))
     activeFocusOnTab: true
     opacity: enabled ? 1 : 0.5
 
     function activate() { if (enabled) clicked(); }
-    Keys.onReturnPressed: function(event) { if (!event.isAutoRepeat) activate(); }
-    Keys.onEnterPressed: function(event) { if (!event.isAutoRepeat) activate(); }
-    Keys.onSpacePressed: function(event) { if (!event.isAutoRepeat) activate(); }
+    function activateFromKeyboard() { activationFocusReason = Qt.TabFocusReason; activate(); }
+    Keys.onReturnPressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
+    Keys.onEnterPressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
+    Keys.onSpacePressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
     Accessible.role: isSwitch ? Accessible.CheckBox : Accessible.Button
     Accessible.name: text
     Accessible.description: description
@@ -40,7 +43,7 @@ Item {
     Rectangle {
         anchors.fill: parent; radius: Style.space(5)
         color: "transparent"; border.width: 1; border.color: root.accent
-        opacity: root.activeFocus ? 1 : root.hot ? (root.bordered ? 0.8 : 0.45) : root.bordered ? 0.5 : 0
+        opacity: root.visualFocus ? 1 : root.hot ? (root.bordered ? 0.8 : 0.45) : root.bordered ? 0.5 : 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
     }
     Column {
@@ -49,17 +52,17 @@ Item {
         anchors.right: indicator.left; anchors.rightMargin: Style.space(16)
         anchors.verticalCenter: parent.verticalCenter
         spacing: Style.space(4)
-        Text {
+        ReadableText {
             width: parent.width; text: root.text; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            color: Color.popups.text
+            textColor: Color.popups.text
             font.family: Style.font.family; font.pixelSize: Style.font.body + Style.space(1)
         }
-        Text {
+        ReadableText {
             visible: root.description !== ""
             width: parent.width; text: root.description; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            color: Qt.alpha(Color.popups.text, 0.78)
+            textColor: Qt.alpha(Color.popups.text, 0.78)
             font.family: Style.font.family; font.pixelSize: Style.font.body
         }
     }
@@ -86,16 +89,16 @@ Item {
                 Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             }
         }
-        Text {
+        ReadableText {
             anchors.centerIn: parent; visible: !root.isSwitch
             text: root.LayoutMirroring.enabled ? "‹" : "›"; textFormat: Text.PlainText
-            color: root.hot || root.bordered ? root.accent : Qt.alpha(Color.popups.text, 0.5)
+            textColor: root.hot || root.bordered ? root.accent : Qt.alpha(Color.popups.text, 0.5)
             font.family: Style.font.family; font.pixelSize: Style.font.subtitle
         }
     }
     MouseArea {
         id: pointer; anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-        onClicked: { root.forceActiveFocus(Qt.MouseFocusReason); root.activate(); }
+        onClicked: { root.activationFocusReason = Qt.MouseFocusReason; root.forceActiveFocus(Qt.MouseFocusReason); root.activate(); }
     }
 }

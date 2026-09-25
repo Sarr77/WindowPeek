@@ -105,7 +105,10 @@ int main(int argc, char **argv) {
         char command[32];
         uint32_t num_lock = 1u << xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
         for (;;) {
-            int remaining = 10000 - (int)(now() - started);
+            // Removing the only keyboard halfway through an isolated test
+            // changes seat capabilities and invalidates Qt's activation state.
+            // Modifier-holding probes retain their short safety deadline.
+            int remaining = (key ? 10000 : 30000) - (int)(now() - started);
             if (remaining <= 0 || poll(&input, 1, remaining) <= 0) break;
             if (!fgets(command, sizeof(command), stdin)) break;
             // Tests may tap a digit on this same keyboard while Ctrl stays
@@ -123,6 +126,13 @@ int main(int argc, char **argv) {
             } else if (strlen(command) == 6 && !strncmp(command, "tap ", 4)
                     && command[4] >= '0' && command[4] <= '9' && command[5] == '\n') {
                 digit = command[4] == '0' ? 11 : 2 + (uint32_t)(command[4] - '1');
+            } else if (!strncmp(command, "key ", 4)) {
+                const char *names[] = {"Home\n", "End\n", "PageUp\n", "PageDown\n", "Up\n", "Down\n", "Left\n", "Right\n", "Enter\n", "Space\n", "Esc\n", "Tab\n", "A\n", "B\n", "C\n", "D\n", "E\n", "F\n", "F6\n", "Backspace\n"};
+                const uint32_t codes[] = {102,107,104,109,103,108,105,106,28,57,1,15,30,48,46,32,18,33,64,14};
+                digit = 0;
+                for (size_t i=0; i<sizeof(codes)/sizeof(codes[0]); i++)
+                    if (!strcmp(command + 4, names[i])) digit = codes[i];
+                if (!digit) break;
             } else if (!strcmp(command, "f24\n")) {
                 digit = 194; // Isolated shortcut-recorder fixture only.
             } else break;

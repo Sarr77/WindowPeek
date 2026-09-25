@@ -201,7 +201,7 @@ finally:
                                 wait(lambda: ipc("shortcutFilter") == "true", "Test rows not ready")
                                 digit = wait(lambda: ipc("passiveDigit", b), "No visible test row")
                                 if view == "hover":
-                                    assert not status().get("shortcutKeyboard"), "Hover already takes the keyboard"
+                                    assert status().get("shortcutKeyboard"), "Hover is not ready for keyboard input"
                                 with held_keys(keyboard, chord=digit):
                                     wait(lambda: not status().get("panelMapped") and not status().get("hoverBusy"), "Immediate Ctrl+numpad did not close " + view)
                                     wait(lambda: query("activewindow").get("address") == b, "Immediate chord did not focus exact tab")
@@ -266,16 +266,16 @@ finally:
                         before = query("activewindow").get("address")
                         ipc("hoverOpen")
                         wait(lambda: status().get("hoverMode"), "Passive hover did not reopen")
-                        assert not status().get("shortcutKeyboard"), "Unmodified hover takes the keyboard"
+                        assert status().get("shortcutKeyboard"), "Unmodified hover is not ready for keyboard input"
                         with held_keys(keyboard):
                             wait(lambda: status().get("shortcutControl") and status().get("shortcutFocused") and (status().get("shortcutSurfaceActive") or status().get("previewSurfaceActive")), "Ctrl pressed after hover did not take shortcut focus")
-                        wait(lambda: not status().get("shortcutControl") and not status().get("shortcutKeyboard"), "Releasing Ctrl did not release shortcut focus")
-                        wait(lambda: query("activewindow").get("address") == before, "Hover did not restore application focus")
+                        wait(lambda: not status().get("shortcutControl") and status().get("shortcutKeyboard"), "Releasing Ctrl lost hover typing focus")
                         assert status().get("hoverMode") and not status().get("panelOpen"), "Releasing Ctrl expanded or closed hover"
                         ipc("panelClose")
                         wait(lambda: not status().get("panelMapped"), "Hover did not close")
+                        wait(lambda: query("activewindow").get("address") == before, "Closing hover did not restore application focus")
                         assert all((w["workspace"]["name"], w["monitor"], sorted(w.get("grouped", []))) == placements[w["address"]] for w in windows()), "Shortcut moved a window or changed its group"
-                        print("PASS hover returns keyboard focus on Ctrl release at scale", scale, flush=True)
+                        print("PASS hover retains typing focus until close at scale", scale, flush=True)
                         continue
                     for target in (b, a, c, d, d, b):
                         ipc("panelOpen")

@@ -99,6 +99,28 @@ function actionChord(values,id,rtl) {
         return id==="windowSide" ? "Right" : "Left";
     return config[id];
 }
+function hoverActions(values, rtl) {
+    var config=resolve(values);
+    var result=["previous","next","pageUp","pageDown","first","last","move","windowSide","moveSide"].map(function(id) {
+        return {id:id.toLowerCase(), chord:actionChord(config,id,rtl), repeating:["previous","next","pageUp","pageDown"].indexOf(id)>=0};
+    });
+    return result.concat([{id:"activate",chord:"Enter"},{id:"activate",chord:"Space"},
+        {id:"dismiss",chord:"Esc"},{id:"forward",chord:"Tab"},{id:"backward",chord:"Shift+Tab"}]);
+}
+function hoverBindings(values, rtl) {
+    var config=resolve(values), result=[];
+    var keypad={Enter:"KP_ENTER",Home:"KP_HOME",End:"KP_END",PageUp:"KP_PRIOR",PageDown:"KP_NEXT",
+        Up:"KP_UP",Down:"KP_DOWN",Left:"KP_LEFT",Right:"KP_RIGHT"};
+    for (var action of hoverActions(config,rtl)) {
+        var chord=luaChord(action.chord);
+        result.push({id:action.id,chord:chord,repeating:!!action.repeating});
+        var alias=keypad[keyPart(action.chord)];
+        // Ctrl+numpad belongs to numbered selection even with Num Lock off.
+        if (alias && mask(action.chord)!==mask(config.numbers))
+            result.push({id:action.id,chord:chord.replace(/[^ ]+$/,alias),repeating:!!action.repeating});
+    }
+    return result;
+}
 function mouseAction(values, value) {
     var config=normalize(values);
     // Exact modifier sets make all configured click actions unambiguous.

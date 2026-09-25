@@ -9,13 +9,24 @@ commands = [
     ["node", "tests/model.test.cjs"],
     ["node", "tests/contracts.test.cjs"],
     ["node", "tests/shortcut-bindings.test.cjs"],
+    ["node", "tests/search-focus.test.cjs"],
+    ["node", "--test", "tests/text-readability.test.cjs"],
+    ["node", "--test", "tests/focus-incident.test.cjs", "tests/focus-issues.test.cjs"],
+    [sys.executable, "tools/test_keybind_handles.py"],
     [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"],
     [sys.executable, "tools/test_qml.py"],
     [sys.executable, "-B", "tools/test_preferences.py"],
 ]
-for case in ("wallpaper-contrast", "shortcuts-editor", "surfaces", "wallpaper-source", "glass", "quick-selection", "window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
+for case in ("readability-opening", "window-state", "readability-worker", "bar-readability", "readability-coverage", "text-shadow", "focus-approval", "settings-visit", "focus-issues", "focus-settings", "input-focus", "logo-cooldown", "logo-playback", "branding", "hover-footprint", "hover-navigation", "settings-input", "wallpaper-contrast", "shortcuts-editor", "surfaces", "wallpaper-source", "glass", "quick-selection", "window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
     commands.append([sys.executable, "tools/test_ui.py", case])
+commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--style", "compact"])
+commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--style", "compact", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "focus-issues", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "branding", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "hover-navigation", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "glass", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "settings-input", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "window-shortcuts", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "quick-selection", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "background", "--scale", "2"])
@@ -30,7 +41,8 @@ commands.append([sys.executable, "tools/test_ui.py", "interaction", "--scale", "
 commands.append([sys.executable, "tools/test_ui.py", "hints", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "borders", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "review", "--scale", "2"])
-commands.append(["omarchy", "plugin", "validate", str(root)])
+commands.append([sys.executable, "tools/package.py"])
+commands.append([sys.executable, "tools/check_package.py", "--validate"])
 for command in commands:
     result = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=60)
     if result.returncode:

@@ -21,9 +21,11 @@ Column {
     property bool probeReady: false
     property bool saveFailed: false
     property bool saving: false
+    property var applyFocusReason
     readonly property var errors: validate(draft)
     property alias recorder: recorder
-    signal finished()
+    readonly property var activePopup: recorder.visible ? recorder : null
+    signal finished(var focusReason)
     signal ensureVisible(var item)
     spacing: Style.space(14)
 
@@ -62,20 +64,24 @@ Column {
         var next=Object.assign({}, draft); next[id]=value;
         return errorText(validate(next)[id]);
     }
-    function apply() {
+    function apply(focusReason) {
         if (Object.keys(errors).length || !probeReady || saving) return;
         // Recheck compositor conflicts immediately before committing the draft.
-        saving = true;
+        applyFocusReason = focusReason; saving = true;
         if (Quickshell.env("QT_QPA_PLATFORM") === "offscreen") commit(); else refreshBindings();
     }
     function commit() {
         saving=false;
         if (Object.keys(errors).length || !probeReady) return;
-        if (hostWidget.persistSettings({shortcuts: Shortcuts.normalize(draft)})) finished(); else saveFailed=true;
+        saving = true;
+        hostWidget.persistSettings({shortcuts: Shortcuts.normalize(draft)}, function(ok) {
+            saving = false;
+            if (ok) finished(applyFocusReason); else saveFailed = true;
+        });
     }
     function edit(definition, button) { recorder.begin(definition, draft[definition.id], button); }
-    function cancel() { recorder.close(); finished(); }
-    Keys.onEscapePressed: function(event) { cancel(); event.accepted=true; }
+    function cancel(focusReason) { recorder.close(); finished(focusReason); }
+    Keys.onEscapePressed: function(event) { cancel(Qt.TabFocusReason); event.accepted=true; }
     Process {
         id: probe
         property string result: ""
@@ -90,13 +96,13 @@ Column {
             if (root.saving) root.commit();
         }
     }
-    Text {
+    ReadableText {
         width: parent.width; text: root.words.shortcutsTitle; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; color: Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold: true
+        wrapMode: Text.Wrap; textColor: Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold: true
     }
-    Text {
+    ReadableText {
         width: parent.width; text: root.words.shortcutsHelp; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; color: Qt.alpha(Color.popups.text,0.75); font.pixelSize: Style.font.caption
+        wrapMode: Text.Wrap; textColor: Qt.alpha(Color.popups.text,0.75); font.pixelSize: Style.font.caption
     }
     Repeater {
         model: ["shortcutOpening","shortcutWindowActions","shortcutNavigation","shortcutMouse"]
@@ -104,9 +110,9 @@ Column {
             id: group
             required property string modelData
             width: root.width; spacing: Style.space(6)
-            Text {
+            ReadableText {
                 width: parent.width; text: root.words[group.modelData]; textFormat: Text.PlainText
-                color: root.accent; wrapMode: Text.Wrap; font.pixelSize: Style.font.body; font.bold: true
+                textColor: root.accent; wrapMode: Text.Wrap; font.pixelSize: Style.font.body; font.bold: true
             }
             Repeater {
                 model: Shortcuts.definitions.filter(function(def) { return def.group === group.modelData; })
@@ -115,12 +121,12 @@ Column {
                     required property var modelData
                     width: group.width
                     implicitHeight: Math.max(Style.space(42), caption.implicitHeight + Style.space(12), chord.implicitHeight)
-                    Text {
+                    ReadableText {
                         id: caption
                         anchors.left: parent.left; anchors.right: chord.left; anchors.rightMargin: Style.space(10)
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.words[row.modelData.label]; textFormat: Text.PlainText; wrapMode: Text.Wrap
-                        color: Color.popups.text; font.pixelSize: Style.font.body
+                        textColor: Color.popups.text; font.pixelSize: Style.font.body
                     }
                     LabelButton {
                         id: chord; objectName: "shortcut-" + row.modelData.id
@@ -129,12 +135,18 @@ Column {
                         label: Shortcuts.display(root.draft[row.modelData.id]) + (row.modelData.suffix ? " + " + (row.modelData.suffix === "click" ? root.words.shortcutClick : row.modelData.suffix) : "")
                         bordered: true; focusable: true; accent: root.accent
                         foreground: root.errors[row.modelData.id] ? Color.urgent : root.accent
-                        tooltipText: root.errorText(root.errors[row.modelData.id]) || root.words.shortcutEdit
+                        PanelHint {
+                            hostWidget: root.hostWidget
+                            requested: chordPointer.hovered
+                            text: root.errorText(root.errors[row.modelData.id]) || root.words.shortcutEdit
+                        }
+                        HoverHandler { id: chordPointer }
                         Accessible.name: root.words[row.modelData.label] + " · " + label
                         onClicked: root.edit(row.modelData,chord)
                         onActiveFocusChanged: if (activeFocus) root.ensureVisible(row)
                     }
                     ResetButton {
+                        hostWidget: root.hostWidget
                         id: reset; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         words: root.words; accent: root.accent; label: root.words[row.modelData.label]
                         valueText: Shortcuts.display(Shortcuts.defaults[row.modelData.id])
@@ -146,12 +158,12 @@ Column {
             }
         }
     }
-    Text {
+    ReadableText {
         width: parent.width; text: root.words.shortcutManual; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; color: Qt.alpha(Color.popups.text,0.65); font.pixelSize: Style.font.caption
+        wrapMode: Text.Wrap; textColor: Qt.alpha(Color.popups.text,0.65); font.pixelSize: Style.font.caption
     }
-    Text {
-        width: parent.width; visible: !!text; color: Color.urgent; textFormat: Text.PlainText; wrapMode: Text.Wrap
+    ReadableText {
+        width: parent.width; visible: !!text; textColor: Color.urgent; textFormat: Text.PlainText; wrapMode: Text.Wrap
         text: !root.probeReady ? root.words.shortcutProbeError : root.saveFailed ? root.words.settingsError
             : Object.keys(root.errors).map(function(id) {
                 return root.words[Shortcuts.definitions.find(function(def) { return def.id === id; }).label] + ": " + root.errorText(root.errors[id]);
@@ -165,12 +177,12 @@ Column {
     }
     Row {
         width: parent.width; spacing: Style.space(10)
-        Ui.Button { width: (parent.width-parent.spacing)/2; text: root.words.cancel; focusable:true; onClicked: root.cancel(); onActiveFocusChanged: if(activeFocus) root.ensureVisible(this) }
-        Ui.Button {
-            objectName: "applyShortcuts"; width: (parent.width-parent.spacing)/2; text: root.words.apply
+        LabelButton { width: (parent.width-parent.spacing)/2; label: root.words.cancel; focusable:true; onClicked: root.cancel(activationFocusReason); onActiveFocusChanged: if(activeFocus) root.ensureVisible(this) }
+        LabelButton {
+            objectName: "applyShortcuts"; width: (parent.width-parent.spacing)/2; label: root.words.apply
             focusable:true; bordered:true; accent:root.accent
             enabled: !Object.keys(root.errors).length && root.probeReady && !root.saving
-            onClicked: root.apply(); onActiveFocusChanged: if(activeFocus) root.ensureVisible(this)
+            onClicked: root.apply(activationFocusReason); onActiveFocusChanged: if(activeFocus) root.ensureVisible(this)
         }
     }
     ShortcutRecorder {

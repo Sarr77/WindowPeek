@@ -14,45 +14,7 @@ jobs:
         with:
           node-version: '22'
       - run: sudo apt-get update && sudo apt-get install -y lua5.4
-      - run: node --test tests/model.test.cjs tests/contracts.test.cjs tests/shortcut-bindings.test.cjs
+      - run: node --test tests/*.test.cjs
       - run: python3 -B -m unittest discover -s tests -p 'test_*.py'
       - run: python3 tools/package.py
-      - name: Check manifest and package
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          from zipfile import ZipFile
-          manifest = json.loads(Path('manifest.json').read_text())
-          assert manifest['schemaVersion'] == 1
-          assert manifest['id'] == 'sarr.windowpeek'
-          assert manifest['author'] == 'Sarr'
-          assert manifest['kinds'] == ['bar-widget']
-          for entry in manifest['entryPoints'].values():
-              assert not Path(entry).is_absolute() and '..' not in Path(entry).parts
-              assert Path(entry).is_file()
-          with ZipFile('dist/WindowPeek-' + manifest['version'] + '.zip') as archive:
-              names = archive.namelist()
-              assert 'windowpeek/vendor/omarchy/LICENSE' in names
-              assert 'windowpeek/vendor/omarchy/OmarchyLogo.qml' in names
-              assert 'windowpeek/update.py' in names
-              assert 'windowpeek/install.py' not in names
-              assert 'windowpeek/tests/test_install.py' not in names
-              for runtime in ('wallpaper_contrast.py', 'WallpaperContrast.qml',
-                              'WallpaperBackdrop.qml', 'SurfacePalette.qml',
-                              'OpenShortcut.qml', 'Shortcuts.js', 'ShortcutBindings.js',
-                              'assets/grain.svg', 'assets/grain-tint.svg'):
-                  assert 'windowpeek/' + runtime in names
-              assert 'windowpeek/docs/UPDATES.md' in names
-              assert 'windowpeek/CHANGELOG.md' in names
-              assert 'windowpeek/docs/GUIDE.md' in names
-              assert 'windowpeek/docs/README.pl.md' in names
-              assert 'windowpeek/preview.png' in names
-              assert 'windowpeek/docs/preview-thumbnail.png' in names
-              assert 'windowpeek/tools/render_artwork.py' in names
-              assert 'windowpeek/tests/artwork/icons/editor.svg' in names
-              assert 'windowpeek/tests/protocols/virtual-keyboard-unstable-v1.xml' in names
-              assert 'windowpeek/tests/protocols/wlr-virtual-pointer-unstable-v1.xml' in names
-              assert not any(set(Path(name).parts) & {'.git', '.reference', '__pycache__',
-                             'AGENTS.md', 'HANDOFF.md', 'NEW_CHAT.txt'} for name in names)
-          PY
+      - run: python3 tools/check_package.py

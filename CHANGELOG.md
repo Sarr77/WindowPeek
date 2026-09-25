@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.7.2
+
+- Smooth expansion and collapse with or without live preview and typing
+  protection. Share one render surface, keep the protected viewport stable and
+  synchronize resizing with rendered frames, including rapid reversals.
+- Move wallpaper text-contrast calculations off the UI thread and reuse sampled
+  crops, color decisions and prepared shortcuts to reduce pauses.
+- Detect interrupted search without relying on application names. Offer temporary
+  typing protection, practical alternatives and a short explanation before consent.
+  When the source is unknown, temporary protection lasts until turned off or the
+  bar restarts; otherwise it ends when that window closes.
+- Add Controls → Troubleshooting with optional Keep search focus, warning ignores
+  until logout, per app or globally, and a local history of suspected applications.
+  Permanent protection asks for confirmation and explains its scrolling restriction.
+- Restore real keyboard focus on a panel click after an interruption. Hide the
+  caret when typing belongs elsewhere, keep protection with passive previews,
+  and preserve the current view during closing and protection changes.
+  Release the ordinary search hold after keyboard loss so other windows regain
+  normal mouse-focus behavior immediately.
+- Add Automatic, On and Off text readability controls for wallpaper and transparent
+  panels, including preview captions, input placeholders and the active bar label.
+  Keep text readable on the first opening while wallpaper analysis is pending.
+- Type in the compact panel to expand directly into Search. Keep search ready
+  outside the panel, even with an empty query. Ordinary compact browsing follows
+  mouse focus and releases its navigation keys when another window takes input;
+  returning by hover needs no click. Preserve scroll positions on pointer return.
+  Warn about focus loss only once Search is expanded, not while browsing compact mode.
+- Add optional double-click expansion and a separate compact pinning switch.
+  Support saved shortcuts, list navigation and Move from compact search.
+- Show contextual hints only for the hovered element, below the panel without
+  overlap. Include bar-label gestures and instructions for the current interaction mode.
+- Move logo settings into Personalization → Pictures and Gifs. Choose separate
+  static images, GIFs or pixel animations, with independent Loop animation switches,
+  fractional Delay loop values, cooldowns, timing resets and an optional shared cooldown.
+  Fix local image selection and preserve Settings animation across submenu visits.
+- Make Back and right-click follow the user's navigation path, including nested
+  Settings sections. Blur settings input fields after editing and pass outside
+  wheel input through when protection does not deliberately block it.
+- Add Follow bar style for wallpaper panels, independent hover and preview delays,
+  and mouse-wheel speed from 50% to 300% (default 102%).
+- Correct preview pointer bounds on offset monitors and guard expired Hyprland
+  keybinding handles. Save preferences asynchronously with ordered writes.
+
 ## 0.7.1
 
 - Stop automatic hover hints after 100 displays; manually enabled hints stay on

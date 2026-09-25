@@ -4,6 +4,7 @@ import qs.Commons
 
 Column {
     id: root
+    property var hostWidget: null
     required property var words
     required property string label
     property color accent: Color.accent
@@ -19,18 +20,19 @@ Column {
     spacing: Style.space(4)
     Item {
         width: parent.width; height: Math.max(Style.space(32),labelText.implicitHeight)
-        Text {
+        ReadableText {
             id: labelText; anchors.left:parent.left; anchors.right:percent.left
             anchors.rightMargin:Style.space(12); anchors.verticalCenter:parent.verticalCenter
             text:root.label; textFormat:Text.PlainText; wrapMode:Text.Wrap
-            color:Color.popups.text; font.family:Style.font.family; font.pixelSize:Style.font.body
+            textColor:Color.popups.text; font.family:Style.font.family; font.pixelSize:Style.font.body
         }
-        Text {
+        ReadableText {
             id:percent; anchors.right:reset.left; anchors.rightMargin:Style.space(8); anchors.verticalCenter:parent.verticalCenter
-            text:root.value + "%"; color:root.accent
+            text:root.value + "%"; textColor:root.accent
             font.family:Style.font.family; font.pixelSize:Style.font.body
         }
         ResetButton {
+            hostWidget: root.hostWidget
             id:reset; anchors.right:parent.right; anchors.verticalCenter:parent.verticalCenter
             words:root.words; label:root.label; valueText:root.defaultValue + "%"; accent:root.accent
             modified:root.modified; onResetRequested:root.resetRequested(); onEnsureVisible:root.ensureVisible()

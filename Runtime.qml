@@ -6,8 +6,15 @@ import "Appearance.js" as Appearance
 
 QtObject {
     id: root
-    readonly property string version: "0.7.1"
+    readonly property string version: "0.7.2"
     property WindowState state: WindowState { }
+    property FocusRecovery recovery: FocusRecovery {
+        state: root.state
+        onNotification: function(text) {
+            if (Quickshell.env("QT_QPA_PLATFORM") !== "offscreen")
+                Quickshell.execDetached(["notify-send", "--app-name=WindowPeek", "--expire-time=6000", "WindowPeek", text]);
+        }
+    }
     property WindowActions actions: WindowActions { state: root.state }
     property Preferences preferences: Preferences { }
     property WallpaperSource wallpaper: WallpaperSource { }
@@ -19,6 +26,25 @@ QtObject {
     property string themeId: ""
     property var labelsPreviewOwner: null
     property var labelsPreview: ({})
+    // Session-only history across monitors, independent or shared between slots.
+    property var logoAnimationHistory: ({})
+    function beginLogoAnimation(slot, source, cooldown, shared) {
+        if (!slot) return true;
+        var now = Date.now(), last = logoAnimationHistory[shared ? "shared" : slot];
+        if (cooldown > 0 && last && (shared || last.source === source)
+                && ((shared && last.active) || (now >= last.at && now - last.at < cooldown * 1000))) return false;
+        logoAnimationHistory[slot] = {source: source, at: now, active: true};
+        if (shared) logoAnimationHistory.shared = {source: source, slot: slot, at: now, active: true};
+        return true;
+    }
+    function endLogoAnimation(slot, source) {
+        var last = logoAnimationHistory[slot];
+        if (last && last.source === source) { last.at = Date.now(); last.active = false; }
+        var shared = logoAnimationHistory.shared;
+        if (shared && shared.slot === slot && shared.source === source) {
+            shared.at = Date.now(); shared.active = false;
+        }
+    }
 
     function preview(owner, value) { previewAppearance = value; previewOwner = owner; }
     function cancelPreview(owner) { if (previewOwner === owner) { previewOwner = null; previewAppearance = {}; } }

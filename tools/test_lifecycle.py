@@ -85,6 +85,7 @@ def inside(base):
             assert initial['wallpaperInitialized'] is False, 'New install copied theme assessment history'
             assert initial['hintsMode'] == 'auto' and initial['hintsUsed'] == 0
             assert initial['hintsRemaining'] == 100 and initial['hintsEnabled'] is True
+            assert initial['wheelScrollSpeed'] == 102
             print('PASS fresh install uses Wallpaper/grain and a new automatic hint budget', flush=True)
             preferences = {'language':'pl','accentColor':'#EF98F5','hintsUsed':37,'hintsMode':'auto','autoUpdates':False,
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
@@ -93,7 +94,7 @@ def inside(base):
                            'wallpaperThemeTransparencies':{'kanagawa':{'value':12,'defaultValue':10},
                                                           'catppuccin-latte':{'value':64,'defaultValue':70}},
                            'glassTransparency':9,'backgroundBlur':True,'backgroundTexture':True,
-                           'previewBackdrop':False,'previewFit':False,
+                           'previewBackdrop':False,'previewFit':False,'wheelScrollSpeed':180,
                            'shortcuts':{'open':'Alt+Super+K','numbers':'Alt','privacy':'Ctrl'},
                            'surfaceColors':{'windows':{'scope':'theme','themes':{
                                'kanagawa':{'color':'#112233','brightness':12,'opacity':63}}}},
@@ -171,7 +172,7 @@ def main():
                 env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GIT_CONFIG_GLOBAL='/dev/null'))
         else:
             source.mkdir()
-            for name in [str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and not any(part in ('.git','.reference','dist','__pycache__') for part in p.relative_to(root).parts) and p.name not in ('AGENTS.md','HANDOFF.md','NEW_CHAT.txt','install.py')]:
+            for name in [str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and not any(part in ('.git','.reference','dist','__pycache__') for part in p.relative_to(root).parts) and p.name not in ('AGENTS.md','HANDOFF.md','UX_AGREEMENTS.md','NEW_CHAT.txt','install.py')]:
                 if not (root/name).is_file(): continue  # Tracked files may be deleted locally.
                 dest=source/name; dest.parent.mkdir(parents=True,exist_ok=True)
                 shutil.copyfile(root/name,dest)

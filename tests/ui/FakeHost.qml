@@ -16,6 +16,7 @@ QtObject {
     property var settings: ({ language: "en", includeSpecial: true, hintsMode: "auto", hintsUsed: 0 })
     readonly property bool settingsReady: true
     readonly property var effectiveSettings: settings
+    readonly property var requestedSettings: settings
     property string language: "en"
     property string languageSetting: "en"
     property string detectedLanguage: "en"
@@ -31,12 +32,37 @@ QtObject {
     readonly property bool previewFit: setting("previewFit", true) === true
     readonly property bool windowPreviews: setting("windowPreviews", true) === true
     readonly property bool openOnHover: setting("openOnHover", true) === true
+    readonly property bool doubleClickExpand: setting("doubleClickExpand", false) === true
+    readonly property bool pinByTitleClick: setting("pinByTitleClick", true) === true
+    readonly property string textShadowMode: setting("textShadowMode", "auto")
+    property var textShadowSamples: []
+    property Plugin.TextReadabilityService textReadability: Plugin.TextReadabilityService { hostWidget: fake }
+    property string textShadowSampleKey: ""
+    readonly property bool keepSearchFocus: setting("keepSearchFocus", false) === true
+    readonly property bool barClickPending: false
+    readonly property bool hoverLogo: setting("hoverLogo", true) === true
+    readonly property bool settingsLogo: setting("settingsLogo", true) === true
+    readonly property bool hoverLogoLoop: setting("hoverLogoLoop", true) === true
+    readonly property bool settingsLogoLoop: setting("settingsLogoLoop", true) === true
+    readonly property real hoverLogoLoopDelay: Settings.logoLoopDelay(setting("hoverLogoLoopDelay", 4.2))
+    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(setting("settingsLogoLoopDelay", 4.2))
+    readonly property real hoverLogoCooldown: Settings.logoCooldown(setting("hoverLogoCooldown", 0))
+    readonly property real settingsLogoCooldown: Settings.logoCooldown(setting("settingsLogoCooldown", 0))
+    readonly property bool sharedLogoCooldownEnabled: setting("sharedLogoCooldownEnabled", false) === true
+    readonly property real sharedLogoCooldown: Settings.logoCooldown(setting("sharedLogoCooldown", 0))
+    readonly property string logoImage: Settings.logoImage(setting("logoImage", ""))
+    readonly property string hoverLogoImage: Settings.logoChoice(setting("hoverLogoImage", logoImage))
+    readonly property string settingsLogoImage: Settings.logoChoice(setting("settingsLogoImage", logoImage))
     readonly property int panelHoverDelay: Settings.hoverDelay(setting("panelHoverDelay", 400))
     readonly property int previewHoverDelay: Settings.hoverDelay(setting("previewHoverDelay", 400))
     readonly property bool popupAnimations: setting("popupAnimations", true) === true
     readonly property bool scrollBounce: setting("scrollBounce", true) === true
+    readonly property int wheelScrollSpeed: Settings.wheelScrollSpeed(setting("wheelScrollSpeed", 102))
     readonly property bool shortcutNumbersRight: setting("shortcutNumbersRight", false) === true
-    readonly property string panelStyle: Settings.panelStyle(setting("panelStyle", "solid"))
+    readonly property string selectedPanelStyle: Settings.panelStyle(setting("panelStyle", "solid"))
+    readonly property bool followBarStyle: setting("followBarStyle", false) === true
+    readonly property string panelStyle: Settings.effectivePanelStyle(selectedPanelStyle, followBarStyle,
+        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined)
     readonly property bool glassPanels: panelStyle !== "solid"
     readonly property int glassTransparency: Settings.backgroundTransparency(setting("glassTransparency", 8), 8)
     readonly property var wallpaperTransparencyRule: Settings.wallpaperRule(settings, themeId)
@@ -90,23 +116,26 @@ QtObject {
     function observeWallpaper(owner, enabled) {}
     function preference(name, fallback) { return setting(name, fallback); }
     function setting(key, fallback) { return settings[key] === undefined ? fallback : settings[key]; }
-    function persistSettings(values) {
-        if (rejectSave) { saveFailed = true; return false; }
+    function persistSettings(values, done) {
+        if (rejectSave) { saveFailed = true; if (done) done(false); return false; }
         saveFailed = false;
         settings = Settings.merge(settings, values, "sarr.windowpeek");
         if (values.includeSpecial !== undefined) includeSpecial = values.includeSpecial;
+        if (done) done(true);
         return true;
     }
     function setLanguage(value) { language = value; languageSetting = value; return persistSettings({ language: value }); }
     function recordHintShown() { return hints.mode === "auto" && hints.remaining > 0 && persistSettings({ hintsUsed: hints.used + 1 }); }
+    function beginLogoAnimation(slot, source, cooldown) { return Plugin.Runtime.beginLogoAnimation(slot, source, sharedLogoCooldownEnabled ? sharedLogoCooldown : cooldown, sharedLogoCooldownEnabled); }
+    function endLogoAnimation(slot, source) { Plugin.Runtime.endLogoAnimation(slot, source); }
     function toggleHints() { return persistSettings({ hintsMode: hints.enabled ? "off" : "on" }); }
     function toggleUpdates() { autoUpdates = !autoUpdates; }
     function previewAppearance(values) { appearance = Appearance.merge(savedAppearance, values); }
     function cancelAppearance() { appearance = savedAppearance; }
-    function saveAppearance(values) {
-        if (rejectSave) { saveFailed = true; return false; }
+    function saveAppearance(values, done) {
+        if (rejectSave) { saveFailed = true; if (done) done(false); return false; }
         saveFailed = false;
-        savedAppearance = Appearance.merge(savedAppearance, values); appearance = savedAppearance; return true;
+        savedAppearance = Appearance.merge(savedAppearance, values); appearance = savedAppearance; if (done) done(true); return true;
     }
     function focusWindow(address) { focused = address; return true; }
     function chooseDestination(address) {
@@ -119,8 +148,8 @@ QtObject {
     function panelClosed() { cancelAppearance(); cancelLabels(); }
     function previewLabels(values) { labelsPreview = Labels.normalize(values); }
     function cancelLabels() { labelsPreview = null; }
-    function saveLabels(values) {
-        if (!Labels.valid(values) || !persistSettings(Labels.normalize(values))) return false;
-        cancelLabels(); return true;
+    function saveLabels(values, done) {
+        if (!Labels.valid(values)) { if (done) done(false); return false; }
+        return persistSettings(Labels.normalize(values), function(ok) { if (ok) cancelLabels(); if (done) done(ok); });
     }
 }

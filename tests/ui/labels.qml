@@ -71,6 +71,9 @@ ShellRoot {
                     test.check(host.words.move === test.originalMove, "reset previews translated defaults");
                     test.editor.cancel(); test.check(host.words.move === "Wyślij", "Cancel undoes Reset");
                     test.openEditor(); test.editor.setText("move", "Escape draft");
+                    // Let the newly reopened Loader and queued focus restoration settle.
+                    test.step=20; break;
+                case 20:
                     test.find(test.editor, "labelInput_panelTitle").forceActiveFocus();
                     events.keyClick(Qt.Key_Escape, Qt.NoModifier, 0);
                     test.check(panel.mode === "settings" && host.words.move === "Wyślij", "Escape from a text field cancels the draft");
@@ -84,7 +87,7 @@ ShellRoot {
                     test.openEditor(); test.editor.setStyle("custom"); test.editor.group = "actions";
                     test.editor.setText("move", "Przenieś ".repeat(20));
                     test.editor.setText("settings", "Ustawienia ".repeat(16));
-                    test.editor.apply(); panel.back(); break;
+                    test.editor.apply(); panel.back(); test.step=3; break;
                 case 3:
                     var move = test.find(panel, "windowMove"), focus = test.find(panel, "windowFocus");
                     var settings = test.find(panel, "settingsButton");

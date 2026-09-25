@@ -1,5 +1,8 @@
 # User guide
 
+For help choosing a solution, see [Troubleshooting](TROUBLESHOOTING.md).
+For confirmed problems and reproduction steps, see [Known Issues](KNOWN_ISSUES.md).
+
 ## Opening the list
 
 Hover over **WindowPeek** on the bar to see all open windows, grouped by
@@ -15,15 +18,62 @@ The middle mouse button also toggles between these views when used on empty
 space or a workspace heading. Buttons, window rows and the scrollbar keep their
 own left-click actions.
 
+The compact footer shows a subtle Omarchy logo in the theme color. It uses the
+space occupied by search and footer controls in the expanded view, keeping their
+heights similar. In **Settings → Personalization → Pictures and Gifs**, each logo has its own selector:
+plain Omarchy, **Omarchy · Pixel animation**, or a local PNG, JPEG, WebP, SVG or
+animated GIF. Changing or restoring one leaves the other unchanged. Each also has
+its own visibility switch and, for animations, a **Loop animation** switch and
+**Delay loop** field. Looping is on by default; the pause between repetitions
+defaults to 4.2 seconds. Enter whole or fractional seconds (`0.3` or `0,3`), then
+press Enter or leave the field to save. Zero removes the extra pause. Switching
+looping off plays once and holds a GIF's last frame. In Settings, returning from
+a submenu resumes the same animation rather than replaying it; a new Settings
+visit starts another playback if cooldown permits. The
+saved delay stays available when looping is switched back on. **Cooldown** prevents
+restarting the animation when reopening the panel too soon: enter seconds or
+minutes, including fractions. During that interval the logo stays still. Each
+logo keeps its own cooldown, starting when its last animated appearance ends;
+zero (the default) allows animation on every opening. The reset arrows restore
+4.2 seconds for Delay loop and zero for Cooldown, without changing the other logo.
+Enable **Shared cooldown** to use one interval for both logos. Playing either
+animation then delays both, even when they use different images. Turning sharing
+off restores the separate cooldown values.
+Animations stop while hidden.
+The chooser shows supported formats: GIF for animation; PNG, JPEG, WebP and SVG
+for still images. Browse folders or paste a full file path, preview, then Apply.
+The built-in animation
+keeps the theme color and translucent wordmark, with a passing pixel glint.
+Hover the logo for its own help or a window row for that window's actions.
+Hover unused panel space for its expand/collapse gesture. These hints stay below
+the panel in both modes and take no space in the list. During the automatic
+100-display budget, the footer names **?** in the expanded panel to turn hints off.
+Collapsing keeps the old pointer area until you reach the resized
+card or leave the old area, so the panel does not disappear under a stationary
+pointer, even with the logo disabled.
+
 <img src="preview-panel.png" alt="Expanded WindowPeek panel with search and Move controls" width="490">
 
 Click the bar label again to close the panel. It will not reopen on hover until
 you leave the label and return. Right-clicking the main panel closes it too.
-In menus, right-click or Escape goes back one step; inside a dropdown it closes
-just that dropdown.
+Right-click closes the innermost dropdown or editor first. In Settings it collapses
+the most recently opened section, regardless of pointer position. Only a further right-click from the collapsed overview returns
+to the window list. Escape also closes the nearest inner level. The Back button
+skips inner sections and leaves the current editor. Returning from Troubleshooting
+follows the route used to enter it, preserving the previous view.
+Scrolling outside the panel goes to the application under the pointer.
 
-Turn off **Open panel on hover** for a click-only panel. In that mode, clicking
-empty space cannot collapse the list.
+Turn off **Open panel on hover** for a click-only panel. Enable **Expand on
+double-click** in **Settings → Panel and previews** if you prefer a click on
+**WindowPeek in the bar** to open the compact view and a double-click to expand
+or collapse it. With **Allow pinning compact panel** enabled, the compact view stays
+open until you click outside, press Esc or click the bar label again. With it off,
+the compact view closes when the pointer leaves, including after collapse. Double-click
+unused panel space to switch views; a single click there does not pin or expand
+the panel. Middle-click also works. This option works
+with hover disabled. Without it, click-only mode always opens the full panel.
+Double-click works in both directions directly on the **WindowPeek** bar label,
+including when the first click has already opened the compact panel.
 
 ## Finding and previewing a window
 
@@ -75,9 +125,9 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 | 1–9 / 0 during quick selection | Switch to the numbered visible window or tab without Ctrl; numpad works with Num Lock on or off |
 | Page Up / Page Down in the list | Scroll by a page and select a visible window |
 | Home / End in the list | Select the first or last window; in a nonempty search field, move the text cursor |
-| ↑ / ↓ in search | Select a result |
-| Enter in search | Switch to the selected window |
-| Shift + Enter in search | Open its Move form |
+| ↑ / ↓ in hover or search | Select a result |
+| Enter in hover or search | Switch to the selected window |
+| Shift + Enter in hover or search | Open its Move form |
 | ← / → on a window row | Switch between the window and Move |
 | ↑ / ↓ on a row action | Change rows, keeping the same action |
 | Hold Ctrl in the window list | Show shortcut numbers beside visible windows and tabs |
@@ -85,6 +135,19 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 | Tab / Shift + Tab | Move through visible controls |
 | Enter / Space on a control | Activate it |
 | Escape | Close a picker, go back, or close the main list |
+
+Home, End, Page Up/Down and ↑/↓ also work directly in the hover list.
+Enter or Space selects its highlighted window. Tab, Shift+Tab and the side arrows
+expand the panel to expose its controls; Shift+Enter opens the Move form.
+Saved shortcuts apply to both views. Start typing in the hover list to expand it
+and search immediately, including from a pinned compact panel. Shortcuts take
+priority over text input. Without additional typing protection, compact browsing
+follows your mouse-focus settings: moving to another window can focus it, and
+hovering WindowPeek again lets you type without clicking. Expanded Search keeps
+keyboard focus outside the panel, even with an empty query. Collapsing returns to
+compact browsing; closing WindowPeek returns the keyboard to the application.
+See the [known X11 exception](#x11-applications-interrupting-search) if typing
+stops when the pointer moves over another window.
 
 Arrows within search text edit the text normally. At the text’s edge, the arrow
 toward Move enters that column. Window and Move sides are mirrored in Arabic.
@@ -119,8 +182,8 @@ The default is after the app or tab label. Selecting one
 keeps the window on its existing monitor and closes the panel.
 A missing position does nothing.
 These shortcuts work in hover and the expanded window list, including when Ctrl
-was pressed before opening. Hover takes keyboard focus only while Ctrl is held,
-then returns it on release without expanding. Settings and move menus keep their own keys.
+was pressed before opening. Holding or releasing Ctrl does not expand the panel;
+typing search text does. Settings and move menus keep their own keys.
 
 **Super + Alt + P** is registered automatically when WindowPeek is enabled,
 including after installing from the catalog. Existing bindings take precedence;
@@ -159,7 +222,10 @@ wide header. The header stays in place while its contents expand below it.
   Set them to 0 and disable animations for instant popups. Disabled controls
   keep their saved values.
 - **Window list:** special workspaces, Spacious or Compact rows, springy
-  scrolling, and shortcut-number placement. Compact affects both lists without shrinking the text. Special
+  scrolling, mouse-wheel speed, and shortcut-number placement. Wheel speed ranges
+  from 50% to 300% in 1% steps and resets to 102%; 100% matches the previous wheel-step distance.
+  It applies to both window lists, Settings and selection menus; pixel-based touchpad gestures
+  keep their native behavior. Compact affects both lists without shrinking the text. Special
   workspaces and springy scrolling start enabled.
 - **Personalization:** panel background, colors, panel and bar size, bar label
   and custom text.
@@ -169,6 +235,13 @@ Switches, language, delays and list choices save as you change them. A failed
 save shows an error and leaves the previous choice in effect.
 
 ### Panel background
+
+With **Wallpaper** selected, **Follow bar style** sits beside its default label.
+It is off by default. Enable it to use Solid while the bar is opaque and restore
+Wallpaper when the bar is transparent, including changes made by double-clicking
+the bar. The saved Wallpaper colors, transparency, blur and grain stay unchanged.
+The list, previews and menus follow the same effective style. Selecting Solid or
+Transparent uses that choice directly; following the bar applies only to Wallpaper.
 
 Choose a background under **Settings → Personalization**:
 
@@ -277,9 +350,22 @@ Technical settings, errors and the author credit keep their application wording.
 
 ## Hints and saved preferences
 
-The **?** button turns hover hints on or off. Automatic hints stop after 100
-actual displays, shared across monitors. Turning them back on manually keeps
-them on until manually disabled. Hints and content previews are separate.
+The WindowPeek name on the bar has a contextual hint below the open panel.
+It describes pinning or closing when enabled, and the current expand/collapse
+gesture. **Panel and previews → Allow pinning compact panel** controls whether
+the compact view stays open after a bar click or collapse. The panel's own title
+has the same expand/collapse gesture as its background, with no separate pin action.
+
+The **?** button turns hover hints on or off, including logo and control hints.
+In both compact and expanded views, hints describe the element under the pointer.
+Window actions, logos, empty panel space and footer controls share the panel's
+bottom area and appear one at a time. Settings control hints appear beside the
+pointer. Automatic hints show how many displays remain and where to turn them off
+in the expanded panel.
+Automatic hints stop after 100 actual displays, shared across monitors. Turning
+them back on manually keeps them on until manually disabled, without a countdown
+or status footer. The **?** explanation stays available.
+Hints and content previews are separate.
 
 Preferences are stored outside the plugin in
 `~/.local/state/windowpeek/preferences.json`, or `$XDG_STATE_HOME/windowpeek`
@@ -288,3 +374,86 @@ share preferences with ScratchPeek.
 
 For automatic updates, see [update details](UPDATES.md). For installation from
 a local source directory, see [development](DEVELOPMENT.md).
+
+## Known issues
+
+### X11 applications interrupting search
+
+On Hyprland 0.56.2, some X11 applications repeatedly request a new window size
+while tiled. This has been confirmed with RSI Launcher running through Wine.
+Hyprland rejects the resize but also moves keyboard focus to the window under
+the pointer. As a result, WindowPeek can stop receiving text when the pointer
+leaves the panel for another application, or when filtering makes the panel
+shrink above a stationary pointer. Pinning the panel does not prevent this Search issue.
+Moving over empty desktop space did not trigger the same loss in the reproduced
+case.
+
+The trigger is the application's **tiled** window, rather than its ordinary
+floating mode. Temporarily making that application floating, or closing it
+when not needed, avoids the confirmed trigger. This is a workaround, not a
+WindowPeek setting; the plugin does not change other applications' tiling.
+
+The same failure occurs in an independent panel without WindowPeek running.
+It does not mean every X11 or Wine application is affected. Other Hyprland
+versions have not been verified. There is no complete fix preserving all outside input. Optional protection
+modes are described below; their scrolling restrictions are explained before
+you choose. WindowPeek never repeatedly forces focus back in a loop.
+
+See the [technical explanation](ARCHITECTURE.md#x11-resize-requests-and-keyboard-focus)
+and [test coverage](TESTING.md#search-focus-outside-the-compact-and-expanded-panel).
+
+
+## Interrupted search with an X11 application
+
+If search loses keyboard focus while a tiled X11 window repeatedly requests a
+new size, WindowPeek may show **Typing in search was interrupted → Review options**.
+Open it to see alternatives and optional **temporary protection**. It will never
+enable protection simply because an application is running.
+
+Protection helps keep typing in the panel, but touchpad scrolling and rapid
+wheel movements outside it may fail. The dialog explains this before you choose.
+You can instead try giving the affected window more room, making it floating, closing it when unused,
+or using its documented native Wayland launch mode where supported. WindowPeek
+does not change that application's setup.
+
+**Turn off** stops protection. Closing WindowPeek suspends it; reopening reuses
+your choice while that exact affected window exists. Closing the affected
+window automatically clears the permission and shows a notification. Restarting
+the app or shell requires fresh detection and consent. If the source cannot be
+identified, temporary protection lasts until you turn it off or restart the bar,
+including across panel reopenings. The notice is currently
+translated into English and Polish, with English used for other locales.
+
+## Search loses keyboard focus
+
+Open **Settings → Controls → Troubleshooting** if moving the pointer to another
+window interrupts your search. **Keep search focus** is off by default. Enabling
+it protects each opened search panel and blocks scrolling outside it, including
+touchpad scrolling. Inside scrolling still works. Click outside or press Esc to
+close the panel. Turn the option off there to restore normal outside scrolling.
+
+The page explains known causes and alternatives. For details and the separate
+optional temporary protection, see [focus recovery](FOCUS_RECOVERY.md).
+
+### Ignoring focus warnings
+
+In **Review options → Ignore warnings**, choose until logout, this identified
+application, or all focus warnings. This only mutes advice; it does not change
+keyboard behavior or enable protection. **Settings → Controls → Troubleshooting**
+keeps the detected application list and lets you restore warnings for each app,
+this session or globally. For conditions, the option to give the requesting
+window more room, and detection limits, see [Known Issues](KNOWN_ISSUES.md#typing-is-redirected-when-another-application-requests-a-window-resize).
+
+### Text readability
+
+**Settings → Personalization → Text shadow** offers Automatic (default), On and
+Off. Automatic adds a small shadow where text may blend into the wallpaper or
+transparent background. It estimates wallpaper contrast from a small local image
+sample and treats transparent backgrounds conservatively, because the window
+behind them can change. It does not capture other applications. On and Off override
+that estimate; the choice is saved. Faint letters become opaque, and a weak
+mid-tone accent can use the theme text color for readability. Saved colors stay
+unchanged; Off restores their original rendering. The shadow follows the letters,
+including warning text, preview captions, input placeholders and the active bar label; it does not add
+a rectangle behind them. Editable text also receives contrast correction, while
+selection and the caret keep their native behavior.

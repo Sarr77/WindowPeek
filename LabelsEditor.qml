@@ -15,10 +15,12 @@ Column {
     property string group: "panel"
     property var custom: ({})
     property bool saveFailed: false
+  property bool saving: false
+  enabled: !saving
     readonly property var fields: Labels.fields.filter(function(field) { return field.group === root.group; })
     readonly property var defaults: Labels.defaults(words, hostWidget ? hostWidget.preference("barLabel", "full") : "full", false)
     readonly property bool valid: Labels.valid(draft())
-    signal finished()
+    signal finished(var focusReason)
     signal ensureVisible(var item)
     spacing: Style.space(12)
 
@@ -37,11 +39,15 @@ Column {
         custom = next; saveFailed = false; publishPreview();
     }
     function reset() { custom = {}; saveFailed = false; publishPreview(); }
-    function cancel() { closePickers(); hostWidget.cancelLabels(); finished(); }
-    function apply() {
+    function cancel(focusReason) { closePickers(); hostWidget.cancelLabels(); finished(focusReason); }
+    function apply(focusReason) {
         if (!valid) return;
-        if (hostWidget.saveLabels(draft())) { closePickers(); finished(); }
-        else saveFailed = true;
+        if (saving) return;
+        saving = true;
+        hostWidget.saveLabels(draft(), function(ok) {
+            saving = false;
+            if (ok) { closePickers(); finished(focusReason); } else saveFailed = true;
+        });
     }
     function example(key) {
         var templates = Labels.templates(words, draft(), hostWidget ? hostWidget.preference("barLabel", "full") : "full", false);
@@ -52,7 +58,7 @@ Column {
         return field.caption ? words[field.caption] : Labels.render(defaults[field.key], {name: "4", workspace: "…"});
     }
     Keys.onEscapePressed: function(event) {
-        if (stylePicker.popupOpen || groupPicker.popupOpen) closePickers(); else cancel();
+        if (stylePicker.popupOpen || groupPicker.popupOpen) closePickers(); else cancel(Qt.TabFocusReason);
         event.accepted = true;
     }
 
@@ -64,10 +70,10 @@ Column {
         options: [{value:"default", label:root.words.defaultLabels}, {value:"custom", label:root.words.customLabels}]
         onChanged: function(value) { root.setStyle(value); stylePicker.value = Qt.binding(function() { return root.style; }); }
     }
-    Text {
+    ReadableText {
         width: parent.width; text: root.words.labelHelp
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        color: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     Choice.Dropdown {
         id: groupPicker; objectName: "labelGroupPicker"
@@ -88,12 +94,12 @@ Column {
             required property var modelData
             readonly property var invalid: Labels.invalidVariables(modelData.key, root.custom[modelData.key])
             width: root.width; spacing: Style.space(4)
-            Text {
+            ReadableText {
                 width: parent.width; text: root.caption(field.modelData)
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
-            Ui.TextField {
+            EditField {
                 objectName: "labelInput_" + field.modelData.key
                 width: parent.width; visible: root.style === "custom"
                 maximumLength: Labels.maximumLength
@@ -105,6 +111,7 @@ Column {
                 onActiveFocusChanged: if (activeFocus) root.ensureVisible(field)
             }
             DefaultValue {
+                hostWidget: root.hostWidget
                 objectName: "labelDefault_" + field.modelData.key
                 width: parent.width; visible: root.style === "custom"
                 words: root.words; label: root.caption(field.modelData); accent: root.accent
@@ -113,59 +120,59 @@ Column {
                 onResetRequested: root.setText(field.modelData.key, "")
                 onEnsureVisible: root.ensureVisible(field)
             }
-            Text {
+            ReadableText {
                 width: parent.width; visible: root.style === "custom" && field.modelData.variables.length > 0
                 text: I18n.format(root.words.labelVariables, {variables:field.modelData.variables.map(function(name) { return "{" + name + "}"; }).join(", ")})
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
-            Text {
+            ReadableText {
                 objectName: "labelExample_" + field.modelData.key
                 width: parent.width; visible: root.style !== "custom" || field.modelData.variables.length > 0
                 text: root.example(field.modelData.key)
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.body
+                textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.body
             }
-            Text {
+            ReadableText {
                 width: parent.width; visible: root.style === "custom" && field.invalid.length > 0
                 text: I18n.format(root.words.labelInvalidVariables, {variables:field.invalid.join(", ")})
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
     }
-    Ui.Button {
+    ReadableButton {
         objectName: "resetLabelsButton"
         width: parent.width; visible: root.style === "custom"
         text: root.words.resetLabels; accent: root.accent; bordered: true; focusable: true
         onClicked: root.reset()
         onActiveFocusChanged: if (activeFocus) root.ensureVisible(this)
     }
-    Text {
+    ReadableText {
         width: parent.width; visible: !root.valid
         text: Labels.fields.filter(function(field) { return Labels.invalidVariables(field.key, root.custom[field.key]).length > 0; })
             .map(function(field) { return root.caption(field) + " — " + I18n.format(root.words.labelInvalidVariables,
                 {variables:Labels.invalidVariables(field.key, root.custom[field.key]).join(", ")}); }).join("\n")
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
-    Text {
+    ReadableText {
         width: parent.width; visible: root.saveFailed; text: root.words.labelSaveError
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     Row {
         width: parent.width; spacing: Style.space(10)
-        Ui.Button {
+        LabelButton {
             objectName: "cancelLabelsButton"; width: (parent.width-parent.spacing)/2
-            text: root.words.cancel; accent: root.accent; focusable: true
-            onClicked: root.cancel()
+            label: root.words.cancel; accent: root.accent; focusable: true
+            onClicked: root.cancel(activationFocusReason)
             onActiveFocusChanged: if (activeFocus) root.ensureVisible(this)
         }
-        Ui.Button {
+        LabelButton {
             objectName: "applyLabelsButton"; width: (parent.width-parent.spacing)/2
-            text: root.words.apply; accent: root.accent; focusable: true; bordered: true; enabled: root.valid
-            onClicked: root.apply()
+            label: root.words.apply; accent: root.accent; focusable: true; bordered: true; enabled: root.valid
+            onClicked: root.apply(activationFocusReason)
             onActiveFocusChanged: if (activeFocus) root.ensureVisible(this)
         }
     }

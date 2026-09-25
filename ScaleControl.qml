@@ -8,6 +8,7 @@ Column {
   id: root
   required property string label
   required property string invalidText
+  property var hostWidget: null
   required property var words
   property int percent: 100
   property color accent: Color.accent
@@ -21,25 +22,25 @@ Column {
   function resetInput() { field.text = String(percent); }
   onPercentChanged: resetInput()
 
-  Text {
+  ReadableText {
     width: parent.width
     text: root.label
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    color: Color.popups.text
+    textColor: Color.popups.text
     font.pixelSize: Style.font.body
   }
   Row {
     width: parent.width
     spacing: Style.space(8)
-    Ui.Button {
+    ReadableButton {
       width: Style.space(36); text: "−"; accent: root.accent; focusable: true
       enabled: root.percent > 80
       onActiveFocusChanged: if (activeFocus) root.ensureVisible()
       onClicked: root.choose(root.percent - 5)
     }
-    Ui.TextField {
+    EditField {
       id: field; objectName: "scaleInput"
       width: Style.space(70)
       text: String(root.percent)
@@ -54,14 +55,15 @@ Column {
       onAccepted: if (acceptableInput) root.accepted()
       onActiveFocusChanged: if (activeFocus) root.ensureVisible()
     }
-    Text { text: "%"; color: Color.popups.text; font.pixelSize: Style.font.body; anchors.verticalCenter: parent.verticalCenter }
-    Ui.Button {
+    ReadableText { text: "%"; textColor: Color.popups.text; font.pixelSize: Style.font.body; anchors.verticalCenter: parent.verticalCenter }
+    ReadableButton {
       width: Style.space(36); text: "+"; accent: root.accent; focusable: true
       enabled: root.percent < 200
       onActiveFocusChanged: if (activeFocus) root.ensureVisible()
       onClicked: root.choose(root.percent + 5)
     }
     ResetButton {
+      hostWidget: root.hostWidget
       words: root.words; valueText: "100%"; label: root.label; accent: root.accent
       modified: root.percent !== 100 || field.text !== "100"
       onResetRequested: root.choose(100)
@@ -83,21 +85,21 @@ Column {
       onActiveFocusChanged: if (activeFocus) root.ensureVisible()
       palette.highlight: root.accent
     }
-    Text {
+    ReadableText {
       id: defaultCaption
       anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
       width: Math.min(implicitWidth, parent.width * 0.45)
       text: I18n.format(root.words.defaultValue, {value: "100%"})
       textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-      color: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+      textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
     }
   }
-  Text {
+  ReadableText {
     width: parent.width
     visible: !root.valid
     text: root.invalidText
     textFormat: Text.PlainText
-    color: Color.urgent
+    textColor: Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.caption
   }

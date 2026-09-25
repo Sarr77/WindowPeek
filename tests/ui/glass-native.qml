@@ -112,7 +112,7 @@ ShellRoot {
                         "only the card background is translucent");
                     var region = panel.surface.BackgroundEffect.blurRegion;
                     test.check(region && region.radius === Math.round(panel.surface.cardItem.radius), "rounded blur region matches card");
-                    test.check(panel.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.None, "glass hover does not grab focus");
+                    test.check(panel.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.OnDemand, "glass hover receives typing");
                     console.info("GLASS_GEOMETRY " + JSON.stringify({
                         x: panel.surface.cardItem.x, y: panel.surface.cardItem.y,
                         width: panel.surface.cardItem.width, height: panel.surface.cardItem.height,

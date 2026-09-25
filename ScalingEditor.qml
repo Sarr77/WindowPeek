@@ -12,7 +12,9 @@ Column {
   property int panelPercent: 100
   property int barPercent: 100
   property bool saveFailed: false
-  signal finished()
+  property bool saving: false
+  enabled: !saving
+  signal finished(var focusReason)
   signal ensureVisible(var item)
   spacing: Style.space(14)
 
@@ -26,34 +28,40 @@ Column {
     root.forceActiveFocus();
   }
   function publishPreview() { hostWidget.previewAppearance(draft()); }
-  function cancel() { hostWidget.cancelAppearance(); finished(); }
-  function apply() {
+  function cancel(focusReason) { hostWidget.cancelAppearance(); finished(focusReason); }
+  function apply(focusReason) {
     if (!panelControl.valid || !barControl.valid) return;
-    if (hostWidget.saveAppearance(draft())) finished(); else saveFailed = true;
+    if (saving) return;
+    saving = true;
+    hostWidget.saveAppearance(draft(), function(ok) {
+      saving = false;
+      if (ok) finished(focusReason); else saveFailed = true;
+    });
   }
-  Keys.onEscapePressed: function(event) { root.cancel(); event.accepted = true; }
+  Keys.onEscapePressed: function(event) { root.cancel(Qt.TabFocusReason); event.accepted = true; }
 
-  Text {
+  ReadableText {
     width: parent.width
     text: "WindowPeek · " + root.words.scaling
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    color: Color.popups.text
+    textColor: Color.popups.text
     font.pixelSize: Style.font.subtitle
     font.bold: true
   }
-  Text {
+  ReadableText {
     width: parent.width
     text: root.words.scaleHelp
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    color: Color.popups.text
+    textColor: Color.popups.text
     opacity: 0.75
     font.pixelSize: Style.font.caption
   }
   ScaleControl {
+    hostWidget: root.hostWidget
     id: panelControl
     objectName: "panelScaleControl"
     width: parent.width
@@ -67,6 +75,7 @@ Column {
     onEnsureVisible: root.ensureVisible(panelControl)
   }
   ScaleControl {
+    hostWidget: root.hostWidget
     id: barControl
     objectName: "barScaleControl"
     width: parent.width
@@ -79,31 +88,31 @@ Column {
     onAccepted: root.apply()
     onEnsureVisible: root.ensureVisible(barControl)
   }
-  Text {
+  ReadableText {
     width: parent.width
     visible: root.hostWidget && Math.round(root.hostWidget.effectiveBarScale * 100) < root.barPercent
     text: I18n.format(root.words.barScaleLimit, {percent: root.hostWidget ? Math.round(root.hostWidget.effectiveBarScale * 100) : 100})
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    color: Color.popups.text
+    textColor: Color.popups.text
     font.pixelSize: Style.font.caption
   }
-  Text { text: root.words.preview; color: Color.popups.text; font.pixelSize: Style.font.caption }
+  ReadableText { text: root.words.preview; textColor: Color.popups.text; font.pixelSize: Style.font.caption }
   // The surrounding panel already supplies the selected scale.
   AppearancePreview { width: parent.width; hostWidget: root.hostWidget }
-  Text {
+  ReadableText {
     visible: root.saveFailed
     width: parent.width
     text: root.words.saveStyleError
     textFormat: Text.PlainText
-    color: Color.urgent
+    textColor: Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.body
   }
   Row {
     width: parent.width; spacing: Style.space(10)
-    Ui.Button { id: cancelButton; width: (parent.width-parent.spacing)/2; text: root.words.cancel; focusable: true; onClicked: root.cancel(); onActiveFocusChanged: if (activeFocus) root.ensureVisible(cancelButton) }
-    Ui.Button { id: applyButton; width: (parent.width-parent.spacing)/2; text: root.words.apply; focusable: true; bordered: true; accent: root.accent; enabled: panelControl.valid && barControl.valid; onClicked: root.apply(); onActiveFocusChanged: if (activeFocus) root.ensureVisible(applyButton) }
+    LabelButton { id: cancelButton; width: (parent.width-parent.spacing)/2; label: root.words.cancel; focusable: true; onClicked: root.cancel(activationFocusReason); onActiveFocusChanged: if (activeFocus) root.ensureVisible(cancelButton) }
+    LabelButton { id: applyButton; width: (parent.width-parent.spacing)/2; label: root.words.apply; focusable: true; bordered: true; accent: root.accent; enabled: panelControl.valid && barControl.valid; onClicked: root.apply(activationFocusReason); onActiveFocusChanged: if (activeFocus) root.ensureVisible(applyButton) }
   }
 }

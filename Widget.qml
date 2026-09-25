@@ -7,6 +7,7 @@ import qs.Commons
 import "." as Local
 import "I18n.js" as I18n
 import "Settings.js" as Settings
+import "TextReadability.js" as Readability
 import "Shortcuts.js" as Shortcuts
 import "Appearance.js" as Appearance
 import "WindowModel.js" as Model
@@ -21,11 +22,27 @@ BarWidget {
     readonly property var snapshot: runtime.state.snapshot
     readonly property var effectiveSettings: !settingsReady ? settings
         : (runtime.preferences.hasSavedValues ? runtime.preferences.values : runtime.fallbackSettings)
+    readonly property var requestedSettings: runtime.preferences.pendingValues || effectiveSettings
     function preference(name, fallback) {
         var value = effectiveSettings ? effectiveSettings[name] : undefined;
         return value === undefined || value === null ? fallback : value;
     }
+    readonly property bool barLabelHovered: button.tooltipHovered
+        || (!!panelLoader.item && panelLoader.item.surface.barAnchorHovered)
+        || anchorHover.inside
+    BarAnchorHover {
+        id: anchorHover
+        anchor: button
+        active: !!panelLoader.item && panelLoader.item.mapped
+    }
+    onBarLabelHoveredChanged: {
+        // Mapping the keyboard layer transfers the same stationary pointer
+        // between the bar label and its proxy. Only a settled exit rearms Esc.
+        if (barLabelHovered) hoverRearm.stop(); else hoverRearm.restart();
+    }
+    Timer { id: hoverRearm; interval: 180; onTriggered: if (!root.barLabelHovered) root.hoverDismissed = false }
     readonly property var windowPreview: thumbnail
+    readonly property var focusRecovery: runtime.recovery
     readonly property string screenName: root.QsWindow.window && root.QsWindow.window.screen ? root.QsWindow.window.screen.name : ""
     readonly property string languageSetting: String(preference("language", "auto"))
     readonly property string detectedLanguage: I18n.language("auto", Qt.locale().uiLanguages, Qt.locale().name)
@@ -41,19 +58,45 @@ BarWidget {
     readonly property bool previewFit: preference("previewFit", true) === true
     readonly property bool windowPreviews: preference("windowPreviews", true) === true
     readonly property bool openOnHover: preference("openOnHover", true) === true
+    readonly property bool doubleClickExpand: preference("doubleClickExpand", false) === true
+    // Legacy key retained so the broader pinning option preserves saved choices.
+    readonly property bool pinByTitleClick: preference("pinByTitleClick", true) === true
+    readonly property string textShadowMode: Readability.mode(preference("textShadowMode", "auto"))
+    property TextReadabilityService textReadability: TextReadabilityService { hostWidget: root }
+    property var textShadowSamples: []
+    property string textShadowSampleKey: ""
+    readonly property bool keepSearchFocus: preference("keepSearchFocus", false) === true
+    readonly property bool barClickPending: barDoubleClick.running && !barDoubleClick.closePending
+    readonly property bool hoverLogo: preference("hoverLogo", true) === true
+    readonly property bool settingsLogo: preference("settingsLogo", true) === true
+    readonly property bool hoverLogoLoop: preference("hoverLogoLoop", true) === true
+    readonly property bool settingsLogoLoop: preference("settingsLogoLoop", true) === true
+    readonly property real hoverLogoLoopDelay: Settings.logoLoopDelay(preference("hoverLogoLoopDelay", 4.2))
+    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(preference("settingsLogoLoopDelay", 4.2))
+    readonly property real hoverLogoCooldown: Settings.logoCooldown(preference("hoverLogoCooldown", 0))
+    readonly property real settingsLogoCooldown: Settings.logoCooldown(preference("settingsLogoCooldown", 0))
+    readonly property bool sharedLogoCooldownEnabled: preference("sharedLogoCooldownEnabled", false) === true
+    readonly property real sharedLogoCooldown: Settings.logoCooldown(preference("sharedLogoCooldown", 0))
+    readonly property string logoImage: Settings.logoImage(preference("logoImage", ""))
+    readonly property string hoverLogoImage: Settings.logoChoice(preference("hoverLogoImage", logoImage))
+    readonly property string settingsLogoImage: Settings.logoChoice(preference("settingsLogoImage", logoImage))
     readonly property int panelHoverDelay: Settings.hoverDelay(preference("panelHoverDelay", 400))
     readonly property int previewHoverDelay: Settings.hoverDelay(preference("previewHoverDelay", 400))
     readonly property bool popupAnimations: preference("popupAnimations", true) === true
     readonly property bool scrollBounce: preference("scrollBounce", true) === true
+    readonly property int wheelScrollSpeed: Settings.wheelScrollSpeed(preference("wheelScrollSpeed", 102))
     readonly property bool shortcutNumbersRight: preference("shortcutNumbersRight", false) === true
-    readonly property string panelStyle: Settings.panelStyle(preference("panelStyle", "wallpaper"))
+    readonly property string selectedPanelStyle: Settings.panelStyle(preference("panelStyle", "wallpaper"))
+    readonly property bool followBarStyle: preference("followBarStyle", false) === true
+    readonly property string panelStyle: Settings.effectivePanelStyle(selectedPanelStyle, followBarStyle,
+        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined)
     readonly property bool glassPanels: panelStyle !== "solid"
     readonly property int glassTransparency: Settings.backgroundTransparency(preference("glassTransparency", 8), 8)
     readonly property var wallpaperTransparencyRule: Settings.wallpaperRule(effectiveSettings, themeId)
     readonly property int wallpaperTransparency: wallpaperTransparencyRule.value
     readonly property int wallpaperTransparencyDefault: wallpaperTransparencyRule.defaultValue
     function saveWallpaperTransparency(value) {
-        return persistSettings(Settings.setWallpaperTransparency(effectiveSettings, themeId, value));
+        return persistSettings(Settings.setWallpaperTransparency(requestedSettings, themeId, value));
     }
     readonly property real glassOpacity: 1 - glassTransparency / 100
     readonly property bool backgroundBlur: preference("backgroundBlur", false) === true
@@ -92,7 +135,7 @@ BarWidget {
     property bool actionOnClose: false
     property bool reopenOnFailure: false
     property bool hoverDismissed: false
-    readonly property bool canShowTooltip: openOnHover && !hoverDismissed && button.tooltipHovered && !opened && (!bar || !bar.activePopout)
+    readonly property bool canShowTooltip: openOnHover && !hoverDismissed && barLabelHovered && !opened && (!bar || !bar.activePopout)
     property bool tooltipReady: false
     function scheduleTooltip() {
         tooltipDelay.stop();
@@ -107,28 +150,52 @@ BarWidget {
     FontMetrics { id: metrics; font.family: root.bar ? root.bar.fontFamily : Style.font.family; font.pixelSize: root.requestedBarFont }
 
     function observeWallpaper(owner, enabled) { runtime.wallpaper.observe(owner, enabled); }
+    function beginLogoAnimation(slot, source, cooldown) { return runtime.beginLogoAnimation(slot, source, sharedLogoCooldownEnabled ? sharedLogoCooldown : cooldown, sharedLogoCooldownEnabled); }
+    function endLogoAnimation(slot, source) { runtime.endLogoAnimation(slot, source); }
     function peers() { return bar ? bar.moduleWidgets(moduleName) : [root]; }
     function onScreen(name) {
         var target = name || (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "");
         return peers().find(function(widget) { return widget.screenName === target; }) || root;
     }
-    function open(quickSelection) {
-        if (!panelLoader.item || opened || actionBusy) return;
+    function open(quickSelection, compact) {
+        if (!panelLoader.item || (opened && !panelLoader.item.compactPinned) || actionBusy) return;
+        if (opened) { panelLoader.item.open(quickSelection, compact); return; }
         restoreFocus.stop();
         focusBeforePanel = snapshot ? Model.address(snapshot.activeAddress) : "";
         actionOnClose = false;
         runtime.actions.error = "";
         runtime.state.refresh();
-        panelLoader.item.open(quickSelection);
+        panelLoader.item.open(quickSelection, compact);
     }
     function close() { thumbnail.dismiss(); if (panelLoader.item) panelLoader.item.close(); }
     function toggle(quickSelection) { opened ? close() : open(quickSelection); }
-    function pressBarButton() {
+    function toggleBarExpansion() {
+        barDoubleClick.stop(); barDoubleClick.closePending = false;
+        if (panelLoader.item && opened) panelLoader.item.toggleExpanded();
+        else open();
+    }
+    function pressBarButton(code) {
+        if (doubleClickExpand && code === Qt.LeftButton) {
+            if (barDoubleClick.running) {
+                toggleBarExpansion();
+            } else {
+                barDoubleClick.closePending = opened;
+                barDoubleClick.restart();
+                if (!opened) open(false, true);
+            }
+            return;
+        }
         if (opened) {
             // Closing by the bar is deliberate. Dwell resumes only after exit.
             hoverDismissed = true;
             close();
         } else open();
+    }
+    Timer {
+        id: barDoubleClick
+        interval: Qt.styleHints.mouseDoubleClickInterval
+        property bool closePending: false
+        onTriggered: if (closePending && root.opened) { root.hoverDismissed = true; root.close(); }
     }
     function closeForPopoutSwitch() {
         restoreFocus.stop();
@@ -136,6 +203,8 @@ BarWidget {
         if (panelLoader.item) panelLoader.item.closeForPopoutSwitch();
     }
     function panelClosed() {
+        barDoubleClick.stop();
+        barDoubleClick.closePending = false;
         thumbnail.dismiss();
         cancelAppearance();
         cancelLabels();
@@ -171,22 +240,23 @@ BarWidget {
     }
     function moveWindow(address, destination) { return runtime.actions.move(address, destination); }
     function clearError() { runtime.actions.error = ""; }
-    function persistSettings(values) {
-        if (!settingsReady) return false;
-        var current = Settings.merge(effectiveSettings, {}, moduleName);
+    function persistSettings(values, done) {
+        if (!settingsReady) { if (done) done(false); return false; }
+        var current = Settings.merge(runtime.preferences.pendingValues || effectiveSettings, {}, moduleName);
         var next = Settings.merge(current, values, moduleName);
         if (JSON.stringify(current) !== JSON.stringify(next))
-            next = Settings.stamp(next, runtime.preferences.values);
-        if (!runtime.preferences.save(next)) return false;
-        publishSettings(next);
-        return true;
+            next = Settings.stamp(next, runtime.preferences.requestedValues);
+        return runtime.preferences.save(next, function(ok) {
+            if (ok) publishSettings(next);
+            if (done) done(ok);
+        });
     }
     onSettingsChanged: {
         if (!settingsReady || runtime.publishingSettings) return;
         var saved = Settings.merge(effectiveSettings, {}, moduleName);
         if (JSON.stringify(settings) === JSON.stringify(saved)) return;
         var incoming = Settings.restore(saved, settings, moduleName);
-        if (!persistSettings(incoming)) publishSettings(saved);
+        persistSettings(incoming, function(ok) { if (!ok) publishSettings(saved); });
     }
     function publishSettings(entry) {
         // The durable file is authoritative; the host keeps a recoverable mirror.
@@ -207,7 +277,8 @@ BarWidget {
     }
     function recordHintShown() {
         if (hints.mode !== "auto" || hints.remaining <= 0) return false;
-        return persistSettings({ hintsUsed: hints.used + 1 });
+        var requested = Settings.hints(runtime.preferences.pendingValues || effectiveSettings);
+        return requested.remaining > 0 && persistSettings({ hintsUsed: requested.used + 1 });
     }
     function setHintsMode(mode) {
         return ["auto", "on", "off"].indexOf(mode) >= 0 && persistSettings({ hintsMode: mode });
@@ -216,15 +287,22 @@ BarWidget {
     function toggleUpdates() { return updatesAvailable && persistSettings({ autoUpdates: !autoUpdates }); }
     function previewAppearance(values) { runtime.preview(root, Appearance.merge(savedAppearance, values)); }
     function cancelAppearance() { runtime.cancelPreview(root); }
-    function saveAppearance(values) {
-        if (!persistSettings(Appearance.merge(savedAppearance, values))) return false;
-        cancelAppearance(); return true;
+    function saveAppearance(values, done) {
+        var preview = runtime.previewAppearance;
+        return persistSettings(Appearance.merge(savedAppearance, values), function(ok) {
+            if (ok && runtime.previewAppearance === preview) cancelAppearance();
+            if (done) done(ok);
+        });
     }
     function previewLabels(values) { runtime.previewLabels(root, Labels.normalize(values)); }
     function cancelLabels() { runtime.cancelLabels(root); }
-    function saveLabels(values) {
-        if (!Labels.valid(values) || !persistSettings(Labels.normalize(values))) return false;
-        cancelLabels(); return true;
+    function saveLabels(values, done) {
+        if (!Labels.valid(values)) { if (done) done(false); return false; }
+        var preview = runtime.labelsPreview;
+        return persistSettings(Labels.normalize(values), function(ok) {
+            if (ok && runtime.labelsPreview === preview) cancelLabels();
+            if (done) done(ok);
+        });
     }
     function injectPanel() {
         if (!panelLoader.item) return;
@@ -251,12 +329,11 @@ BarWidget {
             }
             if (JSON.stringify(Settings.merge(saved, {}, root.moduleName)) !== JSON.stringify(restored))
                 restored = Settings.stamp(restored, saved);
-            var stored = root.runtime.preferences.save(restored);
-            root.settings = stored ? restored : Settings.merge(
+            root.settings = Settings.merge(
                 root.runtime.preferences.hasSavedValues ? saved : root.runtime.fallbackSettings,
                 {}, root.moduleName);
             root.settingsReady = true;
-            if (stored) root.publishSettings(restored);
+            root.runtime.preferences.save(restored, function(ok) { if (ok) root.publishSettings(restored); });
         }
     }
     Timer {
@@ -291,8 +368,9 @@ BarWidget {
 
     implicitWidth: button.implicitWidth
     implicitHeight: button.implicitHeight
-    WidgetButton {
+    ReadableBarButton {
         id: button
+        hostWidget: root
         objectName: "windowPeekBarButton"
         anchors.fill: parent
         bar: root.bar
@@ -302,11 +380,29 @@ BarWidget {
         text: Labels.render(root.textTemplates.barText, {count: countText, monitor: root.screenName || "?"})
         tooltipText: ""
         activeColor: root.accent
+        // Osaka Jade's bright yellow separates the active label from its green
+        // bar. Keep a user's custom accent and the ordinary idle label intact.
+        activeFallbackColor: root.themeId === "osaka-jade"
+            && Appearance.ruleFor(root.appearance, root.themeId).mode !== "custom"
+                ? "#E5C736" : foreground
         active: root.opened
         fixedHeight: root.vertical ? Math.max(Style.space(44), metrics.height * 2 + Style.space(12)) : root.barSize
         Accessible.name: "WindowPeek · " + root.words.searchWindows
-        onTooltipHoveredChanged: if (!tooltipHovered) root.hoverDismissed = false
-        onPressed: function(code) { if (code === Qt.LeftButton || code === Qt.RightButton || code === Qt.MiddleButton) root.pressBarButton(); }
+        onPressed: function(code) { if (code === Qt.LeftButton || code === Qt.RightButton || code === Qt.MiddleButton) root.pressBarButton(code); }
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            propagateComposedEvents: true
+            // The host's ModuleSlot owns press/drag and forwards single clicks.
+            // Consume its composed double-click before it reaches bar chrome.
+            onPressed: function(mouse) { mouse.accepted = false; }
+            onClicked: function(mouse) { mouse.accepted = false; }
+            onDoubleClicked: function(mouse) {
+                mouse.accepted = true;
+                if (!root.doubleClickExpand) return;
+                root.toggleBarExpansion();
+            }
+        }
     }
     Timer { id: tooltipDelay; interval: root.panelHoverDelay; onTriggered: root.tooltipReady = root.canShowTooltip }
     WindowThumbnail {
@@ -351,9 +447,19 @@ BarWidget {
             return JSON.stringify(root.peers().map(function(w) {
                 return { screen: w.screenName, version: w.version, ready: w.inventory.status === "ready",
                     count: w.inventory.windows.length, opened: w.opened, language: w.language,
+                    input: w.inputStatus(),
                     settingsReady: w.settingsReady, saveFailed: w.saveFailed, includeSpecial: w.includeSpecial, scrollBounce: w.scrollBounce,
                     panelHoverDelay: w.panelHoverDelay, previewHoverDelay: w.previewHoverDelay, popupAnimations: w.popupAnimations,
-                    openOnHover: w.openOnHover,
+                    openOnHover: w.openOnHover, doubleClickExpand: w.doubleClickExpand, pinByTitleClick: w.pinByTitleClick,
+                    hoverLogo: w.hoverLogo, settingsLogo: w.settingsLogo,
+                    hoverLogoLoop: w.hoverLogoLoop, settingsLogoLoop: w.settingsLogoLoop,
+                    hoverLogoLoopDelay: w.hoverLogoLoopDelay, settingsLogoLoopDelay: w.settingsLogoLoopDelay,
+                    hoverLogoCooldown: w.hoverLogoCooldown, settingsLogoCooldown: w.settingsLogoCooldown,
+                    sharedLogoCooldownEnabled: w.sharedLogoCooldownEnabled, sharedLogoCooldown: w.sharedLogoCooldown,
+                    customLogo: w.hoverLogoImage.indexOf("file:") === 0 || w.settingsLogoImage.indexOf("file:") === 0,
+                    hoverLogoAnimated: w.hoverLogoImage === "builtin:omarchy-pixel",
+                    settingsLogoAnimated: w.settingsLogoImage === "builtin:omarchy-pixel", wheelScrollSpeed: w.wheelScrollSpeed,
+                    followBarStyle: w.followBarStyle, keepSearchFocus: w.keepSearchFocus,
                     actionBusy: w.actionBusy, actionError: w.actionError, hints: w.hints,
                     autoUpdates: w.autoUpdates, updatesAvailable: w.updatesAvailable,
                     preview: {
@@ -370,4 +476,19 @@ BarWidget {
         }
     }
     function openSettings() { if (panelLoader.item) panelLoader.item.showSettings(); }
+    function inputStatus() {
+        var p = panelLoader.item;
+        var anchor = button.mapToGlobal(0, 0);
+        return p ? { mode: p.body.mode, compactPinned: p.compactPinned, hover: p.hoverOpened,
+            barHovered: barLabelHovered, hoverDismissed: hoverDismissed,
+            anchor: {x: anchor.x, y: anchor.y, width: button.width, height: button.height},
+            recoveryOffered: !!runtime.recovery.offered, protectionGranted: runtime.recovery.granted,
+            protectionActive: runtime.recovery.protecting,
+            protectionPaused: p.surface.protectionPaused,
+            protectionLastYieldReason: p.surface.protectionLastYieldReason,
+            protectionLastYieldAt: p.surface.protectionLastYieldAt,
+            recovery: runtime.recovery.diagnosticStatus(),
+            keyboard: p.surface.keyboardActive, nativeActive: p.surface.nativeActive, searchFocus: p.body.searchField.focus,
+            searchActiveFocus: p.body.searchField.activeFocus, mapped: p.mapped } : null;
+    }
 }

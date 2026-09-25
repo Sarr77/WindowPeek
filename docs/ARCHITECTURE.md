@@ -90,6 +90,86 @@ Physical Ctrl state is unchanged. Text editing, collapse, closing or leaving the
 available window list cancels the timer. Ordinary mouse opening does not start it.
 Page Up/Down scroll a viewport and select a visible row; Home/End select an endpoint.
 Row actions retain their column. Home/End in a nonempty search keep text editing.
+`PanelContent.compactKeyBindings` prepares hover key definitions when shortcut
+settings or text direction change. Expand/collapse only selects that prepared
+array or an empty one. Rebuilding and revalidating all chords during every
+collapse added several milliseconds before the resize animation could proceed.
+`HoverBindings.js` leases the configured navigation/action keys only while a
+compact main list owns native keyboard focus. It shares the digit lease's session
+token and 750 ms expiry, reuses private handles, and releases them on focus loss,
+close or promotion so background applications retain their navigation keys.
+Keypad navigation aliases never override the configured modifier's ordinal keys.
+Tab and side actions promote via the host widget to preserve its focus lifecycle.
+
+`selectedPanelStyle` retains the stored choice. Opt-in `followBarStyle` resolves
+Wallpaper to Solid only when the invoking `PluginBarApi.transparent` is false;
+unknown bar state preserves Wallpaper. The effective `panelStyle` feeds all
+surfaces. Settings edits still target the selected style, without saving any bar
+state changes or altering Wallpaper appearance values.
+
+`PanelLogo` replaces the expanded search/footer space and uses the same translucent
+accent in Settings. `hoverLogoImage` and `settingsLogoImage` hold separate choices:
+empty for the wordmark, `builtin:omarchy-pixel` for a stepped accent glint, or a
+validated local file URL. Missing values fall back to the legacy `logoImage`;
+an explicit empty value resets only that slot. `hoverLogo` and `settingsLogo`
+remain separate visibility switches. Independent `hoverLogoLoop` and
+`settingsLogoLoop` default to true; their mini switches keep a constant label and
+appear only for a GIF or the pixel preset. `hoverLogoLoopDelay` and
+`settingsLogoLoopDelay` store seconds separately, defaulting to 4.2; normalize to
+milliseconds in the range 0–86400 seconds. The input accepts decimal dots or commas
+and commits on Enter or editingFinished. Pauses are canceled while hidden.
+Independent `hoverLogoCooldown` and `settingsLogoCooldown` default to zero seconds;
+the `...CooldownUnit` fields select seconds or minutes without changing duration.
+Reset buttons restore 4.2 seconds for loop delay and zero for cooldown.
+`Runtime.logoAnimationHistory` records each slot's source and last animated
+appearance across monitors for this shell session. Hiding an animated logo starts
+the cooldown; a blocked reopening stays static and does not extend it. Changing
+the source permits immediate playback in independent mode. Optional shared mode
+uses one cooldown and a source-independent history for both slots: any admitted
+animation blocks the other slot too, including across monitors. An active shared
+animation holds the cooldown until hidden; rejected openings never extend it.
+Zero disables the delay. Individual values survive switching shared mode off.
+The history is not persisted.
+`LogoImage` uses an uncached, size-bounded
+AnimatedImage for GIF and Image for static files. GIF and built-in playback stop
+when the item or its window is hidden. Play once stops the pixel sweep and pauses
+GIF on its final frame; showing it again restarts at frame zero if its cooldown permits. Loop mode
+also repeats GIFs whose own metadata specifies a single playback.
+`LogoPicker` is an item popup on the existing
+layer surface, so a file chooser never competes with the panel for keyboard focus.
+It resolves the overlay from the invoking control every time; attaching to its
+own overlay can retain a destroyed window after the compact/expanded lifecycle.
+It browses readable local images, previews before Apply, and leaves preferences
+unchanged on Cancel/Esc. The path field accepts folders or full image paths,
+including spaces and reserved URL characters; failed decoding disables Apply
+and shows an error. Both settings and chooser name the supported formats.
+Background instructions and logo help use separate
+`PanelHint` instances. Logo, controls and background help share the enabled state
+and automatic display budget; only the help toggle's explanation is exempt.
+
+Opt-in `doubleClickExpand` pins compact geometry while keeping the regular open
+lifecycle, keyboard access and outside-click dismissal. The bar uses Qt's double
+click interval; only a later single click closes an already open panel. Default
+single-click behavior and the keyboard opening shortcut remain unchanged.
+Both bar double-click input paths share `toggleBarExpansion`, cancel the pending
+single-click close and use the panel's existing expand/collapse transition.
+The layer input region covers the panel, open popup and its own bar label; other
+bar buttons and underlying applications remain reachable. While mapped, an
+anchor-sized input area forwards single/double-clicks to the same widget handlers.
+This preserves a double-click across mapping and the initial exclusive keyboard
+prime. The bare bar keeps its own transparency gesture. After the mask commits,
+hit testing is refreshed at unchanged cursor coordinates so a stationary cursor
+cannot remain assigned to the old fullscreen input region.
+
+`WindowPanel` uses `HoverFootprint` to temporarily keep
+the pre-collapse input footprint. A passive pointer handler releases it when the
+pointer reaches the new card or leaves the old area; there is no keyboard grab
+or ongoing timer while the pointer remains stationary in the vacated area.
+
+All private binding handles are checked with `tostring` before `set_enabled`.
+Hyprland 0.56.2 exposes expired weak handles as `HL.Keybind(expired)`; toggling
+one without this guard can dereference a null shared pointer. Installation
+recreates only expired handles and reuses live ones, including partial expiry.
 
 Only the widget owning IPC registers the default opening shortcut. It first reads
 `hyprctl -j binds`, preserving existing chords. Its private Lua handle is reused
@@ -117,15 +197,46 @@ on opening and every 50 ms while a main list is available, with one outstanding
 request, a per-instance token and a 250 ms timeout. Focused Qt key events update
 the state immediately and invalidate older pending samples. Closing, settings,
 menus and busy actions stop observation and clear the hints.
-Hover temporarily requests keyboard focus while Ctrl is known to be held, without
-expanding, changing its input mask or registering a full bar popout. Releasing Ctrl
-returns keyboard ownership. Without a preview, Ctrl keeps exclusive keyboard
-focus instead of dropping to OnDemand after the normal opening delay. A visible
-preview uses OnDemand so its pointer events remain available. The list first
-primes keyboard focus unless the pointer is already on the preview. The preview
+Expanded Search retains keyboard focus independently of pointer position, including
+with an empty query. Ordinary compact browsing follows the user's mouse-focus policy:
+without an opt-in protection mode, it does not lease click-to-focus. Under focus-follows-mouse,
+leaving for another window releases the keyboard; hovering the panel again is enough
+to resume typing. The compact view focuses the same text field, clipped until expansion;
+its first text edit expands through the host widget and enables the Search hold.
+Configured actions run before text input, and promotion preserves the first and
+subsequent characters without reinjecting key events. The keyboard is returned on
+close, not on releasing Ctrl. After priming, the layer uses OnDemand so outside
+wheel events and bar clicks remain available. `SearchFocus` temporarily sets
+Hyprland's runtime `input.follow_mouse` to 3 while acquiring keyboard focus and
+while expanded Search actually owns the keyboard;
+this prevents pointer movement from changing keyboard focus. Its compositor-side
+750 ms lease restores the original value on a stopped shell. Closure or actual
+keyboard loss releases it immediately, without waiting for lease expiry.
+Otherwise an inactive panel would keep unrelated application windows in
+click-to-focus mode: pointer-driven focus changes could wait until another X11
+resize request forced a refocus. Clicking the panel primes a new acquisition and
+lease in Search; returning by hover remains available under focus-follows-mouse.
+Focus loss alone never reacquires it. The one-time pointer hit-test refresh after
+priming also runs in compact mode, independently of the Search lease. Renewals
+run every 250 ms, ownership prevents stale releases, explicit external changes
+win, and a config reload becomes the new restore value. No config file, mouse
+speed or acceleration is changed. Exclusive layers and focus grabs in Hyprland
+0.56.2 capture pointer input as well, so they cannot provide this combination.
+There is a confirmed [X11 resize exception](#x11-resize-requests-and-keyboard-focus)
+to this focus retention. `FocusRecovery` provides two opt-in native-window modes:
+a temporary grant for an attributed incident, and the default-off `keepSearchFocus`
+preference under Controls → Troubleshooting. The manual mode blocks outside wheel
+and touchpad scrolling instead of yielding. It requires no source identity and
+holds only the eligible search view. `FocusInterruptions` separately counts three
+settled losses in two minutes to suggest the setting without changing input or
+preferences. See [FOCUS_RECOVERY.md](FOCUS_RECOVERY.md) for evidence, lifetimes and
+limits. Both modes ship in the plugin and use runtime leases on its own window;
+neither requires replacing the compositor or editing configuration files.
+Settings and Move menus do not hold this lease. The list first primes keyboard
+focus unless the pointer is already on the preview. The preview
 forwards key events to the source list's locally focused control when its XDG
 popup receives the keyboard. Local focus follows search and row navigation even
-while the source window is inactive; hover forwards directly to the list.
+while the source window is inactive, including the compact search field.
 Held Ctrl also retains the hover: claiming the keyboard may remove the bar's
 pointer hover, which must not trigger a close/reopen loop under a stationary cursor.
 The expanded main list also handles these keys; modal menus, settings, busy
@@ -148,7 +259,8 @@ the whole special workspace onto the currently focused monitor.
 Ctrl+click opens `MoveMenu` at the pointer position in a transient overlay layer.
 `chooseDestination` retains any visible preview before mapping the menu, whether
 invoked from a row or the preview card, preserving its anchor and capture.
-It owns keyboard focus and an outside-click shield while visible; the main panel
+It briefly primes keyboard focus, then uses on-demand focus; its input mask covers
+only the menu card so outside scrolling reaches the application. The main panel
 temporarily releases keyboard ownership without changing its mode, dimensions
 or scroll position. This places the menu above a retained native preview popup.
 For a retained animated preview, the menu renders in its own XDG popup anchored
@@ -200,6 +312,134 @@ cover hidden tabs, locked groups, named and special workspaces, and monitors.
 Older Hyprland configurations without Lua can display the inventory but cannot
 perform these operations.
 
+### X11 resize requests and keyboard focus
+
+Verified with Hyprland 0.56.2, commit
+`efb50993780079460b0cbed1363e2166a2de1d9f`.
+In [`CWindow::onX11ConfigureRequest`](https://github.com/hyprwm/Hyprland/blob/efb50993780079460b0cbed1363e2166a2de1d9f/src/desktop/view/Window.cpp),
+the branch rejecting a tiled window's configure request calls
+`CInputManager::refocus()`. That forces a hit test and keyboard focus change,
+bypassing the `follow_mouse=3` lease. RSI Launcher through Wine produces repeated
+requests; a fictional X11 client calling `XResizeWindow` reproduces the same
+loss without RSI or any other user application. An independent layer panel also
+loses focus with WindowPeek and the Omarchy shell stopped.
+
+Ordinary floating resize requests take a different branch without that forced
+refocus. This explains the tiled/floating difference. It is not a guarantee for
+every floating state: fullscreen, interactive dragging and suppressed configure
+requests share the rejection branch. In particular, `suppress_event` with
+`x11configurerequest` still enters that branch; it is not a fix.
+
+The result depends on the pointer target: an application under it can take the
+keyboard, including after search results shrink the panel. Empty desktop space
+did not cause the same loss in the reproduced case. This is compositor focus
+loss, not a QML field losing its local `focus` flag.
+
+The available plugin-side alternatives have been checked in a private compositor:
+exclusive layer focus survives the resize requests but captures outside wheel
+input; `HyprlandFocusGrab` does not prevent the reproduced loss either.
+Repeated exclusive acquisition produces a focus loop. None
+meets the combined requirements of uninterrupted typing, outside scrolling and
+normal dismissal, so none is enabled as a fallback. Do not silently float,
+suspend or otherwise modify unrelated applications to protect WindowPeek.
+
+Buffering and replaying the first outside wheel event can preserve its amount
+in tested configurations, but is not an enabled fallback. The panel receives
+an already scaled delta. Without a window scroll override, replay must undo the
+replay device's effective factor. With an override, it must instead undo the
+original device's factor and let the destination window apply its override.
+Dividing by the global factor alone is incorrect when device factors differ.
+
+This compositor's public queries do not provide all the required information:
+device factors are reported to two decimal places, and a window's scroll value
+does not distinguish an explicit override from an equal inherited default.
+Device-filtered wheel bindings can identify the source of some events, but are
+throttled by `binds.scroll_event_delay`. Integer wheel conversion adds another
+rounding step. These limits must be handled before treating replay as a general
+solution; changing the event source to avoid rounding changes client behavior.
+
+Matching Qt's `angleDelta` is not sufficient evidence of equivalent scrolling.
+With source factor 2 and replay factor 1, a full notch gives `value120=240` in
+both paths, but the replay produces `axis=15, discrete=1` instead of the native
+`axis=30, discrete=2`. A receiver using pointer version 7 therefore scrolls half
+as far. Discrete-scroll emulation also shares an accumulator across devices:
+capturing and replaying an event can advance it twice. Even with emulation off,
+Qt's integer angle delta does not preserve the original continuous axis value.
+Acceptance must compare the Wayland event fields and older pointer clients,
+not only the amount seen by a modern Qt receiver.
+
+A temporary `no_focus` window rule is not a suitable substitute for the focus
+lease. This compositor also excludes those windows from pointer hit testing;
+the private test still lost panel focus. A rule that prevents keyboard focus
+cannot be assumed to preserve mouse delivery.
+
+Upstream work offers a possible native alternative:
+[Hyprland #15899](https://github.com/hyprwm/Hyprland/pull/15899), merged on
+2026-08-21 after v0.56.2, removes the forced pointer routing to exclusive layers.
+This should allow a card-sized input region with exclusive keyboard focus and
+original outside pointer events. Native tests of unmodified upstream commit
+`23118f9f7f24db7447069949c2df7fcd8ba380d0` confirm exact first-wheel delivery,
+including pointer v7 at 200% UI scale. They also confirm that this is not a
+complete focus fix: repeated X11 configure requests still steal the keyboard
+when the pointer targets the application active before the panel opened.
+Another application under the pointer is correctly rejected by the exclusive
+guard in `rawWindowFocus`; the remembered active window can instead reach
+`rawSurfaceFocus` directly. A control without the X11 sender retains focus.
+The unchanged OnDemand panel also still fails with this upstream revision.
+
+A separate diagnostic build of that revision removed only the forced
+`refocus()` from the rejected X11 configure-request branch, retaining
+`sendWindowSize(true)`. With the unchanged OnDemand panel, native tests then
+passed typing outside the panel, original first/second wheel delivery and
+outside-click dismissal at 100% and 200% UI scale, including a pointer-v7
+receiver. The X11 sender continued requesting geometry and receiving synthetic
+ConfigureNotify replies. The unmodified-build control still lost focus.
+This supports repairing the compositor's geometry-request path; it is not a
+shipped plugin workaround or evidence of complete compositor regression
+coverage. No patched compositor or native addon is installed by WindowPeek.
+Neither compositor replacement nor permanent Exclusive is therefore an enabled
+WindowPeek fix. A passing test of only a different pointer target is insufficient.
+
+A plugin-API-only prototype used a card-sized native toplevel and `stay_focused`,
+releasing that property in a non-consuming Lua wheel callback before the original
+axis event was dispatched. It passed isolated typing and first-wheel checks on
+unmodified 0.56.2 at 100% and 200% (pointer v7). It failed FINGER scrolling and
+rapid inside-to-outside scrolling with the default binding delay: named wheel
+callbacks are source-limited and throttled. It is not a supported fallback.
+Changing all users' wheel-binding delays would still not resolve FINGER input.
+Controls without any X11 resize sender reproduced both scrolling failures;
+they are side effects of the prototype even on otherwise unaffected desktops.
+Ordinary wheel packets passed in that control, while keyboard focus remained
+in search. Removing `stay_focused` does not itself guarantee keyboard handoff
+under `follow_mouse=3`; the earlier X11 case also had a later forced refocus.
+The workaround is never global by default. `FocusRecovery.qml` now connects
+`FocusIncident.js`, a passive X11 geometry observer and a consent dialog to an
+optional native-window backend. Permission follows only the exact source window
+until it closes, manual stop or reload. Its input limitations are shown before
+approval. See the [detection and recovery contract](FOCUS_RECOVERY.md).
+
+A later plugin-side prototype opened and destroyed its own temporary toplevel
+around Exclusive panel acquisition. On unmodified upstream `23118f9` it removed
+the remembered-application bypass described above: outside typing, original
+wheel delivery and dismissal passed at 100%, pointer v7 at 200%, and for a
+synthetic FINGER axis. The same test without the temporary window lost focus.
+On stable 0.56.2 the prototype still blocked scrolling, so it does not fix the
+currently supported installation. It relies on upstream's newer pointer routing,
+is not deployed, and has not validated keyboard opening, monitor transitions,
+focus history or transient-window lifecycle and visibility.
+
+Restoring focus only upon a key press was also tested on stable 0.56.2. The
+original key reached the plugin's Wayland surface but did not enter the search
+field after activation; the control without X11 resize requests passed. Qt
+defers window activation to a Wayland sync, and keyboard leave also stops its
+repeat timer. On-key refocusing is therefore not an enabled fallback either.
+
+[Noctalia's grab rearming change](https://github.com/noctalia-dev/noctalia/commit/0565d25c1d3f13c7432fd64d32d08e27dbaff444)
+addresses focus ordering when relaxing Exclusive to OnDemand. It does not
+establish protection against repeated X11 configure requests: upstream forced
+refocus can still clear a seat grab outside its accepted surfaces. Neither
+upstream approach has been enabled here based only on source review.
+
 ## Presentation and settings
 
 `WindowList.fittedHeight()` measures delegate positions and ends the opening
@@ -213,7 +453,11 @@ at fractional scales.
 `SettingsContent` owns the preference controls and picker lifecycle; `PanelContent`
 retains navigation, scrolling and editor preview ownership. Switches and density
 bind to saved state and never confirm a failed write. Editor return restores the
-settings scroll position, expanded category and entry focus. `SettingsSection`
+settings scroll position, expanded category and entry focus. All logo controls
+live in the Pictures and Gifs subview of Personalization. `LogoCooldownControl`
+provides the same fractional seconds/minutes, validation and reset for shared and
+individual durations. Returning with the pointer does not reveal the previously
+focused control; only keyboard navigation requests automatic scrolling. `SettingsSection`
 owns its collapsed state and a keyboard-accessible outlined header. Hidden contents
 remain instantiated but cannot receive pointer or Tab input; collapsing closes
 open pickers. Expansion settles the inner and outer layouts and only reveals the
@@ -222,6 +466,18 @@ written to preferences. Settings requests a fixed 640 logical pixels, capped by
 the native surface's available monitor area, with a scrollable interior.
 Switch tracks use the resolved accent directly, including theme-specific Colors
 rules, while their knob position distinguishes the saved on/off state.
+Compact rectangular switches highlight on hover or keyboard focus. The two
+Loop animation switches also stay highlighted while checked.
+`EditField` wraps the native text field in every editor, search and file picker.
+A passive `PointHandler` above the current window's content ends editing on an
+outside press, including non-focusable captions and switches. It respects clipped
+and scaled bounds and leaves clicks, text-selection drags and wheel events alone.
+Hiding or disabling a field also releases its focus. Existing editing-finished
+handlers retain their save/draft behavior; losing window activation alone does
+not clear local focus needed by preview key forwarding.
+The main window search opts out of outside-press blur so background clicks leave
+it ready to type. Shortcuts still run before text input, and Settings, dialogs
+and explicit keyboard navigation can take focus normally.
 `ControlsHelp` renders the mouse and keyboard guide from the selected language
 catalog, independently of custom action labels. It uses the settings scroll view
 and does not write preferences. The documented system shortcut requires a user binding.
@@ -248,7 +504,7 @@ the overlay's fill anchors from disabling the column's positioning.
 and outside-click dismissal. It retains the upstream layer namespace so Omarchy
 disables compositor animations around the QML transition. Hover and search share one mapped layer surface,
 rounded card and list. Hover accepts pointer input inside the card and the transparent gap to the bar,
-has no keyboard focus and creates no dismissal surfaces on other monitors.
+receives keyboard input and creates no dismissal surfaces on other monitors.
 The gap follows the adjoining card edge for every bar position and shares the
 same native input mask. A stationary pointer there retains hover; clicks have
 no action. The region stops at the bar edge, leaving bar buttons reachable. `Widget` applies
@@ -257,10 +513,23 @@ retains an already open hover immediately, ahead of the 160 ms leave timer. Clic
 bar expands its width from 420 (360 in compact density) to 500 over 200 ms,
 revealing search, Move, Settings and footer controls. The card does not fade or
 remap during that transition. Its opening origin is retained where screen bounds
-allow, and rows keep their identity, order and scroll offset. Search receives a
-brief exclusive keyboard focus prime before switching to on-demand focus.
-Direct opening starts expanded. Only expanded mode owns the bar coordinator and
-outside-click regions. Panel dimensions are clamped to the screen before
+allow, and rows keep their identity, order and scroll offset. Typing also expands
+the card and filters results immediately. Search retains keyboard focus with the
+pointer outside; Settings and transient menus use their usual focus lifecycle.
+Direct opening starts expanded. Expanded and pinned compact modes own the bar
+coordinator. A short fullscreen input region is retained during focus priming:
+Hyprland rechecks pointer focus when Exclusive becomes OnDemand, so shrinking
+first would send keyboard input back to the application. The region then shrinks
+to the card and popup. No dismissal surfaces are created on other monitors. `OutsideClicks` observes left/right/middle presses through
+non-consuming Hyprland bindings, closing only outside the card, open popup,
+invoking bar label and preview. Each open session has a token and a 750 ms lease,
+renewed every 250 ms; close, expiry and destruction disable only its own handles.
+Expired handles are checked before every enable/disable and replaced on reinstall.
+Wheel callbacks also refresh compositor hit-testing at the unchanged cursor
+coordinates, then pass the original event. This covers scrolling without any
+mouse movement after keyboard opening: Hyprland otherwise keeps the old pointer
+target after the input region shrinks. No wheel events are synthesized and no
+cursor coordinates, acceleration or system mouse settings are changed. Panel dimensions are clamped to the screen before
 scaling; long lists and editors scroll within fixed header/footer bounds.
 Rapid reopening waits for the old layer surface to unmap, so its closing
 animation cannot leave a visible panel without keyboard focus. Dropdown
@@ -292,12 +561,43 @@ Qt's native `DragAndOvershootBounds` behavior, matching ScratchPeek's list
 without a custom rebound animation. Disabling it selects `StopAtBounds` and
 settles any active overshoot. Editor and picker scrolling stays bounded.
 
+`WheelScroll` scales mouse-wheel travel using the saved `wheelScrollSpeed`
+percentage (50–300%, default 102%). It uses each Flickable's native animation,
+temporarily applies wheel deceleration and restores drag deceleration when the
+wheel flick ends. Pixel-based gestures and clicks pass through. Window lists,
+settings editors and dropdown lists share this behavior.
+
 Row hover remains active during wheel scrolling, inertia and thumb dragging.
 The window under the pointer keeps its accent frame and color transition.
 Hints are passive surfaces in the same window, outside the list's clip. Unlike
 Qt Quick popups, they do not intercept hover, wheel or clicks over nearby rows.
-Their position follows the anchor's transform, including scrolling and scaling,
-and stays within the window. Hints close when leaving the control or dismissing
+Control hints follow a passive cursor observer attached to their control, with a
+scaled gap below the pointer and an above-pointer fallback near the bottom,
+clamped within the window. Attaching the observer to the control preserves it
+when Quickshell replaces the panel's backing window.
+Background, row, footer control and both logo hints anchor to the whole panel's
+bottom edge, independent of the pointer or logo position. They clamp near the
+window bottom if there is insufficient space below. The placement anchor is
+separate from the text's scale, which still follows its control. General instructions
+are suppressed over rows (including their retained preview hover), scrollbar,
+search, Settings, logo and footer controls, even if the underlying background
+MouseArea also reports hover. Row hints are enabled in expanded, pinned compact
+and passive hover modes. Only the displayed hint consumes the budget. Background
+help names only the current expand/collapse action and correct single/double click;
+it stays hidden when collapse is unavailable. Automatic status text combines the
+remaining count with the location of the ? switch; manual hints have no footer. Settings
+and Controls help separately explain pinning via the bar label.
+The bar name has its own bottom-anchored hint inside the panel and excludes the
+background hint. It follows pin state and the available bar action. Hint rendering
+removes final full stops from each line, preserving punctuation within sentences.
+The original saved key `pinByTitleClick` now controls all compact pinning; keep
+that key so an already-disabled preference remains disabled. With it off,
+`Panel.open(..., true)` opens passive hover, even when automatic hover opening is
+disabled; collapse releases controller ownership while retaining the hover surface.
+The pending bar double-click interval keeps the passive surface available for
+the second click. Changing the setting off also releases an already pinned compact
+panel. The inner title has no custom click handler.
+Text inherits the anchor's scale. Hints close when leaving the control or dismissing
 the panel; display counting and the 400 ms dwell delay remain unchanged.
 The scrollbar currently keeps a constant idle/hover thumb opacity during input
 diagnosis; pressing it still increases the contrast. Its activity state does not
@@ -337,6 +637,10 @@ Tab navigation reveals the focused control within its scrollable view.
 The bar tooltip uses the
 same style and scale as its preview. Automatic hints count actual displays,
 remain readable on the 100th display and stop on subsequent hovers.
+Automatic hints show the remaining displays after counting their current
+appearance. Manually enabled hints have no status footer. Reset controls and shortcut
+help use the same component; pointer movement within a hint's target does not
+consume more displays.
 Hover hints never consume Escape or take keyboard focus. Manual
 on/off and the help explanation remain available independently of that budget.
 
@@ -350,8 +654,8 @@ crosses onto its content or drags its scrollbar. It closes after a short leave
 delay. Clicking a row captures its address and uses the same action controller
 as search; focus dispatch waits for both native surfaces to unmap. Failed actions
 reopen search with the error. Opening another panel dismisses the hover immediately.
-Window information remains available after the hint budget expires; only its
-help footer participates in the automatic display count.
+Window information remains available after the hint budget expires; only the
+help tooltips participate in the automatic display count.
 
 Text customization uses `labelStyle` (`default` or `custom`) and `customLabels`.
 `Labels.js` defines 28 editable fields in five groups and overlays their values
@@ -394,12 +698,13 @@ not be a sibling overlay: Qt hover delivery visits one child branch and then
 its ancestors, so a hovered overlay can exclude the rows even with
 `HoverHandler.blocking: false`.
 
-The popup flips at screen edges and follows the row during scrolling. Its top
-is clamped to the visible parent card's top. It has
-no keyboard grab; its own pointer region makes the preview clickable. Nonblocking
-hover tracking retains it over the list or preview. Transparent side strips in
-the preview's native surface cover the visible gap, including after horizontal
-flipping. A stationary pointer there keeps both surfaces open without a timeout;
+The preview flips at screen edges and follows the row during scrolling. Its top
+is clamped to the visible parent card's top. In the panel it shares the existing
+render surface; standalone hosts retain the popup/layer fallback. It has no
+separate keyboard grab, and its pointer region makes it clickable. Nonblocking
+hover tracking retains it over the list or preview. Transparent side strips
+cover the visible gap, including after horizontal flipping.
+A stationary pointer there keeps both cards open without a timeout;
 the strips do not activate a window when clicked. The row remains highlighted
 over this area and the preview. That visual hover is separate from the row's
 pointer request, so it cannot keep itself alive after the pointer leaves.
@@ -449,8 +754,16 @@ values, normalized to 0–2000 with a 400 ms fallback for missing or malformed
 values. Zero bypasses the opening timer. Changing a pending delay restarts the
 wait or opens immediately for zero; an already open surface stays open.
 The 160/300 ms leave grace periods are independent and retain pointer handoff.
-`PopupMotion` uses a standalone NumberAnimation for panel opacity and size, so
-disabling motion can stop it and set its target value synchronously.
+`PopupMotion` uses the presenting `QQuickWindow` for expansion timing. Its
+GUI-thread `afterAnimating` signal evaluates OutCubic progress from a monotonic
+`ElapsedTimer` before scene synchronization; `frameSwapped` requests another
+frame only while motion is active. This avoids presenting an unchanged width
+when the general animation timer and the window's frames drift out of phase.
+The same path follows the card between ordinary and protected surfaces.
+Opacity and hosts without a visible window retain a standalone NumberAnimation.
+Reversal starts from the current value, surface transfer pauses it, and disabling
+motion finishes synchronously. Hidden or detached windows use the fallback so
+completion does not depend on receiving another presentation callback.
 `popupAnimations` defaults to true. Disabling it completes in-flight panel fades
 and expansion, then bypasses subsequent animations without changing native
 unmap callbacks, rounded borders or row feedback. Thumbnails share one card and
@@ -683,3 +996,112 @@ previous families when switching. The opener similarly leases its chosen chord
 only when unused. Existing manual bindings are preserved. Preview suppression
 and both row/thumbnail click paths read the same configuration. Ordinary field
 editing and standard control activation stay independent of these action keys.
+
+Right-click navigation resolves the innermost visible popup before its parent.
+Settings sections retain opening order for one-level collapse outside a section;
+editors cancel drafts before returning to that same Settings section. Background
+hints additionally require the panel bounds' current HoverHandler state.
+
+
+## Hover on offset monitors
+
+Hyprland 0.56.2 can send a new focused layer an initial pointer-enter coordinate
+with the monitor offset subtracted twice. On a second monitor at x=1920, the
+private reproducer received x=-1853 instead of x=67. Qt consequently considered
+the bar anchor unhovered and WindowPeek repeatedly dismissed/reopened its panel.
+`BarAnchorHover.qml` confirms the label bounds using read-only, token-matched
+cursor queries while the panel is mapped. Replies expire after 200 ms; closing
+stops observation. It creates no input bindings or pointer motion. Dismissal is
+rearmed only after a settled exit, so Esc cannot immediately reopen the hover.
+
+### Readability
+
+`ReadableText` and `ReadableButton` apply a native Qt raised text shadow without an
+extra offscreen blur layer or a backing rectangle. Personalization saves
+`textShadowMode` (`auto`, `on`, `off`). The automatic estimate compares each text
+color and its alpha with sampled wallpaper colors, the panel tint, transparency
+and nearest row backing. Solid panels stay unchanged in Auto. For glass, light
+and dark backgrounds are checked conservatively without capturing other apps.
+`TextShadowSampler` runs only for an open wallpaper panel in Auto. It debounces
+geometry changes and caches 64 RGB samples from a small local crop; changing a
+setting or theme re-evaluates contrast without processing the image again.
+`TextReadabilityService` groups labels by original, theme and backing colors and
+sends their contrast decisions to the existing `wallpaper_contrast.py` helper.
+A bounded JSON-line worker handles repeated batches without launching a process
+per color change; it exits after 15 seconds idle. Quickshell owns its lifetime.
+This avoids the WorkerScript teardown crash reproduced with Qt 6.11.2 and
+Quickshell 0.3.1. The Python policy is checked against the JS rendering policy.
+The UI never scans wallpaper samples for each label. Requests are coalesced into
+batches of at most 64 roles, with a bounded role cache; context generations reject
+obsolete replies. Existing ink stays stable while new results arrive, and only
+changed decisions invalidate label bindings. An inexpensive first-use fallback
+keeps the panel ready before a result exists. When the wallpaper is pending or
+has no matching sample yet, that fallback remains in use: missing samples are
+not evaluated as a solid panel tint. A source change invalidates old sample
+identity and settled decisions. This prevents an early guessed result from
+dimming text between first paint and the real contrast result. Explicit Off restores native ink
+immediately. The sampler retains up to eight crops so repeated expansion and
+collapse reuse image analysis. These changes avoid synchronous contrast work
+when a delayed sample arrives during another animation; they do not change
+preview-window synchronization in Qt.
+`ReadableText.textColor` retains the original role independently from rendered
+`color`, avoiding contrast/color binding loops. With protection enabled, faint
+letter cores become opaque; unreadable mid-tones use the theme text color. Native
+button labels use the same policy while preserving their original color bindings.
+Off restores original rendering. Count badges use body-small bold text, so a
+one-pixel shadow cannot dominate tiny caption strokes. No saved color is changed.
+Detached preview scenes, hint bubbles and popup content explicitly carry their
+owner and backing color after reparenting. Preview labels reuse the panel contrast
+samples; captured application pixels are unchanged. `EditField` corrects native
+input ink while preserving selection, cursor and IME. Empty-field placeholders
+use solid theme text with a glyph shadow when needed; the native placeholder is
+then transparent, so the hint is never drawn twice. Off restores native colors.
+This is a readability heuristic, not a guarantee for every pixel or custom theme.
+
+`ReadableBarButton` decorates only the active vendored WidgetButton label. The idle
+label always keeps its original color and has no added shadow. Contrast uses the bar background and adaptive foreground, independently
+of panel style or wallpaper samples. Auto preserves legible accents on opaque
+bars; transparent bars use a conservative estimate. On/Off apply here too.
+
+Osaka Jade uses its bright yellow (`#E5C736`) as the active bar label contrast
+fallback unless the user selected a custom accent. Idle text is unchanged.
+
+The vendored WidgetButton exposes `animateTextColor`; WindowPeek disables it so
+ink and glyph shadow change together on activation/deactivation. The shell
+otherwise fades color over 160 ms while style changes immediately. Shadow color
+is derived from final ink, never an intermediate animation color.
+
+
+### UI work and preview placement
+
+The settings tree stays prepared while hidden, but freezes its layout width.
+Hidden labels do not submit readability work. `WindowState` always publishes
+fresh raw snapshots/revisions for focus diagnostics; the normalized list changes
+only when list data changes. Window geometry polling therefore does not rebuild
+unchanged rows. Desktop-entry lookups are shared per class within each snapshot.
+
+`WriteQueue` serializes asynchronous atomic `FileView` saves. Settings and incident
+history publish only after `saved`, including editor completion, host updates and
+ignore choices. Pending settings merge subsequent edits from either monitor;
+hint reservations and wallpaper defaults use that pending state too. A failed
+write rejects dependent queued writes, preserves committed UI state and reloads
+the file cache before a retry. No `waitForJob` or blocking write remains on this
+path. Opening the panel does not wait for a disk save.
+
+`WindowThumbnail` uses the owning `WindowPanel.panelScene` when available.
+Both normal and protected panels keep the card and live preview in the same render
+surface. The protected native window has a stable monitor-sized transparent
+viewport with a shaped input mask. Expansion changes item geometry, without a
+native window resize/configure round trip per frame. The focus lease receives the
+visible card bounds separately: transparent space still counts as outside for
+wheel/button policy. Hyprland 0.56 first selects floating windows by their outer
+rectangle, so a surface input mask alone is insufficient. While yielding, a
+leased compositor timer excludes only WindowPeek's native window from focus
+hit-testing outside its card, preview and dropdown. It updates the property only
+on boundary crossings; an inside button restores routing synchronously. The
+original outside wheel event passes through. The timer stops with the lease and
+while Search actively holds focus. Its existing capture and owner survive expansion/collapse.
+The blur region covers the rounded cards, excluding the transparent bridge.
+Standalone hosts retain the previous popup/layer fallback. This changes neither
+compositor rules nor application window geometry. See the measured comparison in
+[Known Issues](KNOWN_ISSUES.md#choppy-resizing-with-a-visible-window-preview).

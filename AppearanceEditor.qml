@@ -40,8 +40,10 @@ Column {
   readonly property string themeName: targetTheme.replace(/(^|-)([a-z])/g, function(_, dash, c) { return (dash ? " " : "") + c.toUpperCase(); })
   property bool validHex: true
   property bool saveFailed: false
+  property bool saving: false
+  enabled: !saving
   property bool syncing: false
-  signal finished()
+  signal finished(var focusReason)
   signal ensureVisible(var item)
   spacing: Style.space(12)
   readonly property string chosenHex: Appearance.fromHsv(hue, saturation, value)
@@ -80,6 +82,11 @@ Column {
       : Appearance.surfaceColor(draft,colorTarget,targetTheme,hostWidget.surfaces.baseColor(colorTarget)));
   }
   function closePickers() { targetPicker.close(); modePicker.close(); scopePicker.close(); started = false; }
+  function backWithinEditor() {
+    if (editingPreset) { editingPreset = false; return true; }
+    if (colorsExpanded) { colorsExpanded = false; return true; }
+    return false;
+  }
   function selectTarget(target) {
     colorTarget = target; selectedPresetId = ""; editingPreset = false;
     syncFromDraft();
@@ -171,11 +178,15 @@ Column {
     selectedPresetId = ""; editingPreset = false; presetError = false;
     publishPreview();
   }
-  function cancel() { closePickers(); hostWidget.cancelAppearance(); finished(); }
-  function apply() {
+  function cancel(focusReason) { closePickers(); hostWidget.cancelAppearance(); finished(focusReason); }
+  function apply(focusReason) {
     if (!validHex) return;
-    if (hostWidget.saveAppearance(colorDraft())) { closePickers(); finished(); }
-    else saveFailed = true;
+    if (saving) return;
+    saving = true;
+    hostWidget.saveAppearance(colorDraft(), function(ok) {
+      saving = false;
+      if (ok) { closePickers(); finished(focusReason); } else saveFailed = true;
+    });
   }
   Connections {
     target: root.hostWidget
@@ -200,28 +211,28 @@ Column {
       }
     }
   }
-  Keys.onEscapePressed: function(event) { root.cancel(); event.accepted = true; }
+  Keys.onEscapePressed: function(event) { root.cancel(Qt.TabFocusReason); event.accepted = true; }
 
-  Text {
+  ReadableText {
     id: editorHeading
     width: parent.width
     text: "WindowPeek · " + root.words.appearance
     textFormat: Text.PlainText
     horizontalAlignment: Text.AlignLeft
-    color: root.foreground
+    textColor: root.foreground
     font.pixelSize: Style.font.subtitle
     font.bold: true
   }
   Column {
     width: parent.width; spacing: Style.space(4)
-    Text {
+    ReadableText {
       width: parent.width; text: root.words.preview + " · " + root.targetLabel
       textFormat: Text.PlainText; elide: Text.ElideRight
-      color: root.foreground; font.pixelSize: Style.font.caption
+      textColor: root.foreground; font.pixelSize: Style.font.caption
     }
-    Text {
+    ReadableText {
       width: parent.width; text: root.words.previewPickHint; textFormat: Text.PlainText
-      wrapMode: Text.Wrap; color: root.foreground; opacity: 0.7; font.pixelSize: Style.font.caption
+      wrapMode: Text.Wrap; textColor: root.foreground; opacity: 0.7; font.pixelSize: Style.font.caption
     }
   }
   AppearancePreview {
@@ -340,7 +351,7 @@ Column {
     visible: root.colorTargetVisible
     width: parent.width; spacing: Style.space(10)
     Rectangle { width: Style.space(32); height: width; color: root.chosenHex; radius: Style.space(4); border.width: 1; border.color: Color.popups.text }
-    Ui.TextField {
+    EditField {
       id: hexInput
       objectName: "hexInput"
       width: parent.width - Style.space(42)
@@ -365,15 +376,15 @@ Column {
       onAccepted: root.apply()
     }
   }
-  Text {
+  ReadableText {
     width: parent.width
     visible: !root.validHex || root.saveFailed
     text: root.saveFailed ? root.words.saveStyleError : root.words.invalidHex
-    color: Color.urgent
+    textColor: Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.body
   }
-  Ui.Button {
+  ReadableButton {
     objectName: "restoreSavedColorButton"
     visible: root.colorTargetVisible
     width: parent.width
@@ -383,6 +394,7 @@ Column {
     onClicked: root.restoreSavedColor()
   }
   DefaultValue {
+    hostWidget: root.hostWidget
     objectName: "colorDefault"
     width: parent.width; words: root.words; label: root.targetLabel; accent: root.accent
     valueText: root.accentTarget ? Appearance.resolve({}, root.targetTheme, String(root.hostWidget.themeAccent))
@@ -395,6 +407,7 @@ Column {
     onEnsureVisible: root.ensureVisible(this)
   }
   StyleValueControl {
+    hostWidget: root.hostWidget
     objectName: "surfaceBrightnessControl"
     width: parent.width; visible: !root.accentTarget && root.colorTarget !== "grain"
     words: root.words; label: root.words.brightness; accent: root.accent
@@ -405,6 +418,7 @@ Column {
     onEnsureVisible: root.ensureVisible(this)
   }
   StyleValueControl {
+    hostWidget: root.hostWidget
     objectName: "surfaceOpacityControl"
     width: parent.width; visible: ["windows","menu","grain"].indexOf(root.colorTarget) >= 0
     words: root.words; label: root.colorTarget === "grain" ? root.words.grainStrength : root.words.transparency
@@ -417,12 +431,12 @@ Column {
     onResetRequested: root.changeSurfaceValue("opacity",null)
     onEnsureVisible: root.ensureVisible(this)
   }
-  Ui.Button {
+  ReadableButton {
     objectName: "resetStyleButton"; width: parent.width
     text: root.words.resetStyle; accent: root.accent; focusable:true
     onClicked: root.resetStyle()
   }
-  Ui.Button {
+  ReadableButton {
     objectName: "colorPresetsDisclosure"
     width: parent.width
     text: (root.colorsExpanded ? "▾ " : "▸ ") + root.words.stylePresets
@@ -454,18 +468,18 @@ Column {
         modePicker.value = Qt.binding(function() { return root.mode; });
       }
     }
-    Text {
+    ReadableText {
       width: parent.width
       visible: root.accentTarget
       text: root.words.colorAdaptiveHelp
-      color: root.foreground; opacity: 0.7
+      textColor: root.foreground; opacity: 0.7
       font.pixelSize: Style.font.caption
       wrapMode: Text.Wrap
       textFormat: Text.PlainText
     }
     Row {
       width: parent.width
-      Text { width: parent.width; text: root.words.stylePresets; color: root.foreground; font.pixelSize: Style.font.body }
+      ReadableText { width: parent.width; text: root.words.stylePresets; textColor: root.foreground; font.pixelSize: Style.font.body }
     }
     Flow {
       width: parent.width; spacing: Style.space(6)
@@ -489,7 +503,7 @@ Column {
     }
     Row {
       width: parent.width; spacing: Style.space(8)
-      Ui.Button {
+      ReadableButton {
         width: (parent.width-parent.spacing)/2
         text: "+ " + root.words.saveStylePreset
         fontSize: Style.font.caption
@@ -497,7 +511,7 @@ Column {
         enabled: root.validHex && (root.draft.colorPresets || []).length < 24
         onClicked: root.editPreset("")
       }
-      Ui.Button {
+      ReadableButton {
         width: (parent.width-parent.spacing)/2
         text: root.words.editPreset
         fontSize: Style.font.caption
@@ -509,7 +523,7 @@ Column {
     Column {
       visible: root.editingPreset
       width: parent.width; spacing: Style.space(8)
-      Ui.TextField {
+      EditField {
         id: presetNameInput
         objectName: "presetNameInput"
         width: parent.width
@@ -519,15 +533,15 @@ Column {
         accent: root.accent
         onAccepted: root.savePreset()
       }
-      Text {
+      ReadableText {
         visible: root.presetError
         width: parent.width; wrapMode: Text.Wrap
         text: root.words.presetNameError
-        font.pixelSize: Style.font.caption; color: Color.urgent
+        font.pixelSize: Style.font.caption; textColor: Color.urgent
       }
       Row {
         width: parent.width; spacing: Style.space(6)
-        Ui.Button {
+        ReadableButton {
           width: (parent.width-parent.spacing)/2
           text: root.editingPresetId ? root.words.updatePreset : root.words.saveStylePreset
           fontSize: Style.font.caption
@@ -535,7 +549,7 @@ Column {
           enabled: root.validHex && Appearance.presetName(presetNameInput.text) !== ""
           onClicked: root.savePreset()
         }
-        Ui.Button {
+        ReadableButton {
           width: (parent.width-parent.spacing)/2
           text: root.editingPresetId ? root.words.deletePreset : root.words.cancel
           fontSize: Style.font.caption
@@ -544,15 +558,15 @@ Column {
         }
       }
     }
-    Text {
+    ReadableText {
       width: parent.width; text: root.words.presetDraftHelp
-      color: root.foreground; opacity: 0.7; font.pixelSize: Style.font.caption
+      textColor: root.foreground; opacity: 0.7; font.pixelSize: Style.font.caption
       wrapMode: Text.Wrap
     }
   }
   Row {
     width: parent.width; spacing: Style.space(10)
-    Ui.Button { objectName: "cancelButton"; width: (parent.width-parent.spacing)/2; text: root.words.cancel; focusable: true; onClicked: root.cancel() }
-    Ui.Button { objectName: "applyButton"; width: (parent.width-parent.spacing)/2; text: root.words.apply; focusable: true; bordered: true; accent: root.accent; enabled: root.validHex; onClicked: root.apply() }
+    LabelButton { objectName: "cancelButton"; width: (parent.width-parent.spacing)/2; label: root.words.cancel; focusable: true; onClicked: root.cancel(activationFocusReason) }
+    LabelButton { objectName: "applyButton"; width: (parent.width-parent.spacing)/2; label: root.words.apply; focusable: true; bordered: true; accent: root.accent; enabled: root.validHex; onClicked: root.apply(activationFocusReason) }
   }
 }

@@ -3,9 +3,23 @@ import qs.Ui as Ui
 import qs.Commons
 
 // User labels keep the native button's input and styling, with bounded text.
-Ui.Button {
+ReadableButton {
     id: root
     property string label: ""
+    property int activationFocusReason: Qt.MouseFocusReason
+    Keys.forwardTo: [keyboardActivation]
+    Item {
+        id: keyboardActivation
+        Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
+                root.activationFocusReason = Qt.TabFocusReason;
+            event.accepted = false;
+        }
+    }
+    TapHandler {
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onPressedChanged: if (pressed) root.activationFocusReason = Qt.MouseFocusReason
+    }
     readonly property real captionInsets: horizontalPadding * 2 + _reservedBorderLeft + _reservedBorderRight
     implicitWidth: naturalCaption.advanceWidth + captionInsets
     text: caption.elidedText

@@ -63,18 +63,19 @@ ShellRoot {
                     tip.hoverRequested = true; break;
                 case 1:
                     test.check(tip.mapped && test.card.preview.count === 4, "native preview shows real QML rows");
-                    test.check(host.hints.used === 100 && test.card.showHint, "100th help footer stays readable");
-                    test.check(keyTarget.activeFocus, "opening preview does not steal focus");
+                    test.check(host.hints.used === 99 && test.card.showHint, "opening alone does not consume tooltip budget");
+                    test.check(test.card.searchField.activeFocus, "hover is ready for typing");
                     test.check(tip.surface.contentHeight + bar.height + 28 <= bar.screen.height, "scaled native preview fits screen");
                     events.mouseMove(test.card, 30, 50, 0, Qt.NoButton, Qt.NoModifier);
                     tip.hoverRequested = false; break;
                 case 2:
                     test.check(tip.mapped, "preview stays open while pointer is over its content");
                     events.keyClick(Qt.Key_Escape, Qt.NoModifier, 0);
-                    test.check(test.escapes === 1, "preview does not consume keyboard input");
+                    test.check(test.escapes === 0 && !tip.hoverOpened, "Escape dismisses hover without leaking to background");
                     events.mouseMove(tip.surface.cardItem, -20, -20, 0, Qt.NoButton, Qt.NoModifier); break;
                 case 3:
                     test.check(!tip.mapped, "preview closes after pointer leaves");
+                    host.persistSettings({hintsUsed:100});
                     tip.hoverRequested = true; break;
                 case 4:
                     test.check(tip.mapped && !test.card.showHint && host.hints.used === 100,

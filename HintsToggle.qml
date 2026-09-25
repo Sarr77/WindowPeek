@@ -4,13 +4,14 @@ import qs.Commons
 import "I18n.js" as I18n
 import "Settings.js" as Settings
 
-Ui.Button {
+ReadableButton {
   id: root
   required property var words
   property bool hintsEnabled: true
   property bool automatic: true
   property int remaining: Settings.hintLimit
   property real hintWidth: 400
+  property Item hintAnchor: null
   text: "?"
   width: Style.space(24)
   height: width
@@ -30,6 +31,8 @@ Ui.Button {
     hostWidget: null
     alwaysAvailable: true
     requested: root.pointerHovered
+    belowAnchor: !!root.hintAnchor
+    anchorItem: root.hintAnchor || root
     text: root.helpText
     maximumWidth: root.hintWidth
   }

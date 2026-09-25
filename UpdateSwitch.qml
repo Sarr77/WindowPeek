@@ -6,10 +6,12 @@ Item {
   id: root
   required property string text
   property bool checked: true
+  property bool highlightWhenChecked: false
   property bool hasCursor: false
   property color foreground: Color.popups.text
   property color accent: Color.accent
   readonly property bool hot: pointer.containsMouse || hasCursor || activeFocus
+  readonly property bool highlighted: hot || (highlightWhenChecked && checked)
   readonly property bool pointerHovered: pointer.containsMouse
   signal hovered(bool value)
   signal clicked()
@@ -36,9 +38,9 @@ Item {
     cursorRing: false
     foreground: root.foreground
     accent: root.accent
-    opacity: root.hot ? 1 : 0.4
+    opacity: root.highlighted ? 1 : 0.4
   }
-  Text {
+  ReadableText {
     id: label
     anchors.left: track.right
     anchors.leftMargin: Style.space(6)
@@ -47,7 +49,7 @@ Item {
     text: root.text
     textFormat: Text.PlainText
     elide: Text.ElideRight
-    color: root.hot ? root.accent : Qt.alpha(root.foreground, 0.4)
+    textColor: root.highlighted ? root.accent : Qt.alpha(root.foreground, 0.4)
     font.pixelSize: Math.max(9, Style.font.caption - 1)
   }
   MouseArea {

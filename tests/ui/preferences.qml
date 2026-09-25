@@ -6,6 +6,8 @@ import "WindowPeek/Settings.js" as Settings
 ShellRoot {
   id: suite
   Plugin.Preferences { id: preferences }
+  property bool started: false
+  property int completions: 0
   property string scenario: Quickshell.env("WINDOWPEEK_PREFERENCES_CASE")
   function check(value, message) { if (!value) throw new Error(message); }
   Timer {
@@ -13,6 +15,14 @@ ShellRoot {
     onTriggered: {
       if (!preferences.ready) return;
       try {
+        if (suite.started) {
+          if (preferences.saving) return;
+          if (suite.scenario === "readonly") {
+            suite.check(preferences.failed && preferences.values.language === "pl", "failed async write preserves committed values");
+          } else if (suite.scenario !== "corrupt") suite.check(!preferences.failed, "all queued writes completed");
+          console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit(); return;
+        }
+        suite.started = true;
         if (suite.scenario === "corrupt") {
           suite.check(preferences.failed && preferences.readBlocked, "bad JSON reported");
           suite.check(!preferences.save({language:"pl"}), "bad file cannot be silently overwritten");
@@ -20,16 +30,18 @@ ShellRoot {
           suite.check(!preferences.failed && preferences.values.language === "pl", "readable file loaded");
           suite.check(!Settings.hints(preferences.values).enabled && preferences.values.hintsMode === "off",
             "manual hint dismissal survives another restart");
-          suite.check(!preferences.save({language:"fr"}) && preferences.failed, "failed write is reported");
+          suite.check(preferences.save({language:"fr"}), "async write accepted for verification");
           suite.check(preferences.values.language === "pl", "failed write preserves last known data");
         } else if (suite.scenario === "restore") {
           suite.check(!preferences.failed && preferences.values.language === "pl" && preferences.values.hintsUsed === 200,
             "next process loads the last completed write");
           suite.check(preferences.values.includeSpecial && preferences.values.barLabel === "name", "WindowPeek choices restored");
+          suite.check(preferences.values.keepSearchFocus === true, "manual focus choice survives restart");
           suite.check(preferences.values.scrollBounce === false, "disabled springy scrolling survives restart");
           suite.check(preferences.values.shortcutNumbersRight === true, "shortcut number alignment survives restart");
           suite.check(preferences.values.previewBackdrop === false && preferences.values.previewFit === false,
             "preview backing and sizing options survive restart");
+          suite.check(preferences.values.textShadowMode === "off", "manual shadow choice survives restart");
           suite.check(preferences.values.panelStyle === "glass", "glass background survives restart");
           suite.check(preferences.values.glassTransparency === 8 && preferences.values.wallpaperTransparency === 45
             && preferences.values.backgroundBlur && preferences.values.backgroundTexture, "separate transparency and effects survive restart");
@@ -44,13 +56,13 @@ ShellRoot {
         } else {
           suite.check(!preferences.failed, "first start without file works");
           suite.check(preferences.save({id:"sarr.windowpeek",language:"de",hintsUsed:199,hintsMode:"auto"}), "first save");
-          suite.check(preferences.save({id:"sarr.windowpeek",language:"pl",hintsUsed:200,hintsMode:"on",includeSpecial:true,barLabel:"name",scrollBounce:false,windowPreviews:false,shortcutNumbersRight:true,
-            previewBackdrop:false,previewFit:false,panelStyle:"glass",glassTransparency:8,wallpaperTransparency:45,backgroundBlur:true,backgroundTexture:true,
+          suite.check(preferences.save({id:"sarr.windowpeek",language:"pl",hintsUsed:200,hintsMode:"on",keepSearchFocus:true,includeSpecial:true,barLabel:"name",scrollBounce:false,windowPreviews:false,shortcutNumbersRight:true,
+            textShadowMode:"off",previewBackdrop:false,previewFit:false,panelStyle:"glass",glassTransparency:8,wallpaperTransparency:45,backgroundBlur:true,backgroundTexture:true,
             surfaceColors:{windows:{scope:"theme",themes:{"tokyo-night":{color:"#204060",brightness:12,opacity:35}}}},
             colorPresets:[{id:"preset-1",name:"Night",color:"#204060",style:{surfaces:{windows:{color:"#204060",brightness:12,opacity:35}}}}],
             labelStyle:"custom",customLabels:{barText:"Okna {count}"}}), "rapid second save");
         }
-        console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
+        // The next tick checks the durable outcome after the queue settles.
       } catch (error) { console.error("WINDOWPEEK_TEST_FAIL: " + error); stop(); Qt.quit(); }
     }
   }

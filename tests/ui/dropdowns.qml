@@ -213,6 +213,15 @@ ShellRoot {
                     events.keyClick(Qt.Key_Return,Qt.NoModifier,0); break;
                 case 22:
                     test.check(searchable.value === "3" && !searchable.popupOpen,"keyboard still selects the last visible result");
+                    test.kind=0;plain.value="0";test.click();break;
+                case 23:
+                    var choices=test.find(plain.QQC.Overlay.overlay,"optionList");
+                    var target=choices.itemAtIndex(2);
+                    test.check(choices.currentIndex===0,"menu starts on saved choice");
+                    // A click must work even without a preceding hover/move.
+                    events.mouseClick(target,target.width/2,target.height/2,Qt.LeftButton,Qt.NoModifier,0);break;
+                case 24:
+                    test.check(plain.value==="2" && !plain.popupOpen,"click selects its own row independently of hover state");
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }

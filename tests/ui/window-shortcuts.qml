@@ -8,6 +8,7 @@ import "WindowPeek" as Plugin
 ShellRoot {
     id: test
     property int step: 0
+    property bool advancing: false
     property var originalSnapshot: null
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     function check(ok, message) { if (!ok) throw new Error(message); }
@@ -56,6 +57,10 @@ ShellRoot {
     Timer {
         interval: 140; running: true; repeat: true
         onTriggered: {
+            // QtTest key injection runs a nested event loop. A large batch must
+            // finish before this repeating timer advances to the next step.
+            if (test.advancing) return;
+            test.advancing = true;
             try {
                 switch (test.step++) {
                 case 0:
@@ -199,6 +204,7 @@ ShellRoot {
                     });
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }
+            finally { test.advancing = false; }
         }
     }
 }

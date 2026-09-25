@@ -84,128 +84,131 @@ ShellRoot {
         suite.showedUnsavedChoice = true;
     }
   }
-  Process {
-    id: repair
-    command: ["chmod", "700", Plugin.Runtime.preferences.directory]
-    onExited: function(code) {
-      try {
-        suite.check(code === 0, "test directory made writable");
-        if (suite.startupCase) {
-          if (suite.scenario === "startup-readonly-host") suite.hostChange({language:"de"});
-          else if (suite.scenario === "startup-readonly-same")
-            suite.check(one.persistSettings({}), "unchanged startup settings can be retried");
-          else suite.check(one.setLanguage("de"), "partial panel edit retries the first save");
-          suite.checkStartupValues(suite.expectedLanguage);
-          var preferences = Plugin.Runtime.preferences;
-          suite.check(preferences.hasSavedValues && !preferences.failed, "retry establishes a saved configuration");
-          suite.check(preferences.values.includeSpecial === false && preferences.values.language === suite.expectedLanguage,
-            "retry saves the full original host entry with the requested change");
-          suite.check(!Plugin.Runtime.updates.enabled, "retry preserves disabled updates");
-          suite.check(!suite.showedUnsavedChoice, "retry applies only saved choices");
-          suite.finish();
-          return;
-        }
-        if (suite.scenario === "readonly-host") {
-          host.saved = suite.clone(suite.pendingHostSettings);
-          host.deliver(suite.pendingHostSettings);
-          suite.checkHostSave();
-          suite.finish();
-          return;
-        }
-        // Retry the identical value: FileView's cached text may be from the failed write.
-        one.toggleUpdates();
-        suite.check(!one.saveFailed && !one.autoUpdates && !two.autoUpdates, "retry commits on both monitors");
-        suite.check(Plugin.Runtime.preferences.values.autoUpdates === false, "worker sees the successful retry");
-        suite.check(host.saved.autoUpdates === false, "host mirror follows the retry");
-        suite.finish();
-      } catch (error) { console.error("WINDOWPEEK_PREFERENCES_FAIL: " + error); Qt.quit(); }
+  property var continuation: null
+  property var repaired: null
+  function run(fn) { try { fn(); } catch (error) { console.error("WINDOWPEEK_PREFERENCES_FAIL: " + error); Qt.quit(); } }
+  function settle(fn) { continuation = fn; later.start(); }
+  Timer {
+    id: later; interval:10; repeat:true
+    onTriggered: {
+      if (Plugin.Runtime.preferences.saving) return;
+      stop(); var fn=suite.continuation; suite.continuation=null; suite.run(fn);
     }
   }
+  Process {
+    id: repair
+    command:["chmod","700",Plugin.Runtime.preferences.directory]
+    onExited:function(code) { suite.run(function() { suite.check(code===0,"directory repaired"); suite.repaired(); }); }
+  }
+  function start() {
+    var preferences=Plugin.Runtime.preferences;
+    if (scenario==="startup-restored") {
+      checkStartupValues(expectedLanguage);
+      check(preferences.hasSavedValues && !preferences.failed,"repaired preferences load on restart");
+      check(!host.saved.includeSpecial && !host.saved.autoUpdates,"restored preferences rebuild host entry");
+      finish(); return;
+    }
+    if (startupCase) {
+      check(preferences.failed && !preferences.hasSavedValues,"startup reports unavailable file");
+      checkStartupValues("pl");
+      check(!Plugin.Runtime.updates.enabled,"unavailable preferences cannot start an update");
+      one.setLanguage("fr");
+      settle(function() {
+        checkStartupValues("pl");
+        hostChange({includeSpecial:true,language:"de",autoUpdates:true});
+        settle(function() {
+          checkStartupValues("pl");
+          check(JSON.stringify(host.saved)===JSON.stringify(startupEntry),"failed host edit restores every original field");
+          check(!preferences.hasSavedValues && !Plugin.Runtime.updates.enabled,"fallback is not a completed save");
+          if (scenario.indexOf("startup-readonly-")!==0) {finish();return;}
+          repaired=function() {
+            if (scenario==="startup-readonly-host") hostChange({language:"de"});
+            else if (scenario==="startup-readonly-same") check(one.persistSettings({}),"identical retry accepted");
+            else check(one.setLanguage("de"),"partial panel retry accepted");
+            settle(function() {
+              checkStartupValues(expectedLanguage);
+              check(preferences.hasSavedValues && !preferences.failed,"retry commits configuration");
+              check(!preferences.values.includeSpecial && preferences.values.language===expectedLanguage,"retry saves full fallback");
+              check(!Plugin.Runtime.updates.enabled && !showedUnsavedChoice,"retry publishes only committed choices");
+              finish();
+            });
+          }; repair.running=true;
+        });
+      }); return;
+    }
+    if (scenario==="restored-settings" || scenario==="removed-entry") {
+      check(!one.autoUpdates && !two.autoUpdates,"cold start restores disabled updates");
+      check(one.languageSetting===expectedLanguage && two.languageSetting===expectedLanguage,"cold start restores language");
+      check(!host.saved.autoUpdates,"cold start repairs stale mirror");finish();return;
+    }
+    check(one.autoUpdates && two.autoUpdates,"initial updates enabled");
+    var previous=JSON.stringify(preferences.values), calls=host.calls;
+    if (scenario==="host-change" || scenario==="readonly-host") {
+      var stale=clone(host.saved);
+      pendingHostSettings=hostChange({autoUpdates:false,language:"de"});
+      settle(function() {
+        if (scenario==="readonly-host") {
+          check(preferences.failed,"host failure reported");
+          check(one.autoUpdates && two.autoUpdates && !showedUnsavedChoice,"failed host choice never applied");
+          check(JSON.stringify(preferences.values)===previous,"failed host edit preserves committed values");
+          check(host.saved.autoUpdates && host.saved.language==="pl","failed host copy rolled back");
+          repaired=function() {host.saved=clone(pendingHostSettings);host.deliver(pendingHostSettings);settle(function(){checkHostSave();finish();});};
+          repair.running=true;return;
+        }
+        checkHostSave();
+        var revision=preferences.values._windowpeekRevision;
+        check(revision>stale._windowpeekRevision,"host edit advances revision");
+        var publishedCalls=host.calls;
+        host.deliver(clone(host.saved));
+        check(host.calls===publishedCalls,"identical echoes do not publish again");
+        host.deliver(stale);
+        settle(function() {
+          checkHostSave();
+          check(preferences.values._windowpeekRevision===revision,"stale echoes do not advance revision");
+          check(host.calls-publishedCalls<=2,"stale echoes repair without recursion");
+          hostChange({autoUpdates:true});
+          settle(function() {
+            check(one.autoUpdates && two.autoUpdates && Plugin.Runtime.updates.enabled,"host can enable updates");
+            check(two.setHintsMode("off"),"second monitor accepts edit");
+            settle(function() {
+              hostChange({autoUpdates:false});
+              settle(function(){checkHostSave();check(one.hints.mode==="off" && two.hints.mode==="off","host preserves later edits");finish();});
+            });
+          });
+        });
+      }); return;
+    }
+    one.toggleUpdates();
+    check(one.autoUpdates && two.autoUpdates,"queued save is not displayed as committed");
+    settle(function() {
+      if (scenario==="readonly-settings") {
+        check(one.saveFailed && preferences.failed,"disk failure reported");
+        check(one.autoUpdates && two.autoUpdates,"disk failure preserves switches");
+        check(JSON.stringify(preferences.values)===previous && host.calls===calls,"failed write changes neither worker nor mirror");
+        // Retry identical data after a failed cached write; then repair and save the failed value.
+        preferences.save(preferences.values);
+        settle(function() {
+          check(!preferences.failed,"keeping committed value clears failed cache");
+          repaired=function() {
+            one.toggleUpdates();
+            settle(function() {
+              check(!one.saveFailed && !one.autoUpdates && !two.autoUpdates,"retry commits both monitors");
+              check(!preferences.values.autoUpdates && !host.saved.autoUpdates,"worker and mirror follow retry");finish();
+            });
+          };repair.running=true;
+        });
+      } else {
+        check(!one.saveFailed && !one.autoUpdates && !two.autoUpdates,"durable save succeeds despite mirror failure");
+        check(!preferences.values.autoUpdates && host.saved.autoUpdates,"disk authoritative while fixture mirror stays stale");
+        check(one.languageSetting==="pl" && two.languageSetting==="pl","unrelated choice preserved");finish();
+      }
+    });
+  }
   Timer {
-    interval: 50; running: true; repeat: true
+    interval:50;running:true;repeat:true
     onTriggered: {
-      if (!one.settingsReady || !two.settingsReady) return;
-      stop();
-      try {
-        var preferences = Plugin.Runtime.preferences;
-        if (suite.scenario === "startup-restored") {
-          suite.checkStartupValues(suite.expectedLanguage);
-          suite.check(preferences.hasSavedValues && !preferences.failed, "repaired preferences load on restart");
-          suite.check(host.saved.includeSpecial === false && host.saved.autoUpdates === false,
-            "restored preferences rebuild the removed host entry");
-          suite.finish();
-          return;
-        }
-        if (suite.startupCase) {
-          suite.check(preferences.failed && !preferences.hasSavedValues, "startup reports the unavailable preference file");
-          suite.checkStartupValues("pl");
-          suite.check(!Plugin.Runtime.updates.enabled, "unavailable preferences cannot start an update");
-          suite.check(!one.setLanguage("fr"), "panel edit cannot bypass the failed save");
-          suite.hostChange({includeSpecial:true, language:"de", autoUpdates:true});
-          suite.checkStartupValues("pl");
-          suite.check(JSON.stringify(host.saved) === JSON.stringify(suite.startupEntry), "failed host edit restores every original field");
-          suite.check(!preferences.hasSavedValues && !Plugin.Runtime.updates.enabled,
-            "fallback is never presented to the worker as a successful file save");
-          if (suite.scenario.indexOf("startup-readonly-") === 0) repair.running = true;
-          else suite.finish();
-          return;
-        }
-        if (suite.scenario === "restored-settings" || suite.scenario === "removed-entry") {
-          suite.check(!one.autoUpdates && !two.autoUpdates, "cold start restores disabled updates despite an older host mirror");
-          suite.check(one.languageSetting === suite.expectedLanguage && two.languageSetting === suite.expectedLanguage, "cold start restores other preferences");
-          suite.check(host.saved.autoUpdates === false, "cold start repairs the stale host mirror");
-          suite.finish();
-          return;
-        }
-        suite.check(one.autoUpdates && two.autoUpdates, "initial updates enabled");
-        var previous = JSON.stringify(preferences.values), calls = host.calls;
-        if (suite.scenario === "host-change" || suite.scenario === "readonly-host") {
-          var stale = suite.clone(host.saved);
-          suite.pendingHostSettings = suite.hostChange({autoUpdates:false, language:"de"});
-          if (suite.scenario === "readonly-host") {
-            suite.check(preferences.failed, "host write failure reported");
-            suite.check(one.autoUpdates && two.autoUpdates && !suite.showedUnsavedChoice, "failed host choice is never applied");
-            suite.check(JSON.stringify(preferences.values) === previous, "failed host edit leaves saved values unchanged");
-            suite.check(host.saved.autoUpdates === true && host.saved.language === "pl", "host copy rolled back after disk failure");
-            repair.running = true;
-            return;
-          }
-          suite.checkHostSave();
-          var revision = preferences.values._windowpeekRevision;
-          suite.check(revision > stale._windowpeekRevision, "host edit advances the saved revision");
-          // Repeat notifications, then a delayed pre-edit snapshot.
-          var publishedCalls = host.calls;
-          host.deliver(suite.clone(host.saved));
-          suite.check(host.calls === publishedCalls, "identical host echoes do not publish again");
-          host.deliver(stale);
-          suite.checkHostSave();
-          suite.check(preferences.values._windowpeekRevision === revision, "host echoes do not create new revisions");
-          suite.check(host.calls - publishedCalls <= 2, "each monitor repairs a stale copy without recursive publishing");
-          suite.hostChange({autoUpdates:true});
-          suite.check(one.autoUpdates && two.autoUpdates && Plugin.Runtime.updates.enabled, "host can re-enable updates");
-          suite.check(two.setHintsMode("off"), "panel edits can follow a host edit on another monitor");
-          suite.hostChange({autoUpdates:false});
-          suite.checkHostSave();
-          suite.check(one.hints.mode === "off" && two.hints.mode === "off", "host changes preserve later panel edits");
-          suite.finish();
-          return;
-        }
-        one.toggleUpdates();
-        if (suite.scenario === "readonly-settings") {
-          suite.check(one.saveFailed && preferences.failed, "disk write failure reported");
-          suite.check(one.autoUpdates && two.autoUpdates, "disk failure leaves both switches enabled");
-          suite.check(JSON.stringify(preferences.values) === previous, "worker preferences unchanged");
-          suite.check(host.calls === calls, "disk failure never reaches the host mirror");
-          suite.check(preferences.save(preferences.values), "keeping the saved value clears the failed cache");
-          repair.running = true;
-        } else {
-          suite.check(!one.saveFailed && !one.autoUpdates && !two.autoUpdates, "durable save succeeds independently of host mirror");
-          suite.check(preferences.values.autoUpdates === false, "worker and UI agree");
-          suite.check(host.saved.autoUpdates === true, "host fixture remained stale");
-          suite.check(one.languageSetting === "pl" && two.languageSetting === "pl", "unrelated preference preserved");
-          suite.finish();
-        }
-      } catch (error) { console.error("WINDOWPEEK_PREFERENCES_FAIL: " + error); Qt.quit(); }
+      if (!one.settingsReady || !two.settingsReady || Plugin.Runtime.preferences.saving) return;
+      stop();suite.run(suite.start);
     }
   }
 }

@@ -110,24 +110,24 @@ Rectangle {
         LayoutMirroring.childrenInherit: true
         Item {
             id: heading; width: parent.width; height: Style.space(29)
-            Text {
+            ReadableText {
                 anchors.left: parent.left; anchors.right: countBadge.left; anchors.rightMargin: Style.space(10)
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.hostWidget ? root.hostWidget.textTemplates.panelTitle : "WindowPeek"
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
+                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
             }
             Rectangle {
                 id: countBadge
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(parent.width * 0.55, countLabel.implicitWidth + Style.space(18)); height: Style.space(26)
                 radius: Style.space(5); color: Qt.alpha(root.accent, 0.09)
-                Text {
-                    id: countLabel; anchors.centerIn: parent; width: Math.min(implicitWidth, parent.width - Style.space(18))
+                ReadableText {
+                    id: countLabel; objectName: "windowCountText"; anchors.centerIn: parent; width: Math.min(implicitWidth, parent.width - Style.space(18))
                     text: Labels.render(root.hostWidget ? root.hostWidget.textTemplates.windowCount : root.words.windowsLabel + "  {count}",
                         {count:root.preview.status === "ready" ? root.preview.count : "—"})
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    color: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
+                    textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; font.bold: true
                 }
             }
         }
@@ -150,16 +150,16 @@ Rectangle {
             width: parent.width; spacing: Style.space(9)
             visible: root.showHint || root.errorText !== ""
             Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
-            Text {
+            ReadableText {
                 width: parent.width; visible: root.errorText !== ""
                 text: root.errorText; textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
-            Text {
+            ReadableText {
                 id: help; width: parent.width; visible: root.showHint
                 text: root.words.focusHint + "\n" + root.words.chooseMoveHint + "\n" + root.words.bringHint + "\n" + root.words.openSearchHint
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
     }

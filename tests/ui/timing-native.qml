@@ -286,8 +286,8 @@ ShellRoot {
                 case 40:
                     test.check(test.panel.hoverOpened && test.panel.expansion === 0 && !api.activePopout,
                         "collapse releases bar ownership without closing the panel");
-                    test.check(test.panel.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.None,
-                        "collapse releases keyboard focus");
+                    test.check(test.panel.surface.WlrLayershell.keyboardFocus === WlrKeyboardFocus.OnDemand,
+                        "collapsed panel remains ready for typing");
                     events.mouseClick(test.panel.body, 120, 10, Qt.LeftButton, Qt.NoModifier, 0); break;
                 case 42:
                     test.observingCycle = false;

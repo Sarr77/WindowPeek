@@ -71,13 +71,24 @@ test('instant previews align to either panel edge on scaled and offset monitors'
     }
 });
 
-test('hover delays preserve zero, bound durations and reject malformed preferences', () => {
+test('scroll speed and hover delays validate saved numeric preferences', () => {
+    for (const value of [undefined, null, '', '120', false, {}, NaN, Infinity])
+        assert.equal(settings.wheelScrollSpeed(value), 102);
+    assert.equal(settings.wheelScrollSpeed(10), 50);
+    assert.equal(settings.wheelScrollSpeed(180), 180);
+    assert.equal(settings.wheelScrollSpeed(1000), 300);
     for (const value of [undefined, null, '', '0', false, {}, NaN, Infinity])
         assert.equal(settings.hoverDelay(value), 400);
     assert.equal(settings.hoverDelay(0), 0);
     assert.equal(settings.hoverDelay(-100), 0);
     assert.equal(settings.hoverDelay(320.6), 321);
     assert.equal(settings.hoverDelay(5000), 2000);
+    assert.equal(settings.logoLoopDelay(undefined), 4.2);
+    assert.equal(settings.logoLoopDelay(0), 0);
+    assert.equal(settings.logoLoopDelay(0.3), 0.3);
+    assert.equal(settings.logoLoopDelay(2), 2);
+    assert.equal(settings.logoLoopDelay(Infinity), 4.2);
+    assert.equal(settings.logoLoopDelay(-1), 0);
     const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json')));
     assert.equal(manifest.barWidget.defaults.panelHoverDelay, 400);
     assert.equal(manifest.barWidget.defaults.previewHoverDelay, 400);
@@ -320,4 +331,26 @@ test('preview dimensions follow portrait, landscape and changing source sizes wi
     assert.equal(geometry.fit(320,640,290,300,164,false).height, 164);
     assert.equal(geometry.fit(0,0,290,300,164,true).width, 290);
     assert.equal(geometry.fit(Infinity,20,290,100,164,true).height, 100);
+});
+
+test('following the local bar changes only the rendered Wallpaper style', () => {
+    for (const transparent of [true,false,undefined]) {
+        assert.equal(settings.effectivePanelStyle('wallpaper',false,transparent),'wallpaper');
+        for (const style of ['glass','solid']) assert.equal(settings.effectivePanelStyle(style,true,transparent),style);
+    }
+    assert.equal(settings.effectivePanelStyle('wallpaper',true,false),'solid');
+    assert.equal(settings.effectivePanelStyle('wallpaper',true,true),'wallpaper');
+    assert.equal(settings.effectivePanelStyle('wallpaper',true,undefined),'wallpaper');
+});
+
+
+test('recovery copy has matching English/Polish fields and an explicit English fallback', () => {
+    const recovery = load('FocusRecoveryText.js');
+    assert.deepEqual(Object.keys(recovery.catalogs.pl).sort(), Object.keys(recovery.catalogs.en).sort());
+    for (const code of ['en', 'pl']) for (const key of Object.keys(recovery.catalogs.en)) {
+        assert.ok(recovery.catalogs[code][key].length > 0, code + ':' + key);
+        assert.deepEqual((recovery.catalogs[code][key].match(/\{[a-z]+\}/g) || []),
+            (recovery.catalogs.en[key].match(/\{[a-z]+\}/g) || []));
+    }
+    assert.equal(recovery.words('unknown'), recovery.catalogs.en);
 });

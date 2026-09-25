@@ -17,6 +17,7 @@ Ui.BorderSurface {
         placementWatcher.transform;
         return targetWindow ? backdrop.mapToItem(targetWindow.contentItem, 0, 0) : Qt.point(0, 0);
     }
+    readonly property color readabilityBackground: wallpaperMode ? "transparent" : fallbackBackground
     color: wallpaperMode ? Qt.alpha(hostWidget.surfaces.panel, 1) : fallbackBackground
 
     TransformWatcher {

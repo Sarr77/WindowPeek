@@ -1,4 +1,5 @@
 singleton Runtime 1.0 Runtime.qml
+BarAnchorHover 1.0 BarAnchorHover.qml
 WallpaperSource 1.0 WallpaperSource.qml
 WallpaperBackdrop 1.0 WallpaperBackdrop.qml
 TransparencyControl 1.0 TransparencyControl.qml
@@ -10,6 +11,7 @@ WindowClickArea 1.0 WindowClickArea.qml
 MoveMenu 1.0 MoveMenu.qml
 BackMouseArea 1.0 BackMouseArea.qml
 WindowList 1.0 WindowList.qml
+WheelScroll 1.0 WheelScroll.qml
 WorkspaceHeader 1.0 WorkspaceHeader.qml
 RowSurface 1.0 RowSurface.qml
 WindowIcon 1.0 WindowIcon.qml
@@ -21,6 +23,7 @@ WindowPreviewTarget 1.0 WindowPreviewTarget.qml
 WindowState 1.0 WindowState.qml
 WindowActions 1.0 WindowActions.qml
 Preferences 1.0 Preferences.qml
+WriteQueue 1.0 WriteQueue.qml
 Updates 1.0 Updates.qml
 AppearanceEditor 1.0 AppearanceEditor.qml
 ScalingEditor 1.0 ScalingEditor.qml
@@ -40,6 +43,7 @@ AuthorCredit 1.0 AuthorCredit.qml
 UpdateSwitch 1.0 UpdateSwitch.qml
 UpdateConfirmation 1.0 UpdateConfirmation.qml
 SettingsContent 1.0 SettingsContent.qml
+TroubleshootingSettings 1.0 TroubleshootingSettings.qml
 ControlsHelp 1.0 ControlsHelp.qml
 SettingsSection 1.0 SettingsSection.qml
 SettingsRow 1.0 SettingsRow.qml
@@ -51,3 +55,22 @@ OpenShortcut 1.0 OpenShortcut.qml
 ShortcutsEditor 1.0 ShortcutsEditor.qml
 ShortcutRecorder 1.0 ShortcutRecorder.qml
 WallpaperContrast 1.0 WallpaperContrast.qml
+HoverFootprint 1.0 HoverFootprint.qml
+PanelLogo 1.0 PanelLogo.qml
+LogoSettings 1.0 LogoSettings.qml
+LogoPicker 1.0 LogoPicker.qml
+LogoImage 1.0 LogoImage.qml
+PixelLogo 1.0 PixelLogo.qml
+OutsideClicks 1.0 OutsideClicks.qml
+EditField 1.0 EditField.qml
+SearchFocus 1.0 SearchFocus.qml
+LogoCooldownControl 1.0 LogoCooldownControl.qml
+FocusRecovery 1.0 FocusRecovery.qml
+FocusRecoveryDialog 1.0 FocusRecoveryDialog.qml
+NativeProtection 1.0 NativeProtection.qml
+FocusIssues 1.0 FocusIssues.qml
+ReadableText 1.0 ReadableText.qml
+TextShadowSampler 1.0 TextShadowSampler.qml
+ReadableButton 1.0 ReadableButton.qml
+ReadableBarButton 1.0 ReadableBarButton.qml
+TextReadabilityService 1.0 TextReadabilityService.qml

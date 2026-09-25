@@ -91,6 +91,7 @@ ShellRoot {
           wallpaperTransparency:widget.item.wallpaperTransparency,
           wallpaperInitialized:widget.item.wallpaperTransparencyRule.initialized,
           hintsMode:widget.item.hints.mode, hintsUsed:widget.item.hints.used,
+          wheelScrollSpeed:widget.item.wheelScrollSpeed,
           hintsRemaining:widget.item.hints.remaining, hintsEnabled:widget.item.hints.enabled} : null});
     }
   }

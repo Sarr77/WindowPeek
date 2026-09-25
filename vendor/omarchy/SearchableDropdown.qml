@@ -91,6 +91,7 @@ Item {
   // suspend its own keyCatcher so typing into the filter doesn't drive
   // the panel cursor.
   readonly property bool popupOpen: popup.opened
+  readonly property Item popupInputItem: popup.visible ? popup.background : null
   function open() { popup.open() }
   function close() { popup.close() }
   function toggle() { popup.visible ? popup.close() : popup.open() }
@@ -137,11 +138,11 @@ Item {
     anchors.fill: parent
     spacing: Style.spacing.labelGap
 
-    Text {
+    WindowPeek.ReadableText { shadowHost: root.hostWidget;
       textFormat: Text.PlainText
       visible: root.showLabel && root.label !== ""
       text: root.label
-      color: Qt.alpha(root.foreground, 0.8)
+      textColor: Qt.alpha(root.foreground, 0.8)
       font.family: root.fontFamily
       font.pixelSize: root.labelFontSize
       font.bold: true
@@ -180,7 +181,7 @@ Item {
         }
       }
 
-      Text {
+      WindowPeek.ReadableText { shadowHost: root.hostWidget;
         textFormat: Text.PlainText
         anchors.left: parent.left
         anchors.right: chevron.left
@@ -188,19 +189,19 @@ Item {
         anchors.leftMargin: trigger.borderLeft + Style.spacing.controlPaddingX
         anchors.rightMargin: trigger.borderRight + Style.spacing.md
         text: root.currentLabel() || root.triggerLabel || root.placeholderText
-        color: (root.currentLabel() || root.triggerLabel) ? root.foreground : Qt.darker(root.foreground, 1.5)
+        textColor: (root.currentLabel() || root.triggerLabel) ? root.foreground : Qt.darker(root.foreground, 1.5)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
         elide: Text.ElideRight
       }
 
-      Text {
+      WindowPeek.ReadableText { shadowHost: root.hostWidget;
         id: chevron
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: trigger.borderRight + Style.spacing.controlGap
         text: "󰅀"
-        color: Qt.darker(root.foreground, 1.2)
+        textColor: Qt.darker(root.foreground, 1.2)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
       }
@@ -264,6 +265,8 @@ Item {
 
         // Keep the secondary-click overlay outside the positioned children.
         contentItem: Item {
+          readonly property var hostWidget: root.hostWidget
+          readonly property color readabilityBackground: popup.background.readabilityBackground
           Column {
             anchors.fill: parent
             spacing: 0
@@ -273,7 +276,7 @@ Item {
               width: parent.width
               height: root.popupRowHeight + Style.spacing.controlPaddingX
 
-              TextField {
+              WindowPeek.EditField {
                 id: searchField; objectName: "dropdownSearchField"
                 anchors.fill: parent
                 anchors.margins: Style.spacing.md
@@ -319,18 +322,19 @@ Item {
               width: parent.width
               height: Math.max(0, popup.availableHeight - searchHeader.height - 1)
 
-              Text {
+              WindowPeek.ReadableText { shadowHost: root.hostWidget;
                 textFormat: Text.PlainText
                 anchors.centerIn: parent
                 visible: resultList.count === 0
                 text: root.emptyText
-                color: Qt.darker(root.foreground, 1.6)
+                textColor: Qt.darker(root.foreground, 1.6)
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
               }
 
               ListView {
                 id: resultList; objectName: "resultList"
+                WindowPeek.WheelScroll { view: resultList; speed: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102 }
                 anchors.fill: parent
                 spacing: Style.spacing.labelGap
                 clip: true
@@ -388,20 +392,20 @@ Item {
                     anchors.rightMargin: Style.spacing.controlPaddingX
                     spacing: Style.spacing.xxs
 
-                    Text {
+                    WindowPeek.ReadableText { shadowHost: root.hostWidget;
                       textFormat: Text.PlainText
                       text: root.optionLabel(modelData)
-                      color: index === resultList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+                      textColor: index === resultList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
                       font.family: root.fontFamily
                       font.pixelSize: Style.font.body
                       elide: Text.ElideRight
                       width: parent.width
                     }
-                    Text {
+                    WindowPeek.ReadableText { shadowHost: root.hostWidget;
                       textFormat: Text.PlainText
                       visible: text !== ""
                       text: root.optionDescription(modelData)
-                      color: Qt.darker(root.foreground, 1.5)
+                      textColor: Qt.darker(root.foreground, 1.5)
                       font.family: root.fontFamily
                       font.pixelSize: Style.font.caption
                       elide: Text.ElideRight

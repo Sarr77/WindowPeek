@@ -72,7 +72,7 @@ ShellRoot {
                     test.editor=test.find(panel,"shortcutsEditor");
                     if(test.wait(test.editor && test.editor.probeReady,"editor binding probe")) break;
                     test.check(!test.editor.systemBindings.some(function(b) { return b.modmask===4 && String(b.key).toLowerCase()==="f24"; }),"test chord must be unused");
-                    Hyprland.dispatch(Lua.dispatch("local s={}; _windowpeek_recorder_test=s; s.bind=hl.bind('CTRL + F24',function() hl.dispatch(hl.dsp.event('windowpeek-recorder-test,"+test.token+"')) end,{auto_consuming=true,description='WindowPeek recorder test'}); function s.stop() if s.bind then s.bind:unbind(); s.bind=nil end; s.timer:set_enabled(false) end; s.timer=hl.timer(function() s.stop() end,{timeout=15000,type='repeat'}); "));
+                    Hyprland.dispatch(Lua.dispatch("local s={}; _windowpeek_recorder_test=s; s.bind=hl.bind('CTRL + F24',function() hl.dispatch(hl.dsp.event('windowpeek-recorder-test,"+test.token+"')) end,{auto_consuming=true,description='WindowPeek recorder test'}); function s.stop() if s.bind and tostring(s.bind)~='HL.Keybind(expired)' then s.bind:unbind() end; s.bind=nil; s.timer:set_enabled(false) end; s.timer=hl.timer(function() s.stop() end,{timeout=15000,type='repeat'}); "));
                     test.editor.edit(Shortcuts.definitions[0],test.find(test.editor,"shortcut-open")); break;
                 case 2:
                     test.editor.recorder.recording=true;

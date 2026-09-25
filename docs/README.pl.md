@@ -7,7 +7,7 @@ Możesz szukać na wszystkich workspace’ach i monitorach, podejrzeć okno prze
 przełączeniem albo przenieść je w inne miejsce. Już nigdy nie zgubisz zakładki
 w grupach okien Hyprlanda.
 
-[English](../README.md) · [Instrukcja (EN)](GUIDE.md) · [Historia zmian (EN)](../CHANGELOG.md)
+[English](../README.md) · [Instrukcja (EN)](GUIDE.md) · [Rozwiązywanie problemów (EN)](TROUBLESHOOTING.md) · [Znane problemy (EN)](KNOWN_ISSUES.md) · [Historia zmian (EN)](../CHANGELOG.md)
 
 ![WindowPeek w stylu Wallpaper, z listą po najechaniu i podglądem Instagramu w Chromium](../preview.png)
 
@@ -35,7 +35,12 @@ Skróty klawiatury i myszy**. Edytor sprawdza konflikty, pozwala resetować poje
 skróty i zapisuje zmiany dopiero po Zastosuj. Poniżej opisane są skróty domyślne.
 
 Najedź na **WindowPeek**, żeby zobaczyć listę okien. Kliknij jego nazwę, żeby
-rozwinąć ten sam panel i szukać po nazwie aplikacji lub tytule okna. Listę możesz
+rozwinąć ten sam panel i szukać po nazwie aplikacji lub tytule okna. Rozpoczęcie
+pisania w hoverze również rozwija panel i od razu wyszukuje wpisany tekst.
+Bez dodatkowej ochrony kompaktowy panel respektuje fokus za kursorem: można wrócić
+samym najechaniem, bez klikania. Otwarta wyszukiwarka odbiera klawiaturę także z
+kursorem poza panelem, również przy pustym polu, z opisanym
+niżej [ograniczeniem dotyczącym X11](#znane-ograniczenia). Listę możesz
 przewijać. Kolejne kliknięcie nazwy na pasku zamyka panel.
 
 | W obu widokach listy | Działanie |
@@ -103,16 +108,53 @@ w wersji roboczej do użycia **Zastosuj**.
 w wybranym zakresie motywów. Zachowuje zapisane presety; nie wczytuje żadnego z nich.
 
 Możesz wyłączyć otwieranie panelu po najechaniu, podglądy okien lub sprężystość
-przewijania, a także wybrać zwartą listę. Pasek i podglądy okien mają osobne
+przewijania, a także wybrać zwartą listę. W **Ustawienia → Lista okien** ustawisz
+też szybkość kółka myszy (50–300%, co 1%, domyślnie 102%). Pasek i podglądy okien mają osobne
 opóźnienia. Ustaw oba na **0** i wyłącz **Animacje okienek**, żeby otwierały się od razu.
 Ramka podglądu może dopasować się do proporcji okna, a ciemne wypełnienie pod
 obrazem można wyłączyć. Środkowy klik w wolnym miejscu panelu przełącza między
 listą po najechaniu a widokiem rozwiniętym.
 
+Przełącznik **Styl zgodny z paskiem**, obok domyślnego tła Wallpaper, pozwala
+przełączać panel na Solid przy nieprzezroczystym pasku i przywracać Wallpaper
+przy prześwitującym. Zapamiętane ustawienia Wallpaper pozostają bez zmian.
+
+Logo Omarchy w kolorze motywu zbliża wysokość kompaktowego panelu do rozwiniętego.
+W **Personalizacji → Obrazy i GIF-y** wybierasz każde logo osobno: zwykłe Omarchy, animację pixelową
+w kolorze motywu lub własny obrazek (PNG, JPG, WebP, SVG; animacje w GIF).
+Każda animacja ma przełącznik **Zapętlaj animację** i pole **Przerwa pętli**
+w sekundach, także ułamkowych, np. `0.3`. Domyślne 4,2 sekundy zachowują przerwę
+oryginalnej animacji pixelowej. Wyłączenie pętli włącza odtwarzanie jednorazowe,
+które zaczyna się od nowa po ponownym pokazaniu logo;
+GIF zatrzymuje się na ostatniej klatce. Osobna **Przerwa między odtworzeniami**
+w sekundach lub minutach pozwala pominąć animację przy zbyt szybkim ponownym
+otwarciu panelu. Domyślnie wynosi 0. Obie wartości mają reset: do 4,2 s dla przerwy
+pętli i do 0 dla przerwy między otwarciami. Opcja **Wspólny cooldown** sprawia,
+że odtworzenie dowolnego logo wstrzymuje ponowne odtwarzanie obu animacji.
+Po jej wyłączeniu wracają osobne wartości. Każde logo możesz też wyłączyć.
+Animacje zatrzymują się, gdy logo jest ukryte. W obu trybach podpowiedź pod panelem
+dotyczy wyłącznie elementu pod kursorem. Puste miejsce opisuje tylko rozwijanie
+lub zwijanie panelu; logo i wiersze okien mają własne podpowiedzi.
+
+Opcja **Rozwijaj dwuklikiem** w sekcji **Panel i podglądy** pozwala przypiąć
+kompaktowy panel kliknięciem **WindowPeek na pasku**. Dwuklik napisu na pasku
+lub pustego miejsca w panelu rozwija go albo zwija. Kliknięcie poza
+panelem lub Esc zamyka go. Home, End, Page Up/Down, strzałki i Enter działają
+również w widoku kompaktowym; Tab rozwija panel i udostępnia pozostałe kontrolki.
+
 Przycisk **?** steruje podpowiedziami po najechaniu kursorem. Początkowo są
 włączone i wyłączają się po 100 wyświetleniach łącznie na wszystkich monitorach.
+Pokazują liczbę pozostałych wyświetleń i wskazują, gdzie można je wyłączyć.
+W obu widokach opisują element pod kursorem. Podpowiedzi akcji okien, logo,
+pustego miejsca i kontrolek stopki pojawiają się pojedynczo na dole panelu.
+Podpowiedzi kontrolek w ustawieniach pojawiają się przy kursorze.
 Po ręcznym włączeniu działają do ręcznego wyłączenia. Ustawienia pozostają
 zapisane po restarcie, aktualizacji i ponownej instalacji.
+
+Nazwa WindowPeek na pasku ma podpowiedź aktualnej akcji pod otwartym panelem.
+Wyłączenie opcji **Panel i podglądy → Pozwól przypinać panel kompaktowy** sprawia,
+że kompaktowy widok znika po odsunięciu kursora — również po kliknięciu nazwy
+na pasku i zwinięciu dwuklikiem. Nazwa wewnątrz panelu nie ma osobnej akcji przypinania.
 
 ## Aktualizacje
 
@@ -149,6 +191,33 @@ przypisania i nie edytuje plików konfiguracji Hyprlanda.
 Automatyczne aktualizacje łączą się z GitHubem i katalogiem Omarchy. Terminy i
 wyniki sprawdzeń są zapisywane obok preferencji. Nie ma telemetrii. WindowPeek
 działa wewnątrz powłoki Omarchy z uprawnieniami użytkownika, bez dostępu administratora.
+
+## Znane ograniczenia
+
+Niektóre kafelkowane aplikacje X11 wielokrotnie żądają innego rozmiaru okna.
+W dotkniętych problemem wersjach Hyprlanda może to przekierować pisanie
+z wyszukiwarki do okna pod kursorem. Więcej miejsca dla tej aplikacji lub tryb
+pływający mogą pomóc. **Zobacz możliwości** oferuje opcjonalną ochronę pisania
+i wyjaśnia jej ograniczenia dotyczące przewijania.
+[Rozwiązywanie problemów (EN)](TROUBLESHOOTING.md).
+
+Wersja 0.7.2 naprawia odtworzoną niepłynność rozwijania panelu przy niższym
+odświeżaniu, także z podglądem na żywo i ochroną pisania. Nie gwarantuje jednak
+osobnej aktualizacji animacji na każde odświeżenie monitora 240 Hz.
+[Znane problemy i zakres sprawdzenia (EN)](KNOWN_ISSUES.md).
+
+### Utrata fokusu podczas wyszukiwania
+
+W **Ustawienia → Sterowanie → Rozwiązywanie problemów** znajduje się domyślnie
+wyłączona opcja **Utrzymuj fokus wyszukiwania**. Rozważ ją, jeśli przesunięcie kursora
+nad inne okno przerywa pisanie. Działa przy każdym otwarciu wyszukiwania i blokuje
+przewijanie poza panelem, również touchpadem. Przewijanie wewnątrz nadal działa.
+Kliknięcie poza panelem lub Esc go zamyka. Ustawienia nie blokują fokusu.
+
+Opis wyjaśnia znany problem z żądaniami rozmiaru okien X11/Wine w niektórych
+wersjach Hyprlanda, możliwy wpływ reguł aktywacji oraz dostępne alternatywy.
+Sama utrata fokusu nie wystarcza do rozpoznania przyczyny. Powtarzające się
+przerwania mogą wyświetlić sugestię; nie włączają ochrony automatycznie.
 
 ## Pomoc i rozwój
 

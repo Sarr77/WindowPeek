@@ -45,22 +45,22 @@ Item {
                 opacity: header.activeFocus ? 1 : header.hot ? 0.8 : root.expanded ? 0.55 : 0.3
                 Behavior on opacity { NumberAnimation { duration: 120 } }
             }
-            Text {
+            ReadableText {
                 id: caption
                 anchors.left: parent.left; anchors.leftMargin: Style.space(14)
                 anchors.right: chevron.left; anchors.rightMargin: Style.space(12)
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.title; textFormat: Text.PlainText
                 wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-                color: Color.popups.text
+                textColor: Color.popups.text
                 font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
             }
-            Text {
+            ReadableText {
                 id: chevron
                 anchors.right: parent.right; anchors.rightMargin: Style.space(14)
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.expanded ? "−" : "+"; textFormat: Text.PlainText
-                color: root.accent
+                textColor: root.accent
                 font.family: Style.font.family; font.pixelSize: Style.font.subtitle + Style.space(6)
             }
             MouseArea {

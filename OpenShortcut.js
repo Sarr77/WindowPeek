@@ -1,3 +1,5 @@
+// Hyprland 0.56.2 can crash in set_enabled on an expired weak handle.
+// tostring checks validity without dereferencing it; reinstall replaces stale handles.
 .import "Shortcuts.js" as Keys
 
 function conflicts(binds, chord) {
@@ -37,19 +39,19 @@ function install(owner, chord) {
     chord=Keys.normalizeChord(chord || Keys.defaults.open,false);
     if (!chord) throw new Error("Invalid opening shortcut");
     var key="'"+Keys.luaChord(chord)+"'";
-    return "local s=_windowpeek_open_v1; if not s then s={}; _windowpeek_open_v1=s; "
-        + "function s.stop() s.owner=nil; s.bind:set_enabled(false); s.timer:set_enabled(false) end; "
-        + "s.timer=hl.timer(function() s.stop() end,{timeout=15000,type='repeat'}); end; "
-        + "if s.bind then s.bind:set_enabled(false) end; "
+    return "local s=_windowpeek_open_v1; if not s then s={}; _windowpeek_open_v1=s; end; "
+        + "function s.stop() s.owner=nil; if tostring(s.bind)~='HL.Keybind(expired)' then s.bind:set_enabled(false) end; s.timer:set_enabled(false) end; "
+        + "if not s.timer then s.timer=hl.timer(function() s.stop() end,{timeout=15000,type='repeat'}); end; "
+        + "if s.bind then if tostring(s.bind)~='HL.Keybind(expired)' then s.bind:set_enabled(false) end end; "
         + "if not s.binds then s.binds={}; if s.bind then s.binds['SUPER + ALT + P']=s.bind end end; "
-        + "local key="+key+"; if not s.binds[key] then s.binds[key]=hl.bind(key,function() if not s.owner then return {ok=false} end; "
+        + "local key="+key+"; if not s.binds[key] or tostring(s.binds[key])=='HL.Keybind(expired)' then s.binds[key]=hl.bind(key,function() if not s.owner then return {ok=false} end; "
         + "hl.dispatch(hl.dsp.event('windowpeek-open,'..s.owner)); end,"
         + "{auto_consuming=true,description='WindowPeek: open window list (automatic)'}); end; "
-        + "s.bind=s.binds[key]; s.owner=" + token(owner) + "; s.bind:set_enabled(true); s.timer:set_timeout(15000); ";
+        + "s.bind=s.binds[key]; s.owner=" + token(owner) + "; if tostring(s.bind)~='HL.Keybind(expired)' then s.bind:set_enabled(true) end; s.timer:set_timeout(15000); ";
 }
 function renew(owner) {
     return "local s=_windowpeek_open_v1; if s and (not s.owner or s.owner==" + token(owner)
-        + ") then s.owner=" + token(owner) + "; s.bind:set_enabled(true); s.timer:set_timeout(15000) end; ";
+        + ") then s.owner=" + token(owner) + "; if tostring(s.bind)~='HL.Keybind(expired)' then s.bind:set_enabled(true) end; s.timer:set_timeout(15000) end; ";
 }
 function release(owner) {
     return "local s=_windowpeek_open_v1; if s and s.owner==" + token(owner) + " then s.stop() end; ";

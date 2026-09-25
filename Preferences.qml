@@ -14,7 +14,11 @@ QtObject {
   property bool readBlocked: false
   property string lastPayload: ""
   readonly property bool hasSavedValues: lastPayload !== ""
-  property bool writeSucceeded: false
+  readonly property bool saving: writes.busy
+  property var pendingValues: null
+  readonly property var requestedValues: pendingValues || values
+  property int requestId: 0
+  property WriteQueue writes: WriteQueue { file: root.file }
 
   function load(raw) {
     if (ready) return;
@@ -23,24 +27,23 @@ QtObject {
       if (!data || data.version !== 1 || !data.settings || typeof data.settings !== "object" || Array.isArray(data.settings)) throw new Error("invalid preferences");
       values = data.settings;
       lastPayload = JSON.stringify({version:1,settings:values},null,2) + "\n";
+      writes.committed = lastPayload;
     } catch (e) { failed = true; readBlocked = true; }
     ready = true;
   }
-  function save(settings) {
-    if (!ready || readBlocked) return false;
+  function save(settings, done) {
+    if (!ready || readBlocked) { if (done) done(false); return false; }
     var next = JSON.parse(JSON.stringify(settings));
     delete next.id;
     var payload = JSON.stringify({version:1,settings:next},null,2) + "\n";
-    // A failed FileView write can leave its cache ahead of the file on disk.
-    // Reload it before retrying, and require an actual successful save signal.
-    if (failed) { file.reload(); file.waitForJob(); }
-    if (payload === lastPayload) { failed = false; return true; }
-    failed = false;
-    writeSucceeded = false;
-    file.setText(payload);
-    file.waitForJob();
-    if (!writeSucceeded) { failed = true; return false; }
-    values = next; lastPayload = payload;
+    var id = ++requestId;
+    pendingValues = next;
+    writes.enqueue(payload, function(ok) {
+      failed = !ok;
+      if (ok) { values = next; lastPayload = payload; }
+      if (id === requestId) pendingValues = null;
+      if (done) done(ok);
+    });
     return true;
   }
   property Process prepare: Process {
@@ -54,7 +57,7 @@ QtObject {
   property FileView file: FileView {
     path: ""
     atomicWrites: true
-    blockWrites: true
+    blockWrites: false
     printErrors: false
     onLoaded: root.load(text())
     onLoadFailed: function(error) {
@@ -62,7 +65,5 @@ QtObject {
       if (error !== FileViewError.FileNotFound) { root.failed = true; root.readBlocked = true; }
       root.ready = true;
     }
-    onSaveFailed: root.failed = true
-    onSaved: root.writeSucceeded = true
   }
 }

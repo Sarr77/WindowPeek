@@ -40,6 +40,30 @@ function hoverDelay(value) {
 function panelStyle(value) {
     return value === "glass" || value === "wallpaper" ? value : "solid";
 }
+function effectivePanelStyle(value, followBar, barTransparent) {
+    var selected = panelStyle(value);
+    return selected === "wallpaper" && followBar === true && barTransparent === false ? "solid" : selected;
+}
+function wheelScrollSpeed(value) {
+    return typeof value === "number" && Number.isFinite(value)
+        ? Math.max(50, Math.min(300, Math.round(value))) : 102;
+}
+function logoImage(value) {
+    if (typeof value !== "string" || value.length > 4096 || !/^file:\/\/\/[^\r\n\x00]+$/.test(value)) return "";
+    try { decodeURIComponent(value); } catch (_) { return ""; }
+    return value;
+}
+function logoChoice(value) {
+    return value === "builtin:omarchy-pixel" ? value : logoImage(value);
+}
+function logoLoopDelay(value) {
+    return typeof value === "number" && Number.isFinite(value)
+        ? Math.max(0, Math.min(86400, Math.round(value * 1000) / 1000)) : 4.2;
+}
+function logoCooldown(value) {
+    return typeof value === "number" && Number.isFinite(value)
+        ? Math.max(0, Math.min(86400, Math.round(value * 1000) / 1000)) : 0;
+}
 function backgroundTransparency(value, fallback) {
     return typeof value === "number" && Number.isFinite(value)
         ? Math.max(0, Math.min(100, Math.round(value))) : fallback;

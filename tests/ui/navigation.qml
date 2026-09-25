@@ -48,7 +48,10 @@ ShellRoot {
                 case 0: panel.begin(); panel.showSettings(); test.named("settingsPanelSection").expanded = true; break;
                 case 1:
                     test.right(test.named("windowPreviewsToggle"));
-                    test.check(panel.mode === "windows" && host.windowPreviews, "right-click over a switch goes back without toggling it");
+                    test.check(panel.mode === "settings" && !test.named("settingsPanelSection").expanded && host.windowPreviews,
+                        "right-click over a switch collapses only its section without toggling it");
+                    test.right(test.named("settingsButton"));
+                    test.check(panel.mode === "windows", "the next right click leaves the collapsed Settings overview");
                     test.right(test.named("settingsButton"));
                     test.check(test.closed === 1 && panel.mode === "windows", "right-click on the main list requests dismissal instead of opening Settings");
                     panel.showSettings(); test.named("languages").open(); break;
@@ -58,10 +61,11 @@ ShellRoot {
                         "right-click in searchable picker closes one level without changing language");
                     test.named("settingsListSection").expanded = true;
                     panel.ensureVisible(test.named("listDensityPicker")); test.named("listDensityPicker").open(); break;
-                case 4: test.right(test.popupBack()); break;
+                case 4: test.right(test.named("settingsButton")); break;
                 case 5:
-                    test.check(!test.named("listDensityPicker").popupOpen && panel.mode === "settings" && !panel.compact,
-                        "right-click in ordinary picker closes one level without changing the option");
+                    test.check(!test.named("listDensityPicker").popupOpen && panel.mode === "settings" && !panel.compact
+                        && test.named("settingsListSection").expanded,
+                        "right-click outside a picker closes only the picker, preserving its section");
                     panel.mode = "appearance"; host.previewAppearance({uiScale:test.scale + 0.1});
                     test.right(test.named("settingsButton"));
                     test.check(panel.mode === "settings" && host.appearance.uiScale === host.savedAppearance.uiScale,
@@ -97,6 +101,28 @@ ShellRoot {
                     test.check(button.hot, "the Back gesture does not block normal hover feedback");
                     events.mouseClick(button, button.width / 2, button.height / 2, Qt.LeftButton, Qt.NoModifier, 0);
                     test.check(panel.mode === "windows", "normal primary-click Back still works");
+                    panel.showSettings();
+                    test.named("settingsPersonalizationSection").expanded = true;
+                    test.named("settingsControlsSection").expanded = true;
+                    break;
+                case 12:
+                    panel.ensureVisible(test.named("settingsPersonalizationSection").headerItem);
+                    test.right(test.named("settingsPersonalizationSection").headerItem);
+                    test.check(!test.named("settingsControlsSection").expanded && test.named("settingsPersonalizationSection").expanded,
+                        "right-click unwinds most recently opened section regardless of pointer position");
+                    events.mouseClick(test.named("settingsButton"),10,10,Qt.LeftButton,Qt.NoModifier,0);
+                    test.check(panel.mode === "windows", "Back deliberately skips the remaining inner section");
+                    panel.showSettings();test.named("settingsPersonalizationSection").expanded = true;
+                    panel.mode = "appearance";break;
+                case 13:
+                    test.named("appearanceEditor").colorsExpanded = true;
+                    panel.navigateBack();
+                    test.check(panel.mode === "appearance" && !test.named("appearanceEditor").colorsExpanded,
+                        "right-click first closes inner color editor");
+                    test.named("appearanceEditor").colorsExpanded = true;
+                    events.mouseClick(test.named("settingsButton"),10,10,Qt.LeftButton,Qt.NoModifier,0);
+                    test.check(panel.mode === "settings" && test.named("settingsPersonalizationSection").expanded,
+                        "Back skips inner editor but preserves the section used to enter it");
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }

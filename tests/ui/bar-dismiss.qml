@@ -22,7 +22,8 @@ ShellRoot {
         Plugin.Widget { id:widget; bar:api }
     }
     Timer {
-        interval:100; running:true; repeat:true
+        // Allow the bar/proxy handoff's 180 ms settled-exit guard to expire.
+        interval:250; running:true; repeat:true
         onTriggered: {
             if (!widget.settingsReady) return;
             try {

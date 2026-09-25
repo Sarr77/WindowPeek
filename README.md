@@ -6,7 +6,7 @@ WindowPeek puts your open windows in one list on Omarchy’s bar. Search across
 workspaces and monitors, peek at a window before switching to it, or move it
 somewhere else. You'll never lose a tab in Hyprland window groups again.
 
-[Polski](docs/README.pl.md) · [User guide](docs/GUIDE.md) · [Changelog](CHANGELOG.md)
+[Polski](docs/README.pl.md) · [User guide](docs/GUIDE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Known issues](docs/KNOWN_ISSUES.md) · [Changelog](CHANGELOG.md)
 
 ![WindowPeek in Wallpaper style, with its hover list and an Instagram preview in Chromium](preview.png)
 
@@ -34,7 +34,10 @@ WindowPeek’s keyboard actions and mouse modifiers can be customized in
 individual resets and Apply/Cancel. The shortcuts below are the defaults.
 
 Hover over **WindowPeek** for the window list. Click its name to expand the same
-panel and search by application or window title. Scroll to see the rest of the
+panel and search by application or window title. Typing in the hover list also
+expands it and starts searching immediately. The open search keeps keyboard focus
+even with the pointer outside the panel, subject to the
+[X11 focus limitation](#known-limitations). Scroll to see the rest of the
 list. Click the bar label again to close it.
 
 | In either window list | Action |
@@ -91,14 +94,44 @@ separate settings for the panel, window rows, menu fields and grain. See
 [appearance settings](docs/GUIDE.md#panel-background) for presets and resets.
 
 You can use a click-only panel, disable window previews, choose a compact list,
-or turn off springy scrolling. The bar and window previews have separate delays;
+or turn off springy scrolling. **Settings → Window list** also controls mouse-wheel
+speed (50–300% in 1% steps, default 102%). The bar and window previews have separate delays;
 set both to **0** and turn off **Popup animations** for instant opening.
 Window previews can fit the source window’s proportions, with an optional dark
 backing behind the image. Middle-click unused panel space to switch between the
 hover list and expanded view.
 
+**Follow bar style**, beside the Wallpaper default label, optionally switches to
+Solid with an opaque bar and restores Wallpaper with a transparent bar.
+
+The compact panel's Omarchy logo keeps its height close to the expanded view.
+In **Personalization → Pictures and Gifs**, choose each logo separately: Omarchy, a theme-colored
+pixel animation, or your own image (PNG, JPG, WebP, SVG; GIF for animation).
+Each animated logo has a **Loop animation** switch and a **Delay loop** field
+for the pause between repeats, in seconds (including fractions such as `0.3`).
+The default is 4.2 seconds, matching the original pixel animation. With looping
+off, playback runs once per appearance; a GIF holds its last frame until then.
+**Cooldown**, in seconds or minutes, can prevent another animation when reopening
+too soon (default: 0). Enable **Shared cooldown** to make either animation pause
+both logos between appearances. Both numbers have their own reset arrow. Either logo can be disabled.
+Instructions appear over unused panel space;
+the logo has its own tooltip.
+
+Enable **Expand on double-click** in **Panel and previews** to open the compact
+panel by clicking **WindowPeek on the bar**. Double-click the bar label or empty
+panel space to expand or collapse it.
+With **Allow pinning compact panel** on, click outside or press Esc to close.
+With it off, the compact panel closes when the pointer leaves, including after collapse.
+Home, End, Page Up/Down, arrows and Enter work in the compact view too; Tab expands
+it for access to all controls.
+
 The **?** button controls hover hints. They start enabled and stop after 100
-displays across all monitors. Turn them back on yourself and they stay on until
+displays across all monitors. They show the remaining count and explain how to
+disable them with **?** in the expanded panel. In both compact and expanded views,
+each hovered element shows its own hint below the panel, one at a time. Empty
+space explains only how to expand or collapse the panel. Settings control hints
+stay beside the cursor.
+Turn them back on yourself and they stay on until
 you switch them off. Settings survive restarts, updates and reinstalls.
 
 ## Updates
@@ -136,6 +169,19 @@ existing bindings and Hyprland configuration files are left intact.
 Automatic updates contact GitHub and the Omarchy catalog. Check times and
 results are stored beside your preferences. There is no telemetry. WindowPeek
 runs inside Omarchy’s shell with your user permissions, without administrator access.
+
+## Known limitations
+
+Some tiled X11 applications repeatedly request a different window size. On affected
+Hyprland versions, this can redirect typing from Search to the window under the
+pointer. Giving the requesting window more room or making it floating may help.
+**Review options** offers optional typing protection and explains its scrolling
+trade-offs. See [Troubleshooting](docs/TROUBLESHOOTING.md).
+
+Version 0.7.2 fixes the reproduced low-refresh-rate resizing stutter, including
+with live previews and typing protection. A distinct animation update on every
+240 Hz refresh is not guaranteed. See [Known Issues](docs/KNOWN_ISSUES.md) for
+verified conditions and remaining limitations.
 
 ## Help and development
 

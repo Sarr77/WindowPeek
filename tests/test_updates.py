@@ -599,7 +599,7 @@ class UpdatesTest(unittest.TestCase):
         for name in [str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
                      if p.is_file() and not any(part in (".git", ".reference", "dist", "__pycache__")
                                                 for part in p.relative_to(ROOT).parts)
-                     and p.name not in ("AGENTS.md", "HANDOFF.md", "NEW_CHAT.txt", "install.py")]:
+                     and p.name not in ("AGENTS.md", "HANDOFF.md", "UX_AGREEMENTS.md", "NEW_CHAT.txt", "install.py")]:
             if not name:
                 continue
             source, destination = ROOT / name, self.remote / name
@@ -616,6 +616,7 @@ class UpdatesTest(unittest.TestCase):
         self.assertEqual(self.worker.run(now=1000 + updates.CHECK_INTERVAL), "updated")
         self.assertEqual(self.worker.git(self.worker.plugin, "rev-parse", "HEAD"), target)
         self.assertFalse((self.worker.plugin / "install.py").exists())
+        self.assertFalse((self.worker.plugin / "UX_AGREEMENTS.md").exists())
         for name in ("update.py", "Updates.qml", "manifest.json", "preview.png", "vendor/omarchy/LICENSE"):
             self.assertEqual((self.worker.plugin / name).read_bytes(), (ROOT / name).read_bytes())
         self.assertEqual(self.prefs.read_bytes(), self.saved)

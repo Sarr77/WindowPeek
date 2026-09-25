@@ -92,22 +92,22 @@ FocusScope {
             Column {
                 id: heading
                 width: parent.width; spacing: Style.space(3)
-                Text {
+                ReadableText {
                     width: parent.width
                     text: root.entry ? root.entry.title || root.entry.app : root.words.windowClosed
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    color: Color.popups.text
+                    textColor: Color.popups.text
                     font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
                 }
-                Text {
+                ReadableText {
                     width: parent.width
                     text: root.entry ? I18n.format(root.words.moveFrom, {workspace: I18n.workspaceTitle(root.entry.workspace.name, root.words)}) : ""
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    color: Qt.alpha(Color.popups.text, 0.65)
+                    textColor: Qt.alpha(Color.popups.text, 0.65)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
             }
-            Ui.TextField {
+            EditField {
                 id: search; objectName: "moveMenuSearch"
                 width: parent.width; accent: root.accent
                 placeholderText: root.words.moveTo
@@ -117,6 +117,7 @@ FocusScope {
             }
             ListView {
                 id: results; objectName: "moveMenuList"
+                WheelScroll { view: results; speed: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102 }
                 width: parent.width
                 height: Math.max(Style.space(32), Math.min(contentHeight, Style.space(216),
                     card.height - card.padding * 2 - y - footer.implicitHeight - layout.spacing
@@ -151,20 +152,20 @@ FocusScope {
                     Accessible.role: Accessible.MenuItem
                     Accessible.name: label.text
                     Accessible.onPressAction: root.select(modelData.value)
-                    Text {
+                    ReadableText {
                         id: label; anchors.left: parent.left; anchors.leftMargin: Style.space(8)
                         anchors.right: monitor.left; anchors.rightMargin: Style.space(6)
                         anchors.verticalCenter: parent.verticalCenter
                         text: I18n.workspaceTitle(row.modelData.name, root.words)
                         textFormat: Text.PlainText; elide: Text.ElideRight
-                        color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                        textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                     }
-                    Text {
+                    ReadableText {
                         id: monitor; anchors.right: parent.right; anchors.rightMargin: Style.space(8)
                         anchors.verticalCenter: parent.verticalCenter
                         width: Math.min(implicitWidth, parent.width * 0.3)
                         text: row.modelData.monitor; textFormat: Text.PlainText; elide: Text.ElideRight
-                        color: Qt.alpha(Color.popups.text, 0.55); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                        textColor: Qt.alpha(Color.popups.text, 0.55); font.family: Style.font.family; font.pixelSize: Style.font.caption
                     }
                     MouseArea {
                         id: mouse; anchors.fill: parent; hoverEnabled: true
@@ -172,17 +173,17 @@ FocusScope {
                         onClicked: root.select(row.modelData.value)
                     }
                 }
-                Text {
+                ReadableText {
                     anchors.centerIn: parent; visible: !results.count
-                    text: root.words.noMatches; color: Qt.alpha(Color.popups.text, 0.65)
+                    text: root.words.noMatches; textColor: Qt.alpha(Color.popups.text, 0.65)
                     font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
             }
-            Text {
+            ReadableText {
                 id: error; width: parent.width; visible: !!root.hostWidget && !!root.hostWidget.actionError
                 text: root.hostWidget ? root.words[root.hostWidget.actionError] || root.words.actionFailed : ""
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
             Column {
                 id: footer

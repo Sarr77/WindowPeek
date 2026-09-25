@@ -67,6 +67,7 @@ Item {
   // own keyCatcher so j/k inside the popup don't double-drive the panel
   // cursor.
   readonly property bool popupOpen: popup.opened
+  readonly property Item popupInputItem: popup.visible ? popup.background : null
   function open() { popup.open() }
   function close() { popup.close() }
   function toggle() { popup.visible ? popup.close() : popup.open() }
@@ -94,11 +95,11 @@ Item {
     anchors.fill: parent
     spacing: Style.spacing.labelGap
 
-    Text {
+    WindowPeek.ReadableText { shadowHost: root.hostWidget;
       textFormat: Text.PlainText
       visible: root.showLabel && root.label !== ""
       text: root.label
-      color: Qt.alpha(root.foreground, 0.8)
+      textColor: Qt.alpha(root.foreground, 0.8)
       font.family: root.fontFamily
       font.pixelSize: root.labelFontSize
       font.bold: true
@@ -134,7 +135,7 @@ Item {
         }
       }
 
-      Text {
+      WindowPeek.ReadableText { shadowHost: root.hostWidget;
         textFormat: Text.PlainText
         anchors.left: parent.left
         anchors.right: chevron.left
@@ -142,19 +143,19 @@ Item {
         anchors.leftMargin: trigger.borderLeft + Style.spacing.controlPaddingX
         anchors.rightMargin: trigger.borderRight + Style.spacing.md
         text: root.currentLabel()
-        color: root.foreground
+        textColor: root.foreground
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
         elide: Text.ElideRight
       }
 
-      Text {
+      WindowPeek.ReadableText { shadowHost: root.hostWidget;
         id: chevron
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: trigger.borderRight + Style.spacing.controlGap
         text: "󰅀"
-        color: Qt.darker(root.foreground, 1.2)
+        textColor: Qt.darker(root.foreground, 1.2)
         font.family: root.fontFamily
         font.pixelSize: Style.font.body
       }
@@ -208,7 +209,10 @@ Item {
         }
 
         contentItem: ListView {
+          readonly property var hostWidget: root.hostWidget
+          readonly property color readabilityBackground: popup.background.readabilityBackground
           id: optionList; objectName: "optionList"
+          WindowPeek.WheelScroll { view: optionList; speed: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102 }
           spacing: Style.spacing.labelGap
 
           Keys.priority: Keys.BeforeItem
@@ -254,7 +258,7 @@ Item {
               ? Style.hoverFillFor(root.foreground, root.accent)
               : "transparent"
 
-            Text {
+            WindowPeek.ReadableText { shadowHost: root.hostWidget;
               textFormat: Text.PlainText
               anchors.left: parent.left
               anchors.right: parent.right
@@ -262,7 +266,7 @@ Item {
               anchors.leftMargin: Style.spacing.controlPaddingX
               anchors.rightMargin: Style.spacing.controlPaddingX
               text: root.optionLabel(modelData)
-              color: index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
+              textColor: index === optionList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
               elide: Text.ElideRight
@@ -273,7 +277,10 @@ Item {
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onPositionChanged: optionList.currentIndex = parent.index
-              onClicked: optionList.selectCurrent()
+              onClicked: {
+                optionList.currentIndex = parent.index
+                optionList.selectCurrent()
+              }
             }
           }
         }

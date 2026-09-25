@@ -415,7 +415,15 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-capture-") as directory:
             state = status()
             assert state["parentVisible"] and state["mapped"] and state["content"] and state["promotionRetained"], "Promotion replaced the preview owner or capture"
             color([40,180,200])
-            print("PASS hover expansion retains the thumbnail owner and live capture", flush=True)
+            for compact in (True, False, True, False):
+                ipc("resizeCompact", "true" if compact else "false"); time.sleep(.3)
+            frames = json.loads(ipc("finishResizeTrace"))
+            assert len(frames) >= 5, "No animation frame evidence"
+            assert all(f["mapped"] and f["retained"] and f["shared"] for f in frames), "Resize replaced or hid shared live preview"
+            assert max(f["gapError"] for f in frames) <= 1.5, "Preview drifted from animated panel edge"
+            if not args.instant:
+                assert len({round(f["width"]) for f in frames}) >= 5, "Resize did not exercise intermediate widths"
+            print("PASS expand/collapse retains live capture and shared surface; preview gap stable in every sampled frame", flush=True)
             ipc("showSurface", "panel"); time.sleep(.2)
             # Capture must not summon the source workspace or select an inactive tab.
             for workspace in ("name:" + identity, "special:" + identity):

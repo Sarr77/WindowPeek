@@ -17,6 +17,92 @@ import "Shortcuts.js" as Shortcuts
 FocusScope {
     id: root
     property var hostWidget: null
+    property var recovery: null
+    property bool protectionPaused: false
+    property alias recoveryOpen: recoveryDialog.opened
+    property real reviewScrollY: 0
+    property real confirmationEditorScrollY: 0
+    property var troubleshootingReturn: ({mode:"windows", review:false, scroll:0})
+    onRecoveryOpenChanged: {
+        if (recoveryOpen && hostWidget && hostWidget.windowPreview) hostWidget.windowPreview.dismiss();
+        else if (!recoveryOpen) restoreSearchView(reviewScrollY);
+    }
+    function restoreSearchView(scroll) {
+        Qt.callLater(function() {
+            if (!root.opened || root.mode !== "windows" || root.recoveryOpen) return;
+            list.cancelFlick(); list.contentY = Math.max(0, Math.min(scroll, list.contentHeight - list.height));
+            search.forceActiveFocus();
+        });
+    }
+    function confirmPermanentProtection() {
+        confirmationEditorScrollY = editorScroll.contentY;
+        recoveryDialog.openPermanent();
+    }
+    function restoreAfterReview() {
+        if (mode === "windows") restoreSearchView(reviewScrollY);
+        else Qt.callLater(function() {
+            editorScroll.cancelFlick();
+            editorScroll.contentY = Math.max(0, Math.min(root.confirmationEditorScrollY, editorScroll.contentHeight-editorScroll.height));
+        });
+    }
+    function openRecovery(scroll) {
+        reviewScrollY = typeof scroll === "number" ? scroll : list.contentY;
+        recoveryDialog.open();
+    }
+    function rememberTroubleshootingOrigin() {
+        troubleshootingReturn = {mode:mode, review:recoveryOpen,
+            scroll: mode === "windows" ? (recoveryOpen ? reviewScrollY : list.contentY) : editorScroll.contentY};
+    }
+    readonly property bool recoveryOffered: !!recovery && !!recovery.offered && recovery.panel && recovery.panel.body === root
+    // Freeze presentation only. Recovery must still release keyboard ownership
+    // immediately; its teardown must not rewrite an already fading notice.
+    property var closingFocusNotice: null
+    readonly property var liveFocusNotice: {
+        var r = recovery;
+        if (!r) return {shown:false, text:"", label:"", attention:false};
+        var failed = r.protectionFailed === true;
+        var stopped = (recoveryOffered && r.offeringStopped === true) || r.sessionProtectionStopped === true;
+        var attention = failed || (!stopped && (recoveryOffered || r.suggested || r.interrupted));
+        var app = stopped ? (r.offered ? r.offered.app : "") : r.manualEnabled ? r.contextApp : r.protectionApp;
+        var appSuffix = app ? " (" + app.replace(/^.*\(([^()]*)\)$/, "$1") + ")" : "";
+        return {
+            shown: r.granted || stopped || attention,
+            text: failed ? (r.retrying ? r.copy.recoveryRetrying : r.copy.recoveryPaused) : stopped ? r.copy.disabled + appSuffix : recoveryOffered ? r.copy.notice : r.manualRequested ? r.copy.manualEnabled + appSuffix
+                : r.suggested ? r.copy.repeated : r.interrupted ? r.copy.notice
+                : (protectionPaused ? r.copy.paused : r.copy.enabled)
+                    + (r.granted ? appSuffix : ""),
+            label: failed ? r.copy.retry : attention ? r.copy.review : r.copy.options,
+            canDisable: r.manualEnabled === true || r.granted,
+            stopLabel: r.copy.stop,
+            attention: attention
+        };
+    }
+    readonly property var focusNotice: closingFocusNotice || liveFocusNotice
+    function disableProtection(done) {
+        if (!recovery) { if (done) done(false); return false; }
+        function stopped(ok) { if (ok) recovery.stop("user"); if (done) done(ok); }
+        if (recovery.manualEnabled) {
+            if (!hostWidget) { stopped(false); return false; }
+            return hostWidget.persistSettings({keepSearchFocus:false}, stopped);
+        }
+        stopped(true);
+        return true;
+    }
+    property real closingHeight: -1
+    property var closingExpanded: null
+    function prepareClose() {
+        if (!closingFocusNotice) closingFocusNotice = liveFocusNotice;
+        if (closingHeight < 0) closingHeight = implicitHeight;
+        if (closingExpanded === null) closingExpanded = expanded;
+        if (recoveryOpen) recoveryDialog.prepareClose();
+    }
+    function finishDismiss() {
+        recoveryOpen = false;
+        recoveryDialog.closingPresentation = null;
+        mode = "windows";
+        closingHeight = -1;
+        closingExpanded = null;
+    }
     property Item previewBoundsItem: root
     property real scrollbarGutter: Style.spacing.popupPadding
     property real maximumHeight: Infinity
@@ -27,24 +113,35 @@ FocusScope {
     property alias searchField: search
     // A preview popup can own the active window while the source keeps local
     // focus. Follow that control so typing and successive arrows stay together.
-    readonly property Item previewKeyTarget: !expanded ? root
-        : search.focus ? search : list.focusedAction || root
+    readonly property Item previewKeyTarget: search.focus ? search : list.focusedAction || root
     property string mode: "windows"
+    property bool settingsVisit: false
+    onModeChanged: {
+        if (mode === "windows" || mode === "move") settingsVisit = false;
+        else if (mode === "settings") settingsVisit = true;
+    }
+    onOpenedChanged: if (!opened) settingsVisit = false
     property string settingsReturnMode: ""
     property real settingsScrollY: 0
+    property real mainScrollY: 0
     property bool opened: false
     property bool expanded: true
+    property bool compactPinned: false
+    property bool barLabelHovered: false
     property real expansion: expanded ? 1 : 0
     property bool showHint: !!hostWidget && hostWidget.hints.enabled
+    property bool outerBackgroundHovered: false
+    property bool pointerInsidePanel: contentPointer.hovered
+    HoverHandler { id: contentPointer; blocking: false }
     property string orderAddress: ""
     readonly property bool controlHeld: shortcutModifiers.known && shortcutModifiers.controlDown
     readonly property bool quickSelection: quickSelectionTimer.running && shortcutsAvailable
     readonly property var shortcutModifierState: shortcutModifiers
     readonly property bool shortcutsAvailable: opened && mode === "windows" && !busy
-        && !confirmation.opened && !!hostWidget && !hostWidget.moveMenuOpen
+        && !confirmation.opened && !recoveryOpen && !!hostWidget && !hostWidget.moveMenuOpen
     readonly property var shortcutAddresses: list.shortcutAddresses
     readonly property bool interacting: list.interacting
-    readonly property bool backgroundToggleAllowed: opened && mode === "windows" && !busy && !interacting && !confirmation.opened
+    readonly property bool backgroundToggleAllowed: opened && mode === "windows" && !busy && !interacting && !confirmation.opened && !recoveryOpen
     readonly property real listContentHeight: list.contentHeight
     readonly property var preview: Preview.arrange(view, orderAddress)
     property alias contentY: list.contentY
@@ -62,10 +159,11 @@ FocusScope {
         && moveWindow.workspace.name !== "special:scratchpad" && !busy
     readonly property bool busy: hostWidget && hostWidget.actionBusy
     readonly property var shortcuts: Shortcuts.normalize(hostWidget ? hostWidget.shortcuts : {})
-    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels" || mode === "shortcuts"
+    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels" || mode === "shortcuts" || mode === "pictures" || mode === "troubleshooting"
+    readonly property bool hoverLogoEnabled: !!hostWidget && hostWidget.hoverLogo !== false
     readonly property real listChromeHeight: header.implicitHeight + list.anchors.topMargin
         + list.anchors.bottomMargin + footer.implicitHeight
-    implicitHeight: mode === "windows" ? listChromeHeight
+    implicitHeight: closingHeight >= 0 ? closingHeight : recoveryOpen ? Math.min(maximumHeight, recoveryDialog.implicitHeight) : mode === "windows" ? listChromeHeight
             + list.fittedHeight(Style.space(420), Math.max(0, maximumHeight - listChromeHeight), Style.space(44))
         : mode === "move" ? header.implicitHeight + Style.space(24) + footer.implicitHeight
             + Math.max(moveForm.implicitHeight, destinationPicker.popupOpen
@@ -77,10 +175,52 @@ FocusScope {
         : Style.space(540)
     signal closeRequested()
     signal backgroundClicked()
+    signal expandRequested()
+    MouseArea {
+        id: emptySpace; anchors.fill: parent; z: -1
+        hoverEnabled: true; acceptedButtons: Qt.NoButton
+        onWheel: function(wheel) { wheel.accepted = false; }
+    }
+    PanelHint {
+        objectName: "barLabelHint"
+        hostWidget: root.hostWidget
+        belowAnchor: true; anchorItem: root.previewBoundsItem
+        requested: root.opened && !root.recoveryOpen && root.barLabelHovered && !root.busy && !root.interacting
+            && !root.hostWidget.moveMenuOpen
+        text: root.mode !== "windows" ? root.words.closePanelHint
+            : root.hostWidget && root.hostWidget.doubleClickExpand
+                ? root.expanded ? root.words.closePanelHint + "\n" + root.words.collapsePanelHint
+                    : root.compactPinned ? root.words.unpinBarHint + "\n" + root.words.expandPanelHint
+                    : root.hostWidget.pinByTitleClick ? root.words.pinBarHint + "\n" + root.words.expandPanelHint
+                    : root.words.expandPanelHint
+                : root.expanded ? root.words.closePanelHint : root.words.openSearchHint
+    }
+    PanelHint {
+        objectName: "backgroundInstructions"
+        hostWidget: root.hostWidget
+        belowAnchor: true
+        anchorItem: root.previewBoundsItem
+        requested: root.opened && !root.recoveryOpen && root.mode === "windows" && !root.interacting
+            && root.pointerInsidePanel
+            && !root.busy && (root.hostWidget.openOnHover || root.hostWidget.doubleClickExpand)
+            && !root.hostWidget.moveMenuOpen && !hoverLogo.hovered && !list.rowHovered && !root.barLabelHovered
+            && !list.scrollbar.hovered && !(root.expanded && (settingsButton.hot || search.hovered
+                || hintsToggle.pointerHovered || updateSwitch.pointerHovered))
+            && (emptySpace.containsMouse || list.backgroundHovered || root.outerBackgroundHovered)
+        text: root.hostWidget && root.hostWidget.doubleClickExpand
+            ? (root.expanded ? root.words.collapsePanelHint : root.words.expandPanelHint)
+            : (root.expanded ? root.words.collapsePanelClickHint : root.words.expandPanelClickHint)
+    }
+    // Prepare once per shortcut/language change, outside the resize gesture.
+    readonly property var compactKeyBindings: Shortcuts.hoverBindings(root.shortcuts, root.rtl)
     ShortcutModifiers {
-        id: shortcutModifiers; active: root.shortcutsAvailable
+        id: shortcutModifiers
+        // An inactive compact panel must not consume the other app's navigation keys.
+        active: root.shortcutsAvailable && (root.expanded || root.Window.active)
         modifier: root.shortcuts.numbers
+        hoverBindings: !root.expanded ? root.compactKeyBindings : []
         onDigitPressed: function(digit) { root.activateWindowDigit(digit); }
+        onHoverActionPressed: function(action) { root.handleHoverAction(action); }
     }
     Timer { id: quickSelectionTimer; interval: 5000 }
     function startQuickSelection() { if (shortcutsAvailable && expanded) quickSelectionTimer.restart(); }
@@ -97,12 +237,14 @@ FocusScope {
         if (destination && !destinations.some(function(item) { return item.value === root.destination; })) destination = "";
     }
     function begin(takeFocus) {
+        finishDismiss();
         quickSelectionTimer.stop();
         if (takeFocus === undefined) takeFocus = true;
         opened = true;
         shortcutModifiers.reset();
         if (!takeFocus) { search.focus = false; focus = false; }
         mode = "windows"; search.text = ""; selectedAddress = "";
+        closingFocusNotice = null;
         var first = inventory.windows.find(function(window) { return window.active; });
         orderAddress = first ? first.address : "";
         list.cancelFlick(); list.positionViewAtBeginning();
@@ -126,6 +268,9 @@ FocusScope {
             search.text = "";
             list.positionViewAtBeginning();
         }
+        Qt.callLater(function() {
+            if (root.opened && !root.expanded && root.mode === "windows") search.forceActiveFocus();
+        });
     }
     function dismiss() {
         opened = false;
@@ -134,40 +279,75 @@ FocusScope {
         labelsEditor.closePickers();
         confirmation.opened = false;
         if (hostWidget) { hostWidget.cancelAppearance(); hostWidget.cancelLabels(); }
-        mode = "windows";
+        // Keep the current view until the enclosing surface has finished fading.
     }
     function showSettings() {
+        if (mode === "windows") mainScrollY = list.contentY;
         settingsReturnMode = ""; settingsScrollY = 0;
-        mode = "settings"; editorScroll.cancelFlick(); editorScroll.contentY = 0;
+        mode = "settings"; settingsVisit = true; editorScroll.cancelFlick(); editorScroll.contentY = 0;
         settingsContent.begin();
         Qt.callLater(function() { settingsContent.focusLanguage(); });
     }
-    function returnToSettings() {
+    function returnToSettings(focusReason) {
+        var restoreReason = typeof focusReason === "number" ? focusReason : settingsContent.editorFocusReason;
         mode = "settings";
         Qt.callLater(function() {
             editorColumn.forceLayout();
             editorScroll.cancelFlick();
             editorScroll.contentY = Math.min(settingsScrollY, Math.max(0, editorScroll.contentHeight - editorScroll.height));
-            if (settingsReturnMode) settingsContent.focusEditor(settingsReturnMode);
+            if (settingsReturnMode) settingsContent.focusEditor(settingsReturnMode, restoreReason);
             else settingsContent.focusLanguage();
         });
     }
-    function back() {
+    function showTroubleshooting() {
+        if (mode === "troubleshooting") return;
+        rememberTroubleshootingOrigin();
+        if (mode === "settings") { settingsReturnMode = "troubleshooting"; settingsScrollY = editorScroll.contentY; }
+        if (recovery) recovery.dismissSuggestion();
+        recoveryOpen = false;
+        if (!expanded) expandRequested();
+        mode = "troubleshooting";
+        editorScroll.cancelFlick(); editorScroll.contentY = 0;
+    }
+    function back(focusReason) {
         var returnToSettings = editing;
         if (editing && hostWidget) { hostWidget.cancelAppearance(); hostWidget.cancelLabels(); }
         appearance.closePickers(); destinationPicker.close(); settingsContent.closePickers();
         labelsEditor.closePickers();
-        if (returnToSettings) root.returnToSettings();
-        else { mode = "windows"; search.forceActiveFocus(); }
+        if (mode === "troubleshooting" && troubleshootingReturn.mode !== "settings") {
+            var previous = troubleshootingReturn;
+            mode = previous.mode;
+            if (previous.review) openRecovery(previous.scroll);
+            else if (mode === "windows") restoreSearchView(previous.scroll);
+            else editorScroll.contentY = previous.scroll;
+        } else if (returnToSettings) root.returnToSettings(focusReason);
+        else { mode = "windows"; restoreSearchView(mainScrollY); }
     }
-    function navigateBack() {
+    function findOpenPopup(item) {
+        if (!item || item.visible === false) return null;
+        if (item.activePopup) return findOpenPopup(item.activePopup.contentItem) || item.activePopup;
+        var children = item.children || [];
+        for (var i = children.length - 1; i >= 0; i--) {
+            var popup = findOpenPopup(children[i]);
+            if (popup) return popup;
+        }
+        return item.popupOpen === true && typeof item.close === "function" ? item : null;
+    }
+    readonly property var currentPopup: root.mode === "windows" ? null : findOpenPopup(root)
+    function navigateBack(position, focusReason) {
         if (confirmation.opened) confirmation.cancel();
+        else if (recoveryOpen) { if (recoveryDialog.choosingIgnore) recoveryDialog.activate("back"); else recoveryDialog.cancel(); }
+        else if (currentPopup) currentPopup.close();
+        else if (mode === "settings" && settingsContent.collapseSection()) return;
+        else if (mode === "appearance" && appearance.item && appearance.item.backWithinEditor()) return;
         else if (mode === "windows") closeRequested();
-        else back();
+        else back(typeof focusReason === "number" ? focusReason : Qt.MouseFocusReason);
     }
     function openMove(address) {
         if (!hostWidget || busy || !inventory.windows.some(function(window) { return window.address === address; })) return;
+        if (!expanded) expandRequested();
         if (hostWidget.windowPreview) hostWidget.windowPreview.dismiss();
+        if (mode === "windows") mainScrollY = list.contentY;
         moveAddress = address; destination = ""; hostWidget.clearError(); mode = "move";
         editorScroll.contentY = 0;
         Qt.callLater(function() { if (root.opened && root.mode === "move") destinationPicker.open(); });
@@ -234,6 +414,12 @@ FocusScope {
     }
     function handleListNavigation(event) {
         if (!shortcutsAvailable) return false;
+        if (!expanded) {
+            var action = Shortcuts.hoverActions(shortcuts, rtl).find(function(item) { return Shortcuts.matches(event, item.chord); });
+            if (!action) return false;
+            if (action.repeating || !event.isAutoRepeat) handleHoverAction(action.id);
+            event.accepted = true; return true;
+        }
         if (Shortcuts.matches(event, shortcuts.move)) {
             if (selectedAddress && !event.isAutoRepeat) openMove(selectedAddress);
             event.accepted = true; return true;
@@ -253,6 +439,25 @@ FocusScope {
         event.accepted = true;
         return true;
     }
+    function handleHoverAction(action) {
+        if (expanded || !shortcutsAvailable) return;
+        if (action === "previous" || action === "next") moveSelection(action === "next" ? 1 : -1);
+        else if (["pageup","pagedown","first","last"].indexOf(action) >= 0) {
+            var key = {pageup:Qt.Key_PageUp,pagedown:Qt.Key_PageDown,first:Qt.Key_Home,last:Qt.Key_End}[action];
+            var address = list.pageAddress(key);
+            if (address) selectedAddress = address;
+        } else if (action === "activate") activateWindow(selectedAddress, false);
+        else if (action === "dismiss") closeRequested();
+        else if (action === "move") openMove(selectedAddress);
+        else if (["windowside","moveside","forward","backward"].indexOf(action) >= 0) {
+            expandRequested();
+            Qt.callLater(function() {
+                if (!root.opened || !root.expanded || root.mode !== "windows") return;
+                if (action === "backward") search.forceActiveFocus(Qt.BacktabFocusReason);
+                else list.focusAction(root.selectedAddress, action === "moveside");
+            });
+        }
+    }
     function ensureVisible(item) {
         editorColumn.forceLayout();
         editorScroll.cancelFlick();
@@ -265,17 +470,20 @@ FocusScope {
         else if (top + item.height > next + viewport.height) next = top + item.height - viewport.height;
         viewport.contentY = Math.max(0, Math.min(next, Math.max(0, viewport.contentHeight - viewport.height)));
     }
-    Connections {
-        target: root.Window.window
-        function onActiveFocusItemChanged() {
-            var focused = root.Window.window ? root.Window.window.activeFocusItem : null;
-            for (var item = focused; item; item = item.parent) {
-                if (list.visible && item === list.contentItem) { root.reveal(focused, list); return; }
-                if (editorScroll.visible && item === editorScroll.contentItem) { root.reveal(focused, editorScroll); return; }
-            }
+    // Pointer re-entry reactivates the last control, often above the viewport.
+    // Reveal only after a keyboard event, never merely after window activation.
+    function revealKeyboardFocus() {
+        var focused = root.Window.window ? root.Window.window.activeFocusItem : null;
+        for (var item = focused; item; item = item.parent) {
+            if (list.visible && item === list.contentItem) { root.reveal(focused, list); return; }
+            if (editorScroll.visible && item === editorScroll.contentItem) { root.reveal(focused, editorScroll); return; }
         }
     }
-    Keys.onEscapePressed: function(event) { if (mode === "windows") closeRequested(); else back(); event.accepted = true; }
+    Keys.onShortcutOverride: function(event) {
+        Qt.callLater(root.revealKeyboardFocus);
+        event.accepted = false;
+    }
+    Keys.onEscapePressed: function(event) { navigateBack(null, Qt.TabFocusReason); event.accepted = true; }
     Keys.onPressed: function(event) {
         updateControl(event, true);
         if (!handleWindowShortcut(event)) handleListNavigation(event);
@@ -286,16 +494,20 @@ FocusScope {
     LayoutMirroring.childrenInherit: true
 
     Column {
-        id: header; objectName: "panelHeader"; width: parent.width; spacing: Style.space(10) * root.expansion
+        id: header; objectName: "panelHeader"; visible: !root.recoveryOpen; width: parent.width; spacing: Style.space(10) * root.expansion
         Item {
             width: parent.width; height: Style.space(29)
-            Text {
-                width: parent.width - Math.max(settingsButton.width, countBadge.width) - Style.space(8)
+            ReadableText {
+                id: panelTitle; objectName: "panelTitle"
+                width: Math.min(implicitWidth, parent.width - Math.max(settingsButton.width, countBadge.width) - Style.space(8))
                 text: root.mode === "windows" ? (root.hostWidget ? root.hostWidget.textTemplates.panelTitle : "WindowPeek")
+                    : root.mode === "troubleshooting" ? root.words.troubleshooting
+                    : root.mode === "pictures" ? root.words.picturesAndGifs
                     : root.mode === "move" ? root.words.moveTo : root.mode === "labels" ? I18n.words(root.hostWidget.language).labels : root.words.settings
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
+                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
                 anchors.verticalCenter: parent.verticalCenter
+
             }
             LabelButton {
                 id: settingsButton; objectName: "settingsButton"
@@ -304,7 +516,7 @@ FocusScope {
                 opacity: root.expansion; enabled: root.expanded
                 label: root.mode === "windows" ? root.words.settings : root.words.back
                 accent: root.accent; focusable: true
-                onClicked: root.mode === "windows" ? root.showSettings() : root.back()
+                onClicked: root.mode === "windows" ? root.showSettings() : root.back(activationFocusReason)
                 TextMetrics {
                     id: headerActionMetrics
                     text: settingsButton.text
@@ -319,13 +531,60 @@ FocusScope {
                 width: Math.min(countText.implicitWidth + Style.space(16), parent.width * 0.4)
                 height: Style.space(27); radius: Style.space(5)
                 color: Qt.alpha(root.accent, 0.09); opacity: 1 - root.expansion
-                Text {
-                    id: countText; anchors.centerIn: parent
+                ReadableText {
+                    id: countText; objectName: "windowCountText"; anchors.centerIn: parent
                     width: Math.min(implicitWidth, parent.width - Style.space(16)); elide: Text.ElideRight
                     text: root.hostWidget ? Labels.render(root.hostWidget.textTemplates.windowCount, {count: root.matches.length}) : String(root.matches.length)
-                    textFormat: Text.PlainText; color: root.accent
-                    font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    textFormat: Text.PlainText; textColor: root.accent
+                    font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; font.bold: true
                 }
+            }
+        }
+        Item {
+            id: protectionNotice
+            visible: root.mode === "windows" && root.focusNotice.shown
+            width: parent.width; height: visible ? Math.max(statusText.implicitHeight, recoveryButton.implicitHeight) + Style.space(8) : 0
+            ReadableText {
+                id: statusText; objectName: "focusProtectionStatus"; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                width: parent.width - recoveryButton.width - (protectionOff.visible ? protectionOff.width + Style.space(6) : 0) - Style.space(10)
+                text: root.focusNotice.text
+                textFormat: Text.PlainText; wrapMode: recoveryButton.needsAttention || root.protectionPaused ? Text.Wrap : Text.NoWrap
+                elide: Text.ElideRight; textColor: recoveryButton.needsAttention ? Color.popups.text : root.accent
+                font.bold: recoveryButton.needsAttention
+                font.family: Style.font.family; font.pixelSize: recoveryButton.needsAttention ? Style.font.body : Style.font.caption
+            }
+            LabelButton {
+                id: recoveryButton; objectName: "focusRecoveryNotice"
+                anchors.right: protectionOff.visible ? protectionOff.left : parent.right
+                anchors.rightMargin: protectionOff.visible ? Style.space(6) : 0; anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, parent.width * 0.4)
+                label: root.focusNotice.label
+                // Pending recovery should stand out before hover, independently
+                // of the theme's subtle normal-button border.
+                readonly property bool needsAttention: root.focusNotice.attention
+                readonly property color attentionColor: {
+                    var background = root.hostWidget ? root.hostWidget.surfaces.panel : Color.popups.background;
+                    return 0.2126 * background.r + 0.7152 * background.g + 0.0722 * background.b > 0.5
+                        ? "#98542a" : "#e8ad62";
+                }
+                accent: needsAttention ? attentionColor : root.accent
+                foreground: needsAttention ? attentionColor : Color.foreground
+                background: needsAttention ? Qt.alpha(attentionColor, 0.10) : "transparent"
+                bordered: true
+                borderSpec: needsAttention ? Border.flat(attentionColor, Style.space(2)) : _borderSpec
+                onClicked: {
+                    if (root.recovery.protectionFailed === true) root.recovery.retryProtection(true);
+                    else if (root.recoveryOffered || root.recovery.suggested || root.recovery.interrupted) root.openRecovery();
+                    else root.openRecovery();
+                }
+            }
+            LabelButton {
+                id: protectionOff; objectName: "turnOffFocusProtection"
+                anchors.right: parent.right; anchors.rightMargin: 0; anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, parent.width * 0.25)
+                visible: root.focusNotice.canDisable === true
+                label: root.focusNotice.stopLabel || ""; bordered: true; accent: root.accent
+                onClicked: root.disableProtection()
             }
         }
         Item {
@@ -333,13 +592,17 @@ FocusScope {
             height: search.implicitHeight * root.expansion
             visible: root.mode === "windows"
             clip: true
-            Ui.TextField {
+            EditField {
                 id: search; objectName: "windowSearch"
-                opacity: root.expansion; enabled: root.expanded; width: parent.width
+                blurOnOutsidePress: false
+                opacity: root.expansion; enabled: root.opened; width: parent.width
                 placeholderText: root.words.searchWindows; accent: root.accent
                 Accessible.name: root.words.searchWindows
                 onTextEdited: {
                     quickSelectionTimer.stop();
+                    // Use the real text input while compact, preserving the first
+                    // character, keyboard layout and fast typing through expansion.
+                    if (!root.expanded && root.shortcutsAvailable) root.expandRequested();
                     if (!root.matches.some(function(window) { return window.address === root.selectedAddress; }))
                         root.selectedAddress = root.matches.length ? root.matches[0].address : "";
                     list.cancelFlick(); list.positionViewAtBeginning();
@@ -361,7 +624,7 @@ FocusScope {
         scrollbarGutter: root.scrollbarGutter
         anchors.top: header.bottom; anchors.topMargin: Style.space(10)
         anchors.bottom: footer.top; anchors.bottomMargin: Style.space(12)
-        visible: root.mode === "windows" && root.matches.length > 0
+        visible: !root.recoveryOpen && root.mode === "windows" && root.matches.length > 0
         onFocusRequested: function(address) { root.activateWindow(address, false); }
         onBringRequested: function(address) { root.activateWindow(address, true); }
         onMoveRequested: function(address) { root.openMove(address); }
@@ -374,13 +637,13 @@ FocusScope {
         onBackgroundClicked: root.backgroundClicked()
     }
 
-    Text {
+    ReadableText {
         anchors.centerIn: list; width: root.width - Style.space(28)
-        visible: root.mode === "windows" && root.matches.length === 0
+        visible: !root.recoveryOpen && root.mode === "windows" && root.matches.length === 0
         text: root.inventory.status !== "ready" ? root.words.unavailable
             : root.inventory.windows.length ? root.words.noMatches : root.words.emptyWindows
         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter
-        color: Qt.alpha(Color.popups.text, 0.7); font.pixelSize: Style.font.body; font.family: Style.font.family
+        textColor: Qt.alpha(Color.popups.text, 0.7); font.pixelSize: Style.font.body; font.family: Style.font.family
     }
 
     Item {
@@ -388,7 +651,7 @@ FocusScope {
         z: 1
         x: editorScroll.x; y: editorScroll.y
         width: editorScroll.width; height: editorScroll.height
-        visible: root.mode === "settings"
+        visible: !root.recoveryOpen && root.mode === "settings" && !!root.hostWidget && root.hostWidget.settingsLogo
         clip: true
         // Keep the mark stationary; content covers it as sections expand or scroll.
         Item {
@@ -397,14 +660,22 @@ FocusScope {
             width: parent.width; height: Math.max(0, parent.height - y)
             visible: height > 0
             clip: true
-            Choice.OmarchyLogo {
+            PanelLogo {
                 objectName: "settingsOmarchyLogo"
+                sessionActive: root.settingsVisit && root.opened && !!root.hostWidget && root.hostWidget.settingsLogo
+                hintAnchor: root.previewBoundsItem
+                source: root.hostWidget ? root.hostWidget.settingsLogoImage : ""
+                loopAnimation: !root.hostWidget || root.hostWidget.settingsLogoLoop
+                loopDelay: root.hostWidget ? root.hostWidget.settingsLogoLoopDelay : 0
+                cooldownSlot: "settings"
+                cooldown: root.hostWidget ? root.hostWidget.settingsLogoCooldown : 0
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: settingsBranding.height - height - Style.space(48) - parent.y
+                visible: y + height > 0 && y < parent.height
                 width: Math.min(parent.width * 0.72, Style.space(324))
                 height: width * 285 / 1215
                 // Effects stay in the backdrop; its texture can show through the mark.
-                color: Qt.alpha(root.accent, 0.16)
+                hostWidget: root.hostWidget; accent: root.accent
             }
         }
     }
@@ -413,10 +684,15 @@ FocusScope {
         id: editorScroll; objectName: "editorScroll"
         anchors.top: header.bottom; anchors.topMargin: Style.space(12)
         anchors.bottom: footer.top; anchors.bottomMargin: Style.space(12)
-        width: parent.width; clip: true
-        visible: root.mode !== "windows"
+        // Keep hidden editors ready without relaying every resize frame through them.
+        property real preparedWidth: parent.width
+        width: visible ? parent.width : preparedWidth; clip: true
+        onWidthChanged: if (visible) preparedWidth = width
+        Component.onCompleted: preparedWidth = parent.width
+        visible: !root.recoveryOpen && root.mode !== "windows"
         contentHeight: editorColumn.implicitHeight
         boundsBehavior: Flickable.StopAtBounds
+        WheelScroll { view: editorScroll; speed: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102 }
         QQC.ScrollBar.vertical: ScrollHandle {
             parent: root
             visible: editorScroll.visible && size < 1 && policy !== QQC.ScrollBar.AlwaysOff
@@ -430,6 +706,7 @@ FocusScope {
                 visible: root.mode === "settings"; width: parent.width
                 hostWidget: root.hostWidget
                 onOpenEditor: function(mode) {
+                    if (mode === "troubleshooting") root.rememberTroubleshootingOrigin();
                     root.settingsReturnMode = mode;
                     root.settingsScrollY = editorScroll.contentY;
                     closePickers();
@@ -439,6 +716,17 @@ FocusScope {
                 }
                 onEnsureVisible: function(item) { root.ensureVisible(item); }
             }
+            TroubleshootingSettings {
+                objectName: "troubleshootingSettings"
+                onProtectionRequested: root.confirmPermanentProtection()
+                visible: root.mode === "troubleshooting"; width: parent.width
+                hostWidget: root.hostWidget
+            }
+            LogoSettings {
+                id: pictures; objectName: "logoSettings"
+                visible: root.mode === "pictures"; width: parent.width
+                hostWidget: root.hostWidget
+            }
             Loader {
                 id: appearance
                 width: parent.width
@@ -447,7 +735,7 @@ FocusScope {
                 function closePickers() { if (item && item.closePickers) item.closePickers(); }
                 sourceComponent: AppearanceEditor {
                     hostWidget: root.hostWidget
-                    onFinished: root.returnToSettings()
+                    onFinished: function(reason) { root.returnToSettings(reason); }
                     onEnsureVisible: function(item) { root.ensureVisible(item); }
                 }
             }
@@ -459,7 +747,7 @@ FocusScope {
                 function closePickers() { if (item && item.closePickers) item.closePickers(); }
                 sourceComponent: ScalingEditor {
                     hostWidget: root.hostWidget
-                    onFinished: root.returnToSettings()
+                    onFinished: function(reason) { root.returnToSettings(reason); }
                     onEnsureVisible: function(item) { root.ensureVisible(item); }
                 }
             }
@@ -471,7 +759,7 @@ FocusScope {
                 sourceComponent: ShortcutsEditor {
                     hostWidget: root.hostWidget
                     popupParent: root
-                    onFinished: root.returnToSettings()
+                    onFinished: function(reason) { root.returnToSettings(reason); }
                     onEnsureVisible: function(item) { root.ensureVisible(item); }
                 }
             }
@@ -484,26 +772,26 @@ FocusScope {
                 sourceComponent: LabelsEditor {
                     objectName: "labelsEditor"
                     hostWidget: root.hostWidget
-                    onFinished: root.returnToSettings()
+                    onFinished: function(reason) { root.returnToSettings(reason); }
                     onEnsureVisible: function(item) { root.ensureVisible(item); }
                 }
             }
             Column {
                 id: moveForm
                 width: parent.width; visible: root.mode === "move"; spacing: Style.space(12)
-                Text {
+                ReadableText {
                     width: parent.width; text: root.moveWindow ? root.moveWindow.app + "\n" + root.moveWindow.title : root.words.windowClosed
                     textFormat: Text.PlainText; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight
-                    color: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
-                Text {
+                ReadableText {
                     objectName: "moveSource"
                     readonly property var workspace: root.moveWindow ? root.moveWindow.workspace : null
                     width: parent.width
                     text: I18n.format(root.words.moveFrom, {workspace: I18n.workspaceTitle(workspace ? workspace.name : "", root.words)})
                         + (workspace && workspace.monitor ? " · " + workspace.monitor.name : "")
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    color: Qt.alpha(Color.popups.text, 0.7)
+                    textColor: Qt.alpha(Color.popups.text, 0.7)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 LabelButton {
@@ -532,40 +820,60 @@ FocusScope {
                     enabled: !!root.moveWindow && !!root.destination && !root.busy
                     onClicked: root.hostWidget.moveWindow(root.moveAddress, root.destination)
                 }
-                Text {
+                ReadableText {
                     width: parent.width; text: root.words.moveHint
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    color: Qt.alpha(Color.popups.text, 0.65); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    textColor: Qt.alpha(Color.popups.text, 0.65); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
             }
         }
     }
     Column {
-        id: footer; objectName: "panelFooter"; width: parent.width; anchors.bottom: parent.bottom; spacing: Style.space(9)
+        id: footer; objectName: "panelFooter"; visible: !root.recoveryOpen; width: parent.width; anchors.bottom: parent.bottom; spacing: Style.space(9)
         Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
-        Text {
+        ReadableText {
             width: parent.width; visible: !!root.hostWidget && (!!root.hostWidget.actionError || root.hostWidget.saveFailed)
             text: root.hostWidget && root.hostWidget.saveFailed ? root.words.settingsError
                 : root.hostWidget ? (root.words[root.hostWidget.actionError] || root.words.actionFailed) : ""
-            textFormat: Text.PlainText; wrapMode: Text.Wrap; color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+            textFormat: Text.PlainText; wrapMode: Text.Wrap; textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         Item {
             width: parent.width
-            height: Style.space(26) * root.expansion + (root.showHint ? hoverHint.implicitHeight : 0) * (1 - root.expansion)
-            Text {
-                id: hoverHint
-                width: parent.width; opacity: root.showHint ? 1 - root.expansion : 0
-                text: root.words.focusHint + "\n" + root.words.chooseMoveHint + "\n" + root.words.bringHint + "\n" + root.words.openSearchHint
-                textFormat: Text.PlainText; wrapMode: Text.Wrap
-                color: Qt.alpha(Color.popups.text, 0.6)
-                font.family: Style.font.family; font.pixelSize: Style.font.caption
+            id: footerContent
+            // Replace the search field and expanded footer with the mark, keeping
+            // the same list viewport without permanent help text.
+            readonly property real hoverHeight: root.hoverLogoEnabled
+                ? Math.max(Style.space(26 + 10) + search.implicitHeight, Style.space(68)) : 0
+            height: Style.space(26) * root.expansion + hoverHeight * (1 - root.expansion)
+            Item {
+                objectName: "hoverBranding"
+                y: 0
+                width: parent.width; height: Math.max(0, footerContent.hoverHeight - y)
+                visible: root.hoverLogoEnabled && root.mode === "windows" && root.expansion < 1
+                opacity: 1 - root.expansion
+                PanelLogo {
+                    id: hoverLogo
+                    objectName: "hoverOmarchyLogo"
+                    hintAnchor: root.previewBoundsItem
+                    source: root.hostWidget ? root.hostWidget.hoverLogoImage : ""
+                    loopAnimation: !root.hostWidget || root.hostWidget.hoverLogoLoop
+                    loopDelay: root.hostWidget ? root.hostWidget.hoverLogoLoopDelay : 0
+                    cooldownSlot: "hover"
+                    cooldown: root.hostWidget ? root.hostWidget.hoverLogoCooldown : 0
+                    anchors.centerIn: parent
+                    width: Math.max(0, Math.min(parent.width * 0.72, Style.space(324), (parent.height - Style.space(12)) * 1215 / 285))
+                    height: width * 285 / 1215
+                    hostWidget: root.hostWidget; accent: root.accent
+                }
             }
             Row {
                 objectName: "footerTools"
                 opacity: root.expansion; visible: root.expansion > 0; enabled: root.expanded
                 anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: Style.space(10)
                 HintsToggle {
+                    id: hintsToggle
                     objectName: "hintsToggle"; words: root.words; focusable: true; accent: root.accent
+                    hintAnchor: root.previewBoundsItem
                     hintsEnabled: root.hostWidget ? root.hostWidget.hints.enabled : true
                     automatic: root.hostWidget ? root.hostWidget.hints.mode === "auto" : true
                     remaining: root.hostWidget ? root.hostWidget.hints.remaining : Settings.hintLimit
@@ -579,7 +887,8 @@ FocusScope {
                         if (root.hostWidget.autoUpdates) confirmation.open(); else root.hostWidget.toggleUpdates();
                     }
                     PanelHint {
-                        hostWidget: root.hostWidget; alwaysAvailable: true; requested: updateSwitch.pointerHovered
+                        hostWidget: root.hostWidget; requested: updateSwitch.pointerHovered
+                        belowAnchor: true; anchorItem: root.previewBoundsItem
                         text: root.hostWidget && root.hostWidget.updatesAvailable ? root.words.autoUpdatesHint : root.words.updatesUnavailable
                     }
                 }
@@ -598,11 +907,37 @@ FocusScope {
     BackMouseArea {
         enabled: root.opened
         z: 5
-        onClicked: root.navigateBack()
+        onClicked: function(mouse) { root.navigateBack(Qt.point(mouse.x, mouse.y)); }
+    }
+    BackMouseArea {
+        objectName: "overlayBackPointer"
+        parent: root.QQC.Overlay.overlay
+        visible: enabled
+        enabled: root.opened && root.currentPopup !== null
+        // Handle outside right clicks before Qt closes a popup on press and
+        // lets the same release fall through to its parent settings page.
+        z: 1000003
+        onClicked: if (root.currentPopup) root.currentPopup.close()
     }
     UpdateConfirmation {
         id: confirmation; anchors.fill: parent; z: 10; words: root.words; rtl: root.rtl; accent: root.accent
         onCanceled: updateSwitch.forceActiveFocus()
         onConfirmed: { if (root.hostWidget) root.hostWidget.persistSettings({ autoUpdates: false }); updateSwitch.forceActiveFocus(); }
+    }
+    FocusRecoveryDialog {
+        id: recoveryDialog; objectName: "focusRecoveryDialog"; anchors.fill: parent; z: 20
+        onTroubleshootingRequested: root.showTroubleshooting()
+        onPermanentRequested: function(enabled) {
+            if (root.hostWidget) root.hostWidget.persistSettings({keepSearchFocus:enabled}, function(ok) {
+                if (ok) {
+                    if (root.recovery) root.recovery.dismissSuggestion();
+                    root.recoveryOpen = false;
+                    root.restoreAfterReview();
+                } else if (root.recovery) root.recovery.message = recoveryDialog.copy.saveFailed;
+            });
+        }
+        onDisableRequested: root.disableProtection(function(ok) { if (ok) root.recoveryOpen = false; })
+        recovery: root.recovery; rtl: root.rtl; accent: root.accent
+        onClosed: root.restoreAfterReview()
     }
 }

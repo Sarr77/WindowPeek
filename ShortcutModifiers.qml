@@ -2,10 +2,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import "ShortcutBindings.js" as Bindings
+import "HoverBindings.js" as HoverBindings
 import "Shortcuts.js" as Shortcuts
 
-// A passive list cannot receive Ctrl presses. Observe only while it is open,
-// including the initial state when Ctrl was held before the surface appeared.
+// Observe during focus acquisition and preview handoffs too, including the
+// initial state when Ctrl was held before the list surface appeared.
 QtObject {
     id: root
     property bool active: false
@@ -15,7 +16,9 @@ QtObject {
     property bool controlDown: false
     property string pending: ""
     property string bindingOwner: ""
+    property var hoverBindings: []
     signal digitPressed(int digit)
+    signal hoverActionPressed(string action)
     property int sequence: 0
     readonly property string identity: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2)
 
@@ -23,12 +26,19 @@ QtObject {
         if (!active || !enabled || !Hyprland.usingLua || pending) return;
         pending = identity + ":" + (++sequence);
         Hyprland.dispatch(Bindings.dispatch(Bindings.renew(bindingOwner)
+            + (hoverBindings.length ? HoverBindings.renew(bindingOwner) : "")
             + "hl.dispatch(hl.dsp.event('windowpeek-shortcut-control," + pending
             + ",' .. ((" + Shortcuts.modifierQuery(modifier) + ") and '1' or '0'))); "));
         deadline.restart();
     }
     function receive(name, data) {
         if (!active || name !== "custom") return;
+        var hoverPrefix = "windowpeek-hover-action," + bindingOwner + ",";
+        if (bindingOwner && data.indexOf(hoverPrefix) === 0) {
+            var action = data.slice(hoverPrefix.length);
+            if (hoverBindings.some(function(binding) { return binding.id === action; })) hoverActionPressed(action);
+            return;
+        }
         var digitPrefix = "windowpeek-shortcut-digit," + bindingOwner + ",";
         if (bindingOwner && data.indexOf(digitPrefix) === 0) {
             var digit = data.slice(digitPrefix.length);
@@ -54,19 +64,21 @@ QtObject {
         releaseBindings();
         if (active && enabled && Hyprland.usingLua) {
             bindingOwner = identity + ":" + (++sequence);
-            Hyprland.dispatch(Bindings.dispatch(Bindings.install(bindingOwner, Shortcuts.luaChord(modifier))));
+            Hyprland.dispatch(Bindings.dispatch(Bindings.install(bindingOwner, Shortcuts.luaChord(modifier))
+                + (hoverBindings.length ? HoverBindings.install(bindingOwner, hoverBindings) : "")));
         }
         refresh();
     }
     function releaseBindings() {
         if (bindingOwner && Hyprland.usingLua)
-            Hyprland.dispatch(Bindings.dispatch(Bindings.release(bindingOwner)));
+            Hyprland.dispatch(Bindings.dispatch(Bindings.release(bindingOwner) + HoverBindings.release(bindingOwner)));
         bindingOwner = "";
     }
     Component.onDestruction: releaseBindings()
     onActiveChanged: reset()
     onEnabledChanged: reset()
     onModifierChanged: reset()
+    onHoverBindingsChanged: reset()
     property Timer poll: Timer {
         interval: 50; repeat: true; running: root.active && root.enabled
         onTriggered: root.refresh()

@@ -77,9 +77,9 @@ Scope {
                 deadline.stop(); root.settled = true;
                 var value = Settings.backgroundTransparency(response.value, null);
                 // A manual adjustment, theme switch or the other monitor may have won.
-                if (value !== null && !Settings.wallpaperRule(root.hostWidget.effectiveSettings, requestedTheme).initialized)
+                if (value !== null && !Settings.wallpaperRule(root.hostWidget.requestedSettings, requestedTheme).initialized)
                     root.hostWidget.persistSettings(Settings.setWallpaperTransparency(
-                        root.hostWidget.effectiveSettings, requestedTheme, value, value));
+                        root.hostWidget.requestedSettings, requestedTheme, value, value));
             } catch (error) { deadline.stop(); root.settled = true; }
         }
     }

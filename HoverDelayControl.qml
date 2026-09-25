@@ -7,6 +7,7 @@ Column {
     id: root
     required property string label
     required property string helpText
+    property var hostWidget: null
     required property var words
     property int value: 400
     property color accent: Color.accent
@@ -31,14 +32,14 @@ Column {
         readonly property bool stacked: width < Style.space(360)
         height: stacked ? caption.implicitHeight + controls.height + Style.space(6)
             : Math.max(caption.implicitHeight, controls.height)
-        Text {
+        ReadableText {
             id: caption; objectName: "delayCaption"
             anchors.left: parent.left
             y: parent.stacked ? 0 : (parent.height - height) / 2
             width: parent.stacked ? parent.width : parent.width - controls.width - Style.space(12)
             text: root.label; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            color: Qt.alpha(Color.popups.text, 0.85)
+            textColor: Qt.alpha(Color.popups.text, 0.85)
             font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         Item {
@@ -53,14 +54,14 @@ Column {
                 // Numbers and +/- keep their conventional direction in every language.
                 LayoutMirroring.enabled: false
                 LayoutMirroring.childrenInherit: true
-                Ui.Button {
+                ReadableButton {
                     width: Style.space(34); height: Style.space(32); text: "−"; accent: root.accent; focusable: true
                     enabled: root.value > 0
                     Accessible.name: root.label + " −50 ms"
                     onClicked: root.choose(root.value - 50)
                     onActiveFocusChanged: if (activeFocus) root.ensureVisible()
                 }
-                Ui.TextField {
+                EditField {
                     id: field; objectName: "delayInput"
                     width: Style.space(64); height: Style.space(32); text: String(root.value)
                     maximumLength: 4
@@ -75,12 +76,12 @@ Column {
                         else root.commit();
                     }
                 }
-                Text {
-                    text: "ms"; color: Qt.alpha(Color.popups.text, 0.8)
+                ReadableText {
+                    text: "ms"; textColor: Qt.alpha(Color.popups.text, 0.8)
                     font.family: Style.font.family; font.pixelSize: Style.font.body
                     anchors.verticalCenter: parent.verticalCenter
                 }
-                Ui.Button {
+                ReadableButton {
                     width: Style.space(34); height: Style.space(32); text: "+"; accent: root.accent; focusable: true
                     enabled: root.value < 2000
                     Accessible.name: root.label + " +50 ms"
@@ -88,6 +89,7 @@ Column {
                     onActiveFocusChanged: if (activeFocus) root.ensureVisible()
                 }
                 ResetButton {
+                    hostWidget: root.hostWidget
                     words: root.words; valueText: "400 ms"; label: root.label; accent: root.accent
                     modified: root.value !== 400 || field.text !== "400"
                     onResetRequested: root.choose(400)
@@ -96,10 +98,10 @@ Column {
             }
         }
     }
-    Text {
+    ReadableText {
         width: parent.width
         text: root.helpText + " · " + I18n.format(root.words.defaultValue, {value: "400 ms"})
         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-        color: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+        textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
     }
 }

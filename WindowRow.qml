@@ -20,6 +20,7 @@ Item {
     property bool showShortcut: false
     readonly property bool shortcutAtRight: !!hostWidget && hostWidget.shortcutNumbersRight === true
     readonly property Item focusedAction: move.focus ? move : main.focus ? main : null
+    readonly property bool hovered: main.hovered || move.hovered
     readonly property var words: hostWidget.words
     readonly property color accent: hostWidget.accent
     signal focusRequested(string address)
@@ -106,17 +107,17 @@ Item {
             anchors.right: parent.right; anchors.rightMargin: Style.space(9)
             anchors.verticalCenter: parent.verticalCenter
             spacing: Style.space(2)
-            Text {
+            ReadableText {
                 width: parent.width
                 text: root.window.title || root.window.app || root.words.unnamed
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                color: Color.popups.text
+                textColor: Color.popups.text
                 font.family: Style.font.family; font.pixelSize: Style.font.body; font.bold: root.window.active
             }
             Item {
                 width: parent.width; height: appLabel.implicitHeight
                 readonly property bool mirrored: !root.shortcutAtRight && root.LayoutMirroring.enabled
-                Text {
+                ReadableText {
                     id: appLabel; objectName: "windowAppLabel"
                     x: parent.mirrored ? parent.width - width : 0
                     width: Math.min(appMetrics.advanceWidth, Math.max(0, parent.width
@@ -125,11 +126,11 @@ Item {
                     text: (root.window.app || root.words.unnamed)
                         + (root.window.grouped ? " · " + root.words.grouped : "")
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    color: Qt.alpha(Color.popups.text, 0.7)
+                    textColor: Qt.alpha(Color.popups.text, 0.7)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                     TextMetrics { id: appMetrics; text: appLabel.text; font: appLabel.font }
                 }
-                Text {
+                ReadableText {
                     id: shortcutLabel; objectName: "windowShortcutLabel"
                     x: root.shortcutAtRight ? parent.width - width
                         : parent.mirrored ? appLabel.x - width - Style.space(6)
@@ -138,17 +139,17 @@ Item {
                     horizontalAlignment: root.shortcutAtRight ? Text.AlignRight : Text.AlignLeft
                     visible: root.showShortcut && root.shortcutIndex >= 0
                     text: root.shortcutIndex < 0 ? "" : String((root.shortcutIndex + 1) % 10)
-                    textFormat: Text.PlainText; color: root.accent
+                    textFormat: Text.PlainText; textColor: root.accent
                     font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
                 }
-                Text {
+                ReadableText {
                     id: activeLabel; objectName: "activeWindowLabel"
                     x: root.shortcutAtRight && shortcutLabel.visible ? shortcutLabel.x - width - Style.space(6)
                         : parent.mirrored ? 0 : parent.width - width
                     width: Math.min(activeMetrics.advanceWidth, parent.width * 0.4)
                     visible: root.window.active
                     text: root.words.activeWindow; textFormat: Text.PlainText; elide: Text.ElideRight
-                    color: root.accent
+                    textColor: root.accent
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                     TextMetrics { id: activeMetrics; text: activeLabel.text; font: activeLabel.font }
                 }
@@ -162,8 +163,12 @@ Item {
             onActivated: function(address, modifiers, position) {
                 var action = Shortcuts.mouseAction(root.hostWidget.shortcuts, modifiers);
                 if (action === "bring") root.bringRequested(address);
-                else if (action === "move") root.hostWidget.chooseDestination(address,
-                    pointer.mapToItem(pointer.Window.window.contentItem, position.x, position.y));
+                else if (action === "move") {
+                    var point = pointer.mapToItem(pointer.Window.window.contentItem, position.x, position.y);
+                    var surface = pointer.QsWindow.window;
+                    if (surface && surface.overlayOffset) point = Qt.point(point.x + surface.overlayOffset.x, point.y + surface.overlayOffset.y);
+                    root.hostWidget.chooseDestination(address, point);
+                }
                 else root.focusRequested(address);
             }
         }
@@ -176,6 +181,8 @@ Item {
         PanelHint {
             objectName: "windowFocusHint"
             hostWidget: root.hostWidget
+            belowAnchor: true
+            anchorItem: root.previewBoundsItem
             requested: root.hintsAllowed && !root.busy && pointer.containsMouse
             text: root.words.focusHint + "\n" + root.words.chooseMoveHint + "\n" + root.words.bringHint
         }
@@ -203,11 +210,11 @@ Item {
         Keys.onReturnPressed: if (!root.busy) root.moveRequested(root.window.address)
         Keys.onEnterPressed: if (!root.busy) root.moveRequested(root.window.address)
         Keys.onSpacePressed: if (!root.busy) root.moveRequested(root.window.address)
-        Text {
+        ReadableText {
             id: moveLabel; anchors.centerIn: parent
             width: Math.min(implicitWidth, parent.width - Style.space(16)); elide: Text.ElideRight
             text: root.words.move; textFormat: Text.PlainText
-            color: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+            textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         MouseArea {
             id: movePointer; objectName: "windowMovePointer"; anchors.fill: parent; hoverEnabled: true; enabled: !root.busy
@@ -217,6 +224,10 @@ Item {
             onClicked: root.moveRequested(pressedAddress)
             onCanceled: pressedAddress = ""
         }
-        PanelHint { objectName: "windowMoveHint"; hostWidget: root.hostWidget; requested: root.hintsAllowed && movePointer.containsMouse; text: root.words.moveHint }
+        PanelHint {
+            objectName: "windowMoveHint"; hostWidget: root.hostWidget
+            belowAnchor: true; anchorItem: root.previewBoundsItem
+            requested: root.hintsAllowed && movePointer.containsMouse; text: root.words.moveHint
+        }
     }
 }

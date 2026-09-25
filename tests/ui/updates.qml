@@ -13,6 +13,14 @@ ShellRoot {
     property bool startupLaunch: false
     property var control: null
     property var confirmation: null
+    property bool waiting: false
+    TestCase { id: asyncWait; when:false }
+    function flush() {
+        waiting=true;
+        for (var i=0;host.runtime.preferences.saving && i<2000;i++) asyncWait.wait(1);
+        waiting=false;
+        check(!host.runtime.preferences.saving,"async save completed");
+    }
     function check(value, message) { if (!value) throw new Error(message); }
     function find(item, name) {
         if (item.objectName === name) return item;
@@ -70,13 +78,13 @@ ShellRoot {
             updates.lastCheck = today; updates.nextCheck = today+21600; updates.lastLaunch = 0;
             updates.startupPending = true; updates.check([quiet],today+60);
             check(test.launches === 4,"another startup the same day keeps the recorded deadline");
-            host.persistSettings({autoUpdates:false});
+            host.persistSettings({autoUpdates:false}); test.flush();
             updates.check([quiet], 200000);
             check(!updates.enabled && test.launches === 4, "saved opt-out blocks checks");
-            host.persistSettings({autoUpdates:"true"});
+            host.persistSettings({autoUpdates:"true"}); test.flush();
             updates.check([quiet], 200000);
             check(!updates.enabled && !host.autoUpdates && test.launches === 4, "invalid opt-in does not start a worker");
-            host.persistSettings({autoUpdates:true});
+            host.persistSettings({autoUpdates:true}); test.flush();
         } finally { updates.runtimeAvailable = false; }
     }
     QtObject {
@@ -100,7 +108,7 @@ ShellRoot {
     Timer {
         interval: 100; running: true; repeat: true
         onTriggered: {
-            if (!host.settingsReady || !host.runtime.updates.ready || !host.updatesAvailable) return;
+            if (test.waiting || host.runtime.preferences.saving || !host.settingsReady || !host.runtime.updates.ready || !host.updatesAvailable) return;
             try {
                 switch (test.step++) {
                 case 0:
@@ -121,18 +129,18 @@ ShellRoot {
                     test.check(!test.confirmation.visible && host.autoUpdates, "Escape cancels");
                     test.control.clicked(); test.confirmation.clicked();
                     test.check(host.autoUpdates, "Cancel keeps updates enabled");
-                    test.control.clicked(); test.find(panel, "confirmUpdateOff").clicked();
+                    test.control.clicked(); test.find(panel, "confirmUpdateOff").clicked(); test.flush();
                     test.check(!host.autoUpdates && !test.control.checked
                         && host.runtime.preferences.values.autoUpdates === false, "explicit confirmation is saved");
-                    test.control.clicked();
+                    test.control.clicked(); test.flush();
                     test.check(host.autoUpdates && test.control.checked, "enabling needs no confirmation");
                     // Another monitor may save an opt-out while the dialog is open.
-                    test.control.clicked(); host.persistSettings({autoUpdates:false});
-                    test.find(panel, "confirmUpdateOff").clicked();
+                    test.control.clicked(); host.persistSettings({autoUpdates:false}); test.flush();
+                    test.find(panel, "confirmUpdateOff").clicked(); test.flush();
                     test.check(!host.autoUpdates, "confirming an existing opt-out cannot toggle it back on");
-                    host.persistSettings({autoUpdates:true});
+                    host.persistSettings({autoUpdates:true}); test.flush();
                     host.runtime.preferences.readBlocked = true;
-                    test.control.clicked(); test.find(panel, "confirmUpdateOff").clicked();
+                    test.control.clicked(); test.find(panel, "confirmUpdateOff").clicked(); test.flush();
                     test.check(host.autoUpdates && test.control.checked, "failed save cannot confirm an unsaved opt-out");
                     host.runtime.preferences.readBlocked = false;
                     if (Quickshell.env("WINDOWPEEK_TEST_IMAGE"))

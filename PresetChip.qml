@@ -2,7 +2,7 @@ import QtQuick
 import qs.Ui as Ui
 import qs.Commons
 
-Ui.Button {
+ReadableButton {
   id: root
   required property string label
   required property color swatch
@@ -25,19 +25,19 @@ Ui.Button {
       color: root.swatch
       border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.2)
     }
-    Text {
+    ReadableText {
       width: Math.max(0, parent.width - Style.space(24) - hexLabel.width)
       text: root.label; textFormat: Text.PlainText
-      color: root.foreground
+      textColor: root.foreground
       font.pixelSize: Style.font.caption
       font.family: Style.font.family
       elide: Text.ElideRight
     }
-    Text {
+    ReadableText {
       id: hexLabel
       objectName: "presetHex"
       text: "· " + root.hexText
-      color: root.foreground
+      textColor: root.foreground
       font.pixelSize: Style.font.caption
       font.family: Style.font.family
     }

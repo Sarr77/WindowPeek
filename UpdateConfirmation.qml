@@ -53,21 +53,21 @@ FocusScope {
       spacing: Style.space(12)
       LayoutMirroring.enabled: root.rtl
       LayoutMirroring.childrenInherit: true
-      Text {
+      ReadableText {
         width: parent.width
         text: root.words.updatesOffQuestion
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: root.foreground
+        textColor: root.foreground
         font.pixelSize: Style.font.body
         font.bold: true
       }
-      Text {
+      ReadableText {
         width: parent.width
         text: root.words.updatesOffWarning
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: root.foreground
+        textColor: root.foreground
         font.pixelSize: Style.font.body
       }
       Grid {
@@ -77,7 +77,7 @@ FocusScope {
         columns: stacked ? 1 : 2
         columnSpacing: Style.space(10)
         rowSpacing: Style.space(8)
-        Ui.Button {
+        ReadableButton {
           id: cancelButton
           objectName: "cancelUpdateOff"
           width: actions.stacked ? actions.width : Math.max(implicitWidth,
@@ -87,7 +87,7 @@ FocusScope {
           hasCursor: root.selectedIndex === 0
           onClicked: root.cancel()
         }
-        Ui.Button {
+        ReadableButton {
           id: confirmButton
           objectName: "confirmUpdateOff"
           width: actions.stacked ? actions.width : actions.width - cancelButton.width - actions.columnSpacing

@@ -3,6 +3,33 @@
 Author: Sarr. Target: Omarchy with its native Quickshell shell and Hyprland.
 Plugin ID: `sarr.windowpeek`. Repository: `Sarr77/WindowPeek`.
 
+WindowPeek is a public marketplace plugin. Fixes must ship in the plugin and
+work for users installing it through the standard marketplace flow. A local
+compositor patch, a machine-specific configuration change or an altered launch
+command for another application can help diagnose a problem, but does not
+complete a WindowPeek fix. Use supported APIs and standard plugin dependencies;
+do not require users to replace or patch their compositor.
+
+A source-specific focus-recovery fallback must require evidence of an actual incident and the
+user's explicit consent after explaining the symptom, alternatives and input
+limitations. An application's presence or name is not evidence. Detection must
+remain passive and uncertain cases must leave input behavior unchanged. Approval
+belongs to the specific problematic window's lifetime. Protection runs only
+while using the panel, and ends automatically when that window closes, with a
+brief notification. A restarted application needs a new incident and approval.
+The notice must also suggest applicable alternatives, including different launch
+modes where documented. Detection or silence never authorizes activation. See the
+[recovery design and implementation status](FOCUS_RECOVERY.md).
+
+A separate **Keep search focus** option lives under **Settings → Controls →
+Troubleshooting**. It is off by default and requires a deliberate toggle after
+explaining the symptom, known causes and trade-offs. It protects each opened
+search/pinned compact panel, blocks outside mouse-wheel and touchpad scrolling,
+and releases on closure; Settings does not hold focus. It persists until switched
+off and does not depend on naming or detecting an application. Repeated unwanted
+losses may suggest this setting, never enable it automatically. Descriptions must
+not claim every focus problem is external merely because focus was lost.
+
 ## Purpose
 
 Help a person find an application window and switch to it without remembering
@@ -40,16 +67,56 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   Ctrl+1–9/0 focuses that window or group tab, with 0 selecting the tenth visible
   row. Numbering follows the viewport while scrolling and filtering. Workspace
   headings do not count.
-  Support Ctrl held before opening either view. Hover takes keyboard focus for
-  the shortcuts only while Ctrl is held and returns it on release without expanding.
+  Support Ctrl held before opening either view. Ordinary compact browsing follows
+  the user's mouse-focus policy; hovering it again permits typing without a click.
+  Releasing Ctrl keeps it compact, while typing expands into Search and retains
+  keyboard focus outside the panel, including after clearing the query.
+  Explicitly enabled protection keeps its separately explained behavior.
   Offer a saved switch in Window list to align numbers at the right of the second
   line, moving Active to their left. Keep the app/tab position as the default.
   Keep the window's current monitor and close the panel.
   Left or middle clicks on unused panel space expand the hover view or return
   the window list to hover. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
-- Allow disabling the hover panel. In click-only mode, the bar and shortcut open
-  the full panel, and background clicks cannot collapse it.
+- With Wallpaper selected, offer a small opt-in Follow bar style switch beside
+  the default label. Use Solid with an opaque bar and Wallpaper with a transparent
+  bar; preserve the saved choice and appearance, and update all popup surfaces.
+- Show a switchable, theme-colored Omarchy logo below the hover list by default.
+  Reserve the expanded search/footer height for it. Allow independent compact
+  and Settings choices: static Omarchy, theme-colored pixel glint, or local image
+  including GIF. Preserve legacy shared images until each choice is edited.
+  Each logo has its own visibility switch and mini Loop animation on/off switch,
+  with a constant label. Put an independent Delay loop input on the same line;
+  accept whole/fractional seconds, default 4.2 to preserve the original pixel pause.
+  Zero adds no delay; disabled looping preserves the configured delay.
+  Play once holds the GIF's final frame. Settings starts a new playback visit
+  on entry; returning from its submenus resumes that visit without restarting
+  the logo or charging cooldown again. Hidden animations pause during the visit;
+  leaving Settings ends it. A new visit respects cooldown. Other logo openings
+  retain their independent playback behavior. Show supported
+  formats beside the selectors and in the chooser: animated GIF, static PNG,
+  JPEG, WebP and SVG. Allow browsing folders or pasting a full local file path.
+  Give window rows and logos their own contextual hints in both panel modes;
+  unused panel space describes only its current expand/collapse gesture.
+  Preserve the 100-display automatic budget.
+  On collapse, retain the old pointer footprint until the pointer reaches the
+  smaller card or leaves the old area, including when the logo is disabled.
+- Home/End, Page Up/Down, arrows and Enter work in hover with the saved bindings.
+  Tab and side arrows expand to expose controls; Shift+Enter opens the Move form.
+  Typing in hover expands the panel and immediately searches the entered text;
+  saved shortcuts keep priority. Expanded search retains keyboard focus even
+  when the pointer is outside. Closing returns the keyboard to the application.
+  This remains the intended behavior; Hyprland 0.56.2 has a documented
+  [X11 resize exception](GUIDE.md#x11-applications-interrupting-search).
+- Allow disabling the hover panel. Keep single-click expansion as the default.
+  Opt-in double-click expansion opens the compact panel by clicking its bar label, including
+  when hover is disabled. Outside click/Esc closes it; double-click on the label
+  or unused panel space expands or collapses it. A single click on unused panel
+  space does not pin it. Its hint describes the action for the current view.
+- Offer Allow pinning compact panel (default on) in Panel and previews. With it
+  off, bar clicks and collapse produce a passive compact panel which closes on
+  pointer exit. Double-click still expands. The bar name has contextual help
+  below the open panel. The inner panel title has no separate pin action.
 - Include special workspaces, including the scratchpad, with a setting to hide them.
 - Keep the familiar ScratchPeek appearance: compact panels, application icons,
   configurable colors, scaling, translations and durable settings.
@@ -83,7 +150,7 @@ Mark the active window and grouped tabs clearly.
   Clicking the preview focuses that window; Ctrl+Shift+click brings it here, just as
   on the row. Leaving both surfaces closes the preview after a short delay.
   The preview title wraps to two lines, with an ellipsis for longer text.
-  Click instructions appear as row hover hints in search when hints are enabled;
+  Click instructions appear as contextual row hints in both panel modes when enabled;
   the preview card contains no instruction footer.
 - Holding Shift temporarily suppresses window-content previews in both lists.
   It hides an existing preview and releases capture, except while the pointer
@@ -96,6 +163,8 @@ Mark the active window and grouped tabs clearly.
   including one under the pointer, and stops capture and Shift-state observation.
   Turning them back on restores the normal hover delay and Shift behavior.
   Row hints and actions keep their own behavior.
+- Mouse-wheel speed is adjustable from 50% to 300% in 1% steps, initially 102%, with a reset.
+  It applies to lists, settings and dropdowns while retaining native touchpad gestures.
 - Separate bar-hover and window-preview delays accept 0–2000 ms, both defaulting
   to 400 ms. Zero opens without a dwell timer. Popup animations are on by default;
   turning them off removes fades and the click-to-expand transition. Rounded
@@ -137,7 +206,8 @@ icons and titles, grouped by workspace with monitor names. Put the active
 window and its workspace first. Include every window and workspace allowed by
 the current preferences. Keep the panel height bounded and scroll the list
 with the mouse wheel or scrollbar. Clicking a row closes the hover and switches
-to that exact window or group tab; clicking the bar expands it into search.
+to that exact window or group tab; clicking the bar expands it into search by
+default (or pins it when double-click expansion is enabled).
 Keep the opening active window first for that session, without rearranging rows
 when focus changes.
 Ctrl+Shift+click has the same bring-and-focus behavior as the search panel.
@@ -147,9 +217,9 @@ search. It fits the screen at the chosen scale and stays readable when the
 pointer moves onto it. The transparent gap between the bar and the adjoining
 panel edge also retains hover, including while the pointer is stationary there.
 Returning to the WindowPeek label retains the same panel immediately, without
-fading or restarting the opening delay. It takes keyboard focus only while Ctrl
-is held or when expanded. Opening
-another bar popup dismisses it. Hint limits affect only the help footer;
+fading or restarting the opening delay. Hover, pinned compact and expanded lists
+receive keyboard input; typing expands compact views into search. Opening
+another bar popup dismisses it. Hint limits affect only instructional tooltips;
 window information remains available when hints are off. Refreshing inventory
 preserves scroll position, and dragging the scrollbar keeps the popup open.
 
@@ -201,6 +271,12 @@ Carry over these established design decisions where they fit WindowPeek:
 - A small help control at the left of the footer, with its own explanation
   always available. Automatic hints use the first 100 displayed hovers, shared
   across monitors and persisted; manually enabled hints stay on until disabled.
+  Place hints for window actions, logos, background gestures and footer controls
+  at the panel bottom in both modes, within the screen, one at a time. Settings
+  control hints stay beside the cursor. Automatic hints show remaining displays
+  and say they can be disabled with ? in the expanded panel; manually enabled
+  hints have no status footer. Apply the same switch and budget to logo,
+  reset, shortcut and update hints.
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
 - The installed version beside `by Sarr` at the other end of the expanded footer.
@@ -229,3 +305,15 @@ opens a stationary recorder with a mouse alternative and immediate conflict
 feedback. Save the complete draft with Apply; Cancel and Back discard it. Offer
 per-action reset and whole-draft defaults. Saved choices apply to both lists,
 previews and all monitors, independently of appearance themes.
+
+- Both logo slots expose independent loop-delay and cooldown values with reset.
+  Cooldown accepts seconds/minutes and skips reopening animations during the saved
+  interval without extending it; default zero keeps playback on every appearance.
+- Right-click closes the current popup/editor or expanded Settings section before
+  leaving Settings. Pointer exit hides background help; wheel input outside the
+  card belongs to the underlying application.
+
+Logo preferences live in Personalization → Pictures and Gifs. Optional shared
+cooldown applies one interval to both animations while preserving the separate
+saved values. Pointer exit/re-entry must preserve the current scroll position in
+every panel; keyboard navigation may scroll to reveal the target control.

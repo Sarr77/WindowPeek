@@ -170,3 +170,129 @@ ${bindings.install('alt:2','ALT')}
 assert(keys['ALT + 1'].enabled)
 `});
 });
+
+const hover = vm.createContext({});
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../HoverBindings.js'), 'utf8'), hover);
+test('passive hover leases follow remapping and RTL without capturing text or stealing numpad digits', () => {
+    const defaults = vocabulary.hoverBindings({},false);
+    for (const chord of ['HOME','END','PRIOR','NEXT','UP','DOWN','RETURN','KP_ENTER','ESCAPE','TAB','SHIFT + TAB'])
+        assert.ok(defaults.some(a=>a.chord===chord), chord);
+    assert.ok(!defaults.some(a=>/^[A-Z0-9]$/.test(a.chord)));
+    const custom = vocabulary.hoverBindings({first:'Ctrl+Home',next:'Alt+J'},false);
+    assert.ok(custom.some(a=>a.chord==='CTRL + HOME' && a.id==='first'));
+    assert.ok(custom.some(a=>a.chord==='ALT + J' && a.id==='next'));
+    assert.ok(!custom.some(a=>a.chord==='CTRL + KP_HOME' || a.chord==='DOWN'));
+    assert.equal(vocabulary.hoverBindings({},true).find(a=>a.id==='moveside').chord,'LEFT');
+    for (const action of [{id:"bad'",chord:'HOME'},{id:'first',chord:"HOME');bad()"}])
+        assert.throws(()=>hover.install('owner:1',[action]));
+    execFileSync('lua',['-'],{encoding:'utf8',input:`
+local keys,events={},{}
+hl={dsp={event=function(v) return v end}}
+function hl.dispatch(v) table.insert(events,v) end
+function hl.bind(chord,callback,flags)
+  assert(flags.auto_consuming and not flags.locked)
+  assert(not keys[chord], 'existing handles should be reused')
+  local b={callback=callback,enabled=true,repeating=flags.repeating}
+  function b:set_enabled(v) self.enabled=v end
+  keys[chord]=b; return b
+end
+function hl.timer(callback,options)
+  assert(options.timeout==750)
+  local t={callback=callback}
+  function t:set_enabled(v) self.enabled=v end
+  function t:set_timeout(v) self.enabled=true end
+  return t
+end
+${hover.install('first:1',defaults)}
+assert(keys.DOWN.repeating and not keys.RETURN.repeating)
+keys.HOME.callback(); assert(events[#events]=='windowpeek-hover-action,first:1,first')
+${hover.release('old:1')}
+assert(keys.HOME.enabled)
+${hover.install('second:1',custom)}
+assert(not keys.HOME.enabled and not keys.DOWN.enabled)
+${hover.release('first:1')}
+${hover.renew('first:1')}
+assert(keys['ALT + J'].enabled)
+keys['ALT + J'].callback(); assert(events[#events]=='windowpeek-hover-action,second:1,next')
+_windowpeek_hover_keys_v1.timer.callback()
+for _,b in pairs(keys) do assert(not b.enabled) end
+assert(keys.END.callback().ok==false)
+${hover.renew('second:1')}
+assert(keys.END.enabled and not keys.HOME.enabled)
+${hover.release('second:1')}
+for _,b in pairs(keys) do assert(not b.enabled) end
+`});
+});
+
+const outside = vm.createContext({});
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../OutsideClicks.js'), 'utf8'), outside);
+test('outside clicks pass through, expire and preserve a newer panel owner', () => {
+    execFileSync('lua', ['-'], {encoding:'utf8', input:`
+local keys,events={},{}
+hl={dsp={event=function(v)return v end,cursor={move=function(p)assert(p.x==-100 and p.y==250);return 'refreshed' end}}, get_cursor_pos=function()return {x=-100,y=250} end}
+function hl.dispatch(v)table.insert(events,v)end
+function hl.bind(key,callback,flags)
+ assert(flags.non_consuming and flags.ignore_mods and not flags.locked and not flags.auto_consuming)
+ assert(not keys[key]);local b={enabled=true,callback=callback}
+ function b:set_enabled(v)self.enabled=v end;keys[key]=b;return b
+end
+function hl.timer(callback,options)
+ assert(options.timeout==750);local t={callback=callback}
+ function t:set_enabled(v)self.enabled=v end
+ function t:set_timeout(v)assert(v==750);self.enabled=true end;return t
+end
+${outside.install('first:1')}
+keys['mouse:272'].callback();assert(events[1]=='windowpeek-outside-click,first:1,-100,250')
+${outside.install('second:2')}
+${outside.release('first:1')}
+${outside.renew('first:1')}
+keys['mouse:273'].callback();assert(events[2]=='windowpeek-outside-click,second:2,-100,250')
+_windowpeek_outside_clicks_v1.timer.callback()
+for _,b in pairs(keys)do assert(not b.enabled);b.callback()end
+assert(#events==2)
+${outside.renew('second:2')}
+for _,b in pairs(keys)do assert(b.enabled)end
+keys.mouse_down.callback();assert(events[3]=='refreshed')
+${outside.release('second:2')}
+for _,b in pairs(keys)do assert(not b.enabled)end
+`});
+    for (const value of ['', "x';bad", null, 2])
+        for (const method of ['install','renew','release']) assert.throws(() => outside[method](value));
+});
+
+test('expired Hyprland handles are never dereferenced and are recreated on reinstall', () => {
+    for (const [api, initial, replacement] of [
+        [bindings, ['old:1'], ['new:2']],
+        [opener, ['old:1'], ['new:2']],
+        [outside, ['old:1'], ['new:2']],
+        [hover, ['old:1', vocabulary.hoverBindings({}, false)], ['new:2', vocabulary.hoverBindings({}, false)]]
+    ]) {
+        execFileSync('lua', ['-'], {encoding:'utf8', input:`
+local handles,timers,created={},{},0
+hl={dsp={event=function(v) return v end}}
+function hl.dispatch() end
+function hl.bind(key,callback,flags)
+  created=created+1
+  local b=setmetatable({enabled=true,expired=false},{__tostring=function(b)
+    return b.expired and 'HL.Keybind(expired)' or 'HL.Keybind(live)'
+  end})
+  function b:set_enabled(v) assert(not self.expired,'expired handle dereferenced'); self.enabled=v end
+  table.insert(handles,b); return b
+end
+function hl.timer(callback,options)
+  local t={callback=callback}; function t:set_enabled(v) end; function t:set_timeout(v) end
+  table.insert(timers,t); return t
+end
+${api.install(...initial)}
+local count=created
+for _,b in ipairs(handles) do b.expired=true end
+${api.renew('old:1')}
+${api.release('old:1')}
+for _,t in ipairs(timers) do t.callback() end
+${api.install(...replacement)}
+assert(created==count*2,'expired cached handles must be replaced')
+${api.release('new:2')}
+for _,b in ipairs(handles) do if not b.expired then assert(not b.enabled) end end
+`});
+    }
+});

@@ -11,7 +11,10 @@ Column {
     readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
     readonly property var saved: hostWidget ? hostWidget.savedAppearance : Appearance.normalize({})
     readonly property var colorRule: Appearance.ruleFor(saved, hostWidget ? hostWidget.themeId : "")
+    readonly property string selectedPanelStyle: hostWidget ? hostWidget.selectedPanelStyle : "wallpaper"
     spacing: Style.space(16)
+    property int editorFocusReason: Qt.MouseFocusReason
+    property var sectionHistory: []
     signal openEditor(string mode)
     signal ensureVisible(var item)
 
@@ -21,8 +24,11 @@ Column {
         listSection.expanded = false;
         personalizationSection.expanded = false;
         controlsSection.expanded = false;
+        sectionHistory = [];
     }
     function sectionToggled(section) {
+        sectionHistory = sectionHistory.filter(function(item) { return item !== section; })
+            .concat(section.expanded ? [section] : []);
         closePickers();
         Qt.callLater(function() {
             section.forceLayout(); root.forceLayout();
@@ -30,13 +36,31 @@ Column {
         });
     }
     function focusLanguage() { languages.focusTrigger(); }
-    function focusEditor(mode) {
-        if (mode === "shortcuts") { controlsSection.expanded = true; shortcutsEntry.forceActiveFocus(Qt.TabFocusReason); return; }
-        personalizationSection.expanded = true;
-        var target = mode === "appearance" ? colors : mode === "scaling" ? scaling : labels;
-        target.forceActiveFocus(Qt.TabFocusReason);
+    function collapseSection() {
+        var section = sectionHistory.slice().reverse().find(function(item) { return item.expanded; });
+        if (!section) return false;
+        section.expanded = false;
+        return true;
     }
-    function closePickers() { languages.close(); density.close(); barLabels.close(); panelStyle.close(); }
+    function edit(mode, source) {
+        editorFocusReason = source.activationFocusReason;
+        openEditor(mode);
+    }
+    function focusEditor(mode, reason) {
+        if (typeof reason !== "number") reason = editorFocusReason;
+        if (mode === "shortcuts" || mode === "troubleshooting") {
+            controlsSection.expanded = true;
+            var control = mode === "shortcuts" ? shortcutsEntry : troubleshootingEntry;
+            control.forceActiveFocus(reason);
+            if (reason === Qt.TabFocusReason || reason === Qt.BacktabFocusReason) ensureVisible(control);
+            return;
+        }
+        personalizationSection.expanded = true;
+        var target = mode === "pictures" ? pictures : mode === "appearance" ? colors : mode === "scaling" ? scaling : labels;
+        target.forceActiveFocus(reason);
+        if (reason === Qt.TabFocusReason || reason === Qt.BacktabFocusReason) ensureVisible(target);
+    }
+    function closePickers() { languages.close(); density.close(); barLabels.close(); panelStyle.close(); textShadow.close(); }
 
     Choice.SearchableDropdown {
         id: languages; objectName: "languages"
@@ -53,6 +77,7 @@ Column {
         }
     }
     DefaultValue {
+        hostWidget: root.hostWidget
         objectName: "languageDefault"
         width: parent.width; words: root.words; valueText: root.words.automatic; showReset: false
     }
@@ -70,6 +95,7 @@ Column {
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({openOnHover: !checked})
         }
         HoverDelayControl {
+            hostWidget: root.hostWidget
             id: panelDelay; objectName: "panelHoverDelayControl"
             anchors.right: parent.right
             width: parent.width - Style.space(16)
@@ -79,6 +105,21 @@ Column {
             value: root.hostWidget ? root.hostWidget.panelHoverDelay : 400
             onChanged: function(value) { if (root.hostWidget) root.hostWidget.persistSettings({panelHoverDelay: value}); }
             onEnsureVisible: root.ensureVisible(panelDelay)
+        }
+        SettingsRow {
+            objectName: "doubleClickExpandToggle"
+            width: parent.width; text: root.words.doubleClickExpand
+            description: root.words.doubleClickExpandHelp
+            palette: root.hostWidget ? root.hostWidget.surfaces : null; accent: root.accent
+            isSwitch: true; checked: !!root.hostWidget && root.hostWidget.doubleClickExpand
+            onClicked: if (root.hostWidget) root.hostWidget.persistSettings({doubleClickExpand: !checked})
+        }
+        SettingsRow {
+            objectName: "pinByTitleClickToggle"
+            width: parent.width; text: root.words.pinByTitleClick
+            palette: root.hostWidget ? root.hostWidget.surfaces : null; accent: root.accent
+            isSwitch: true; checked: !!root.hostWidget && root.hostWidget.pinByTitleClick
+            onClicked: if (root.hostWidget) root.hostWidget.persistSettings({pinByTitleClick: !checked})
         }
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
@@ -105,6 +146,7 @@ Column {
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({previewFit: !checked})
         }
         HoverDelayControl {
+            hostWidget: root.hostWidget
             id: previewDelay; objectName: "previewHoverDelayControl"
             anchors.right: parent.right
             width: parent.width - Style.space(16)
@@ -151,6 +193,7 @@ Column {
             }
         }
         DefaultValue {
+            hostWidget: root.hostWidget
             objectName: "densityDefault"
             width: parent.width; words: root.words; valueText: root.words.spacious; showReset: false
         }
@@ -161,6 +204,20 @@ Column {
             description: root.words.enabledByDefault
             isSwitch: true; checked: !!root.hostWidget && root.hostWidget.scrollBounce
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({scrollBounce: !checked})
+        }
+        StyleValueControl {
+            hostWidget: root.hostWidget
+            id: wheelSpeed; objectName: "wheelScrollSpeedControl"
+            width: parent.width; words: root.words; label: root.words.wheelScrollSpeed
+            accent: root.accent; from: 50; to: 300; stepSize: 1; defaultValue: 102
+            value: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102
+            onChanged: function(value) { if (root.hostWidget) root.hostWidget.persistSettings({wheelScrollSpeed: value}); }
+            onResetRequested: if (root.hostWidget) root.hostWidget.persistSettings({wheelScrollSpeed: 102})
+            onEnsureVisible: root.ensureVisible(wheelSpeed)
+        }
+        DefaultValue {
+            hostWidget: root.hostWidget
+            width: parent.width; words: root.words; valueText: "102%"; showReset: false
         }
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
@@ -182,23 +239,40 @@ Column {
             width: parent.width; label: root.words.panelBackground; accent: root.accent
             rowHeight: Style.space(36); popupRowHeight: Style.space(36); labelFontSize: Style.font.body
             uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
-            value: root.hostWidget ? root.hostWidget.panelStyle : "wallpaper"
+            value: root.selectedPanelStyle
             options: [{value: "solid", label: root.words.solidPanel}, {value: "wallpaper", label: root.words.wallpaperPanel},
                 {value: "glass", label: root.words.glassPanel}]
             onChanged: function(value) {
                 if (root.hostWidget) root.hostWidget.persistSettings({panelStyle: value});
-                panelStyle.value = Qt.binding(function() { return root.hostWidget ? root.hostWidget.panelStyle : "wallpaper"; });
+                panelStyle.value = Qt.binding(function() { return root.selectedPanelStyle; });
             }
         }
-        DefaultValue {
-            objectName: "panelStyleDefault"
-            width: parent.width; words: root.words; valueText: root.words.wallpaperPanel; showReset: false
+        Item {
+            width: parent.width
+            height: Math.max(panelStyleDefault.implicitHeight, followBar.visible ? followBar.implicitHeight : 0)
+            DefaultValue {
+                hostWidget: root.hostWidget
+                id: panelStyleDefault; objectName: "panelStyleDefault"
+                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                width: parent.width - (followBar.visible ? followBar.width + Style.space(12) : 0)
+                words: root.words; valueText: root.words.wallpaperPanel; showReset: false
+            }
+            UpdateSwitch {
+                id: followBar; objectName: "followBarStyleToggle"
+                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, parent.width * 0.56)
+                text: root.words.followBarStyle; accent: root.accent
+                visible: root.selectedPanelStyle === "wallpaper"
+                checked: !!root.hostWidget && root.hostWidget.followBarStyle
+                onClicked: if (root.hostWidget) root.hostWidget.persistSettings({followBarStyle: !checked})
+            }
         }
         TransparencyControl {
+            hostWidget: root.hostWidget
             id: transparency; objectName: "backgroundTransparencyControl"
-            width: parent.width; visible: !!root.hostWidget && root.hostWidget.glassPanels
+            width: parent.width; visible: !!root.hostWidget && root.selectedPanelStyle !== "solid"
             words: root.words; accent: root.accent
-            readonly property bool wallpaper: !!root.hostWidget && root.hostWidget.panelStyle === "wallpaper"
+            readonly property bool wallpaper: !!root.hostWidget && root.selectedPanelStyle === "wallpaper"
             enabled: !wallpaper || !!root.hostWidget.themeId
             defaultValue: wallpaper && root.hostWidget ? root.hostWidget.wallpaperTransparencyDefault : 8
             value: root.hostWidget ? (wallpaper ? root.hostWidget.wallpaperTransparency : root.hostWidget.glassTransparency) : defaultValue
@@ -209,19 +283,19 @@ Column {
             }
             onEnsureVisible: root.ensureVisible(transparency)
         }
-        Text {
+        ReadableText {
             width: parent.width
             visible: transparency.visible && transparency.wallpaper
             text: I18n.format(root.words.colorThisTheme, {theme: root.hostWidget ? root.hostWidget.themeId.replace(/(^|-)([a-z])/g,
                 function(_, dash, c) { return (dash ? " " : "") + c.toUpperCase(); }) : ""})
             textFormat: Text.PlainText; wrapMode: Text.Wrap
-            color: Qt.alpha(Color.popups.text, 0.7)
+            textColor: Qt.alpha(Color.popups.text, 0.7)
             font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
             objectName: "wallpaperBlurToggle"
-            width: parent.width; visible: !!root.hostWidget && root.hostWidget.panelStyle === "wallpaper"
+            width: parent.width; visible: !!root.hostWidget && root.selectedPanelStyle === "wallpaper"
             text: root.words.wallpaperBlur; accent: root.accent; isSwitch: true
             checked: !!root.hostWidget && root.hostWidget.backgroundBlur
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({backgroundBlur: !checked})
@@ -229,10 +303,31 @@ Column {
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
             objectName: "backgroundTextureToggle"
-            width: parent.width; visible: !!root.hostWidget && root.hostWidget.glassPanels
+            width: parent.width; visible: !!root.hostWidget && root.selectedPanelStyle !== "solid"
             text: root.words.backgroundTexture; accent: root.accent; isSwitch: true
             checked: !!root.hostWidget && root.hostWidget.backgroundTexture
             onClicked: if (root.hostWidget) root.hostWidget.persistSettings({backgroundTexture: !checked})
+        }
+        Choice.Dropdown {
+            id: textShadow; objectName: "textShadowPicker"
+            hostWidget: root.hostWidget
+            width: parent.width; label: root.words.textShadow; accent: root.accent
+            rowHeight: Style.space(36); popupRowHeight: Style.space(36); labelFontSize: Style.font.body
+            uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
+            value: root.hostWidget ? root.hostWidget.textShadowMode : "auto"
+            options: [{value:"auto", label:root.words.automatic},
+                {value:"on", label:root.words.textShadowOn}, {value:"off", label:root.words.textShadowOff}]
+            onChanged: function(value) {
+                if (root.hostWidget) root.hostWidget.persistSettings({textShadowMode:value});
+                textShadow.value = Qt.binding(function() { return root.hostWidget ? root.hostWidget.textShadowMode : "auto"; });
+            }
+        }
+        SettingsRow {
+            id: pictures; objectName: "openPicturesButton"
+            palette: root.hostWidget ? root.hostWidget.surfaces : null
+            bordered: true; width: parent.width
+            text: root.words.picturesAndGifs; accent: root.accent
+            onClicked: root.edit("pictures", pictures)
         }
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
@@ -242,7 +337,7 @@ Column {
             description: root.colorRule.mode === "adaptive" ? root.words.colorAdaptive
                 : root.colorRule.mode === "theme" ? root.words.colorTheme
                 : root.words.customLabels + " · " + root.colorRule.color
-            onClicked: root.openEditor("appearance")
+            onClicked: root.edit("appearance", colors)
         }
         SettingsRow {
             palette: root.hostWidget ? root.hostWidget.surfaces : null
@@ -250,7 +345,7 @@ Column {
             bordered: true
             width: parent.width; text: root.words.scaling; accent: root.accent
             description: I18n.format(root.words.scaleSummary, {panel: Math.round(root.saved.uiScale * 100), bar: Math.round(root.saved.barScale * 100)})
-            onClicked: root.openEditor("scaling")
+            onClicked: root.edit("scaling", scaling)
         }
         Choice.Dropdown {
             id: barLabels; objectName: "barLabelPicker"
@@ -266,6 +361,7 @@ Column {
             }
         }
         DefaultValue {
+            hostWidget: root.hostWidget
             objectName: "barLabelDefault"
             width: parent.width; words: root.words; valueText: "WindowPeek · 6"; showReset: false
         }
@@ -274,7 +370,7 @@ Column {
             id: labels; objectName: "openLabelsButton"
             width: parent.width; text: root.words.labels; accent: root.accent
             description: root.hostWidget && root.hostWidget.savedLabels.labelStyle === "custom" ? root.words.customLabels : root.words.defaultLabels
-            onClicked: root.openEditor("labels")
+            onClicked: root.edit("labels", labels)
         }
     }
     SettingsSection {
@@ -288,9 +384,17 @@ Column {
             width: parent.width; text: root.words.shortcutsTitle
             description: root.words.shortcutsSummary
             accent: root.accent; bordered: true
-            onClicked: root.openEditor("shortcuts")
+            onClicked: root.edit("shortcuts", shortcutsEntry)
+        }
+        SettingsRow {
+            id: troubleshootingEntry; objectName: "troubleshootingEntry"
+            width: parent.width; text: root.words.troubleshooting
+            description: root.words.troubleshootingSummary
+            accent: root.accent; bordered: true
+            onClicked: root.edit("troubleshooting", troubleshootingEntry)
         }
         ControlsHelp {
+            doubleClickExpand: !!root.hostWidget && root.hostWidget.doubleClickExpand
             shortcuts: root.hostWidget ? root.hostWidget.shortcuts : {}
             objectName: "controlsHelp"
             width: parent.width; language: root.hostWidget ? root.hostWidget.language : "en"

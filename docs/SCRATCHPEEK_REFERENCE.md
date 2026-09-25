@@ -27,7 +27,7 @@ adapted from that version to WindowPeek's runtime, identifiers and paths.
 | `Preferences.qml` | Atomic durable settings independent of bar layout |
 | `Appearance.js`, `AppearanceEditor.qml`, `ScalingEditor.qml` | Colors, collapsed presets, saved-color restoration and scaling |
 | `LabelsEditor.qml`, label helpers in `Model.js` | Plain-text templates, shared live preview, Apply/Cancel and translated fallbacks; adapted to WindowPeek's field groups |
-| `HintsToggle.qml`, `PanelHint.qml` | Shared hint budget and always-available help control; WindowPeek uses 200 displays |
+| `HintsToggle.qml`, `PanelHint.qml` | Shared hint budget and always-available help control; WindowPeek uses 100 automatic displays |
 | `UpdateSwitch.qml`, `UpdateConfirmation.qml`, `Updates.qml`, `update.py` | Subtle update controls and daily release handling; replace every product-specific identifier |
 | `I18n.js` | Locale selection and all 30 language catalogs |
 | `tests/`, `tools/`, `docs/TESTING.md` | Focus/group cases, live checks, isolated profiles and known validation limits |
