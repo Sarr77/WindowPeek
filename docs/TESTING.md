@@ -1232,6 +1232,14 @@ is enabled. Keep timing benchmarks separate from functional tests: running other
 CPU-heavy fixtures concurrently can distort CPU and frame measurements.
 
 
+`readability-stability` checks that the first visible colors, shadows and input
+placeholder mode remain unchanged while real delayed wallpaper sampling and worker
+replies finish. It covers warm reopening, Follow bar style transparency changes,
+a new theme/crop and immediate manual On/Off. Run at scales 1 and 2; `--image`
+saves first/settled fictional text for pixel comparison. The fixture renders before
+sampling completes, so a fix cannot pass by waiting for the worker before showing text.
+`bar-compact-native` also checks the production widget's presentation lifetime.
+
 `readability-opening` opens two independent panel owners with a real delayed
 wallpaper sampler. It checks that secondary text never reverts to dim ink while
 the first crop is pending, including cached reopen after worker shutdown and a

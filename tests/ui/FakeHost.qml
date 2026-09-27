@@ -35,6 +35,7 @@ QtObject {
     readonly property bool doubleClickExpand: setting("doubleClickExpand", false) === true
     readonly property bool pinByTitleClick: setting("pinByTitleClick", true) === true
     readonly property string textShadowMode: setting("textShadowMode", "auto")
+    property bool textPresentationActive: false
     property var textShadowSamples: []
     property Plugin.TextReadabilityService textReadability: Plugin.TextReadabilityService { hostWidget: fake }
     property string textShadowSampleKey: ""

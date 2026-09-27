@@ -15,6 +15,10 @@ QtObject {
     property var roles: ({})
     property var answers: ({})
     property var pending: ({})
+    // A worker reply may improve the next opening, but must not replace ink
+    // or a glyph shadow that is already being displayed (including fade-out).
+    readonly property bool presentationActive: hostWidget.textPresentationActive === true
+    property var painted: ({})
     property int batches: 0
     property int lastWorkerMs: 0
     readonly property string wallpaperSource: String(hostWidget.wallpaperSource || "")
@@ -24,6 +28,11 @@ QtObject {
         && (hostWidget.wallpaperPending === true || wallpaperSource!=="")
         && wallpaperSamples.length===0
     property string answerWallpaperSource: ""
+    property string answerPaintContext: ""
+    readonly property string paintContext: JSON.stringify([hostWidget.textShadowMode,
+        hostWidget.panelStyle, hostWidget.themeId, hostWidget.wallpaperTransparency,
+        hostWidget.glassTransparency, plain(hostWidget.surfaces.panel),
+        hostWidget.surfaces.wallpaperBrightness || 0])
     readonly property var context: ({
         textShadowMode:hostWidget.textShadowMode,
         panelStyle:hostWidget.panelStyle,
@@ -58,7 +67,9 @@ QtObject {
             roles[key]=job; pending[key]=job;
             Qt.callLater(root.submit);
         }
-        if(!awaitingWallpaperSamples && answers[key]) return selected==="on" && !answers[key].active
+        if(presentationActive && painted[key]) return painted[key];
+        var answer;
+        if(!awaitingWallpaperSamples && answers[key]) answer = selected==="on" && !answers[key].active
             ? {active:true,ink:answers[key].ink} : answers[key];
         // Missing wallpaper samples are not evidence of a solid dark tint.
         // Keep this legible first paint until a real crop has been analysed;
@@ -67,13 +78,22 @@ QtObject {
         // scan here, and never use this fallback as the settled contrast result.
         var translucent=hostWidget.panelStyle!=="solid";
         var lightness=Readability.luminance(color);
-        return {active:selected==="on" || translucent,
+        if(!answer) answer = {active:selected==="on" || translucent,
             ink:translucent ? (lightness>=0.4 || lightness<=0.06 ? {r:color.r,g:color.g,b:color.b,a:1} : plain(theme)) : color};
+        if(presentationActive && Object.keys(painted).length<512) painted[key]=answer;
+        return answer;
     }
+    function notifyPaint() { revision++; }
+    function releasePaint() { painted={}; Qt.callLater(root.notifyPaint); }
+    onPresentationActiveChanged: releasePaint()
+    // Explicit theme/appearance changes still apply immediately. Sample
+    // arrival, crop movement and worker completion are not appearance edits.
+    onPaintContextChanged: releasePaint()
     onContextChanged: {
         epoch++;
-        if(context.wallpaperSource!==answerWallpaperSource) {
+        if(context.wallpaperSource!==answerWallpaperSource || paintContext!==answerPaintContext) {
             answers={}; answerWallpaperSource=context.wallpaperSource;
+            answerPaintContext=paintContext;
         }
         // Retain settled ink during refresh, but do not keep processing roles
         // from old themes, discarded previews or continuous color-picker drags.
@@ -130,7 +150,7 @@ QtObject {
                         root.answers[key]=next; changed=true;
                     }
                 }
-                if(changed) root.revision++;
+                if(changed && !root.presentationActive) root.revision++;
             }
             if(Object.keys(root.pending).length) Qt.callLater(root.submit);
             else idle.restart();

@@ -2,6 +2,10 @@
 
 ## 0.7.2
 
+- Keep text colors and glyph shadows stable from the first opening while wallpaper
+  analysis finishes in the background. Apply cached results on the next opening
+  without delaying hover or click; explicit appearance changes still apply immediately.
+
 - Smooth expansion and collapse with or without live preview and typing
   protection. Share one render surface, keep the protected viewport stable and
   synchronize resizing with rendered frames, including rapid reversals.

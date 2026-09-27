@@ -67,7 +67,9 @@ ShellRoot {
             }
         }
     }
-    Component.onCompleted: { Color.shellValues={};Color.background="#1a1b26";Color.foreground="#a9b1d6"; }
+    Component.onCompleted: {
+        Color.colorsFile.path=""; Color.shellFile.path=""; Color.userShellFile.path="";
+        Color.shellValues={};Color.background="#1a1b26";Color.foreground="#a9b1d6"; }
     Timer { interval:30;running:true;repeat:true;onTriggered:test.frame() }
     Timer {
         interval:80;running:true;repeat:true

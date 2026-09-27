@@ -119,6 +119,8 @@ ShellRoot {
                     break;
                 case 2:
                     test.check(widget.opened && test.panel.compactPinned,"compact remains open without pointer hover");
+                    test.check(widget.textPresentationActive && Object.keys(widget.textReadability.painted).length > 0,
+                        "production hover pins its first text decisions while analysis completes");
                     test.expansionFrames=0;
                     test.check(events.mouseDoubleClickSequence(widget,widget.width/2,widget.height/2,Qt.LeftButton,Qt.NoModifier,20),"real Qt double-click sequence delivered");break;
                 case 3:

@@ -62,6 +62,8 @@ BarWidget {
     // Legacy key retained so the broader pinning option preserves saved choices.
     readonly property bool pinByTitleClick: preference("pinByTitleClick", true) === true
     readonly property string textShadowMode: Readability.mode(preference("textShadowMode", "auto"))
+    readonly property bool textPresentationActive: opened || hoverOpened
+        || (!!panelLoader.item && panelLoader.item.mapped) || thumbnail.visible
     property TextReadabilityService textReadability: TextReadabilityService { hostWidget: root }
     property var textShadowSamples: []
     property string textShadowSampleKey: ""

@@ -1033,8 +1033,13 @@ This avoids the WorkerScript teardown crash reproduced with Qt 6.11.2 and
 Quickshell 0.3.1. The Python policy is checked against the JS rendering policy.
 The UI never scans wallpaper samples for each label. Requests are coalesced into
 batches of at most 64 roles, with a bounded role cache; context generations reject
-obsolete replies. Existing ink stays stable while new results arrive, and only
-changed decisions invalidate label bindings. An inexpensive first-use fallback
+obsolete replies. A bounded presentation cache holds each displayed color role
+from opening through fade-out, including previews and compact/expanded transitions.
+Worker replies populate the next opening's cache without invalidating visible text.
+The cache is released only after the last surface disappears; explicit theme,
+background-style and readability settings start a new presentation immediately.
+Settled answers are also invalidated when their appearance context changes.
+An inexpensive first-use fallback
 keeps the panel ready before a result exists. When the wallpaper is pending or
 has no matching sample yet, that fallback remains in use: missing samples are
 not evaluated as a solid panel tint. A source change invalidates old sample

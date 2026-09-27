@@ -1,7 +1,7 @@
 # Known Issues
 
-The remaining limitations are listed first. The lower-refresh-rate resizing and
-wallpaper readability problems are [fixed in 0.7.2](#fixed-in-072).
+The remaining limitations are listed first. Lower-refresh-rate resizing and
+first-opening text instability are [fixed in 0.7.2](#fixed-in-072).
 For short, practical guidance, see [Troubleshooting](TROUBLESHOOTING.md).
 
 ## Typing is redirected when another application requests a window resize
@@ -196,7 +196,7 @@ stale results are discarded.
 
 ### Text briefly darkens on the first panel opening
 
-**Status:** Fixed
+**Status:** Fixed in 0.7.2
 
 On a wallpaper background, secondary text could briefly dim on each monitor's
 first opening, then recover when wallpaper samples arrived. Missing samples were
@@ -204,5 +204,13 @@ incorrectly treated as the plain panel tint. The fix keeps readable initial text
 until the actual wallpaper is analysed asynchronously. Samples from another
 wallpaper cannot replace it. Text shadow → Off still restores the original text.
 
-Regressions cover cold opening, cached reopening, wallpaper changes and
-100%/200% interface scale.
+The initial fix still allowed a late contrast result to change glyph shadows
+or colors after text was visible. This was noticeable on a cold opening, with a
+new theme, or after enabling a transparent bar with Follow bar style. The completed fix
+keeps the first displayed decision through that opening and fade-out. Analysis
+prepares subsequent openings in the background; it does not delay showing the panel.
+Explicit appearance edits, including Text shadow On/Off, still apply immediately.
+
+Regressions cover cold opening, cached reopening, wallpaper and bar transparency
+changes, input placeholders and 100%/200% interface scale. Frame checks compare
+color and shadow style, not just whether text is opaque.
