@@ -46,12 +46,11 @@ Item {
       popup.implicitHeight, Style.spacing.xxs, Style.space(8));
   }
   onUiScaleChanged: if (popup.visible) Qt.callLater(updatePlacement)
-  // Quickshell's window initially has a placeholder size before it maps.
-  Connections {
-    target: root.Window.window
-    function onWidthChanged() { if (popup.visible) root.updatePlacement(); }
-    function onHeightChanged() { if (popup.visible) root.updatePlacement(); }
-  }
+  // Follow the real size after Quickshell maps its initially detached content.
+  // Rebinding Connections here can crash Qt 6.11 in connectSignalsToMethods.
+  readonly property size placementWindowSize: root.Window.window
+    ? Qt.size(root.Window.window.width, root.Window.window.height) : Qt.size(0, 0)
+  onPlacementWindowSizeChanged: if (popup.visible) Qt.callLater(updatePlacement)
 
   property string label: ""
   property string value: ""

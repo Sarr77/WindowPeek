@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.6
+
+- Work around a Quickshell crash when hovering over WindowPeek by changing how
+  dropdowns track their window size. Keep open menus fitted when the window resizes.
+
 ## 0.7.5
 
 - Use Tab to enter or leave the window list in one step. Arrows select windows

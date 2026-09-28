@@ -222,6 +222,29 @@ ShellRoot {
                     events.mouseClick(target,target.width/2,target.height/2,Qt.LeftButton,Qt.NoModifier,0);break;
                 case 24:
                     test.check(plain.value==="2" && !plain.popupOpen,"click selects its own row independently of hover state");
+                    plain.options=test.options(20); test.click(); break;
+                case 25:
+                    test.check(test.picker.popupOpen,"menu stays open before resizing");
+                    window.width=340*test.scale; window.height=260*test.scale; break;
+                case 26:
+                    test.check(test.picker.popupOpen,"resizing does not dismiss the menu");
+                    var surface=test.picker.popupInputItem;
+                    var bounds=surface.mapToItem(window.contentItem,0,0,surface.width,surface.height);
+                    test.check(bounds.x>=0 && bounds.y>=0
+                        && bounds.x+bounds.width<=window.width+.5
+                        && bounds.y+bounds.height<=window.height+.5,
+                        "open menu refits when its window shrinks");
+                    test.previousY=surface.height;
+                    window.width=520*test.scale; window.height=600*test.scale; break;
+                case 27:
+                    test.check(test.picker.popupInputItem.height>test.previousY,
+                        "open menu recovers its height when the window grows");
+                    events.keyClick(Qt.Key_Escape,Qt.NoModifier,0); break;
+                case 28:
+                    test.check(!test.picker.popupOpen,"Escape still closes the resized menu");
+                    if(test.kind===0) {
+                        test.kind=1; test.click(); test.step=25; break;
+                    }
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }
