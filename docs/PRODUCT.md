@@ -62,7 +62,9 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   without duplicating it among the rows; disable it when already there.
   Escape/right-click at the workspace step, or an outside click, cancels.
   Keep the menu within the invoking screen.
-  The separate Move control keeps the full form with explicit Move now confirmation.
+  The separate Move control opens a workspace/monitor wizard. The final choice
+  moves the window immediately, without a separate confirmation button. Keep a
+  visible Cancel action at both steps, including inside the selection lists.
   Show the source workspace in both; include its monitor in the full form. Keep a Move to Scratchpad
   action in the main form above the dropdown, reachable without scrolling or choosing
   a destination first. It moves only that window, without switching workspaces,
@@ -84,7 +86,7 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   Left or middle clicks on unused panel space expand the hover view or return
   the window list to hover. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
-- With Wallpaper selected, offer a small opt-in Follow bar style switch beside
+- With Wallpaper selected, offer a small Follow bar style switch, enabled by default, beside
   the default label. Use Solid with an opaque bar and Wallpaper with a transparent
   bar; preserve the saved choice and appearance, and update all popup surfaces.
 - Show a switchable, theme-colored Omarchy logo below the hover list by default.
@@ -287,7 +289,7 @@ Carry over these established design decisions where they fit WindowPeek:
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
 - The installed version beside `by Sarr` at the other end of the expanded footer.
-- A subtle **Auto updates** notification control beside help, enabled by default. Its
+- A subtle **Automatic updates** notification control beside help, enabled by default. Its
   track and label toggle the same setting.
   Notifications check newer repository code every six hours and announce it in
   the expanded panel; opting out hides the notice and stops scheduled metadata
@@ -295,7 +297,7 @@ Carry over these established design decisions where they fit WindowPeek:
   Check now, becoming Update… when newer code is found, plus a matching bordered changes/history
   button. Development copies retain Check now and Version history, with a short
   Git explanation; manual installation stays blocked.
-- Keep a separate default-on Automatic updates option on the Updates page only.
+- Keep a separate default-on Verified updates option on the Updates page only.
   Install only immutable stable releases whose exact commits are verified by
   Omarchy. Explain that verification may take time and newer code remains
   available with user confirmation. Preserve saved settings independently.

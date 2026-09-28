@@ -90,7 +90,7 @@ BarWidget {
     readonly property int wheelScrollSpeed: Settings.wheelScrollSpeed(preference("wheelScrollSpeed", 102))
     readonly property bool shortcutNumbersRight: preference("shortcutNumbersRight", false) === true
     readonly property string selectedPanelStyle: Settings.panelStyle(preference("panelStyle", "wallpaper"))
-    readonly property bool followBarStyle: preference("followBarStyle", false) === true
+    readonly property bool followBarStyle: preference("followBarStyle", true) === true
     readonly property string panelStyle: Settings.effectivePanelStyle(selectedPanelStyle, followBarStyle,
         bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined)
     readonly property bool glassPanels: panelStyle !== "solid"

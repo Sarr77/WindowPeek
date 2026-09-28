@@ -60,7 +60,7 @@ Ustawienia oferują 30 języków i podgląd na żywo podczas dostosowywania.
 
 W **Ustawienia → Sterowanie → Aktualizacje** sprawdzisz nowe wersje, przejrzysz zmiany i uruchomisz instalację z potwierdzeniem w terminalu Omarchy.
 
-**Autoaktualizacje** w stopce włączają powiadomienia. Osobna opcja **Automatyczne aktualizacje** automatycznie instaluje zweryfikowane wydania. Obie są początkowo włączone; sterujesz nimi niezależnie.
+**Automatyczne aktualizacje** w stopce włączają powiadomienia. Osobna opcja w Ustawieniach, **Zweryfikowane aktualizacje**, instaluje zatwierdzone wydania w tle.
 
 [Jak działają aktualizacje (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/UPDATES.md)
 
@@ -78,7 +78,7 @@ WindowPeek nie ma telemetrii. Tytuły okien i podglądy nie są zapisywane na dy
 omarchy plugin remove sarr.windowpeek
 ```
 
-Okna i zapisane preferencje pozostają na swoich miejscach.
+Zapisane preferencje przetrwają reinstalacje.
 
 ## Rozwój i autorstwo
 

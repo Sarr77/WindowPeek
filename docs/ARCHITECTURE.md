@@ -112,7 +112,7 @@ close or promotion so background applications retain their navigation keys.
 Keypad navigation aliases never override the configured modifier's ordinal keys.
 Tab and side actions promote via the host widget to preserve its focus lifecycle.
 
-`selectedPanelStyle` retains the stored choice. Opt-in `followBarStyle` resolves
+`selectedPanelStyle` retains the stored choice. The enabled-by-default `followBarStyle` resolves
 Wallpaper to Solid only when the invoking `PluginBarApi.transparent` is false;
 unknown bar state preserves Wallpaper. The effective `panelStyle` feeds all
 surfaces. Settings edits still target the selected style, without saving any bar

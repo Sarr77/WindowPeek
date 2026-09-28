@@ -226,6 +226,12 @@ FocusScope {
                     onClicked: root.back()
                 }
                 LabelButton {
+                    objectName: "moveMenuCancel"
+                    width: parent.width; label: root.words.cancel
+                    accent: root.accent; bordered: true; focusable: true
+                    onClicked: root.close()
+                }
+                LabelButton {
                     id: scratchpad; objectName: "moveMenuScratchpad"
                     visible: !root.choosingMonitor
                     width: parent.width; label: root.words.moveToScratchpad

@@ -57,7 +57,7 @@
       "shortcutNumbersRight": false,
       "shortcuts": {},
       "panelStyle": "wallpaper",
-      "followBarStyle": false,
+      "followBarStyle": true,
       "glassTransparency": 8,
       "wallpaperTransparency": 70,
       "wallpaperThemeTransparencies": {},

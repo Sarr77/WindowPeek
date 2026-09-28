@@ -436,11 +436,23 @@ FocusScope {
         hostWidget.moveWindow(moveAddress, "special:scratchpad");
     }
     function chooseMoveDestination(value, modifiers) {
+        if (mode !== "move" || busy || !moveWindow) return;
         destination = value;
+        hostWidget.clearError();
         destinationMonitor = Commands.monitorChoice(hostWidget.snapshot, selectedDestination,
             hostWidget.screenName || "", !!(modifiers & Qt.ShiftModifier));
         if (chooseMoveMonitor && !destinationMonitor)
             Qt.callLater(function() { if (root.opened && root.mode === "move" && root.chooseMoveMonitor) moveMonitorPicker.open(); });
+        else submitMove();
+    }
+    function submitMove() {
+        if (mode !== "move" || busy || !moveWindow || !moveDestinationReady) return;
+        hostWidget.moveWindow(moveAddress, destination, destinationMonitor);
+    }
+    function chooseMoveWorkspace() {
+        moveMonitorPicker.close();
+        destination = ""; destinationMonitor = ""; hostWidget.clearError();
+        Qt.callLater(function() { if (root.opened && root.mode === "move") destinationPicker.open(); });
     }
     function moveSelection(delta) {
         if (!matches.length) { selectedAddress = ""; return; }
@@ -597,7 +609,8 @@ FocusScope {
                     : root.mode === "pictures" ? root.words.picturesAndGifs
                     : root.mode === "support" ? root.words.hintsSupport
                     : root.mode === "updates" ? UpdateCopy.words(root.hostWidget.language).title
-                    : root.mode === "move" ? root.words.moveTo : root.mode === "labels" ? I18n.words(root.hostWidget.language).labels : root.words.settings
+                    : root.mode === "move" ? (root.chooseMoveMonitor ? root.words.moveMonitor : root.words.moveTo)
+                    : root.mode === "labels" ? I18n.words(root.hostWidget.language).labels : root.words.settings
                 textFormat: Text.PlainText; elide: Text.ElideRight
                 textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
                 anchors.left: parent.left
@@ -979,6 +992,7 @@ FocusScope {
                 }
                 LabelButton {
                     objectName: "moveToScratchpad"
+                    visible: !root.chooseMoveMonitor
                     width: parent.width
                     label: root.words.moveToScratchpad
                     accent: root.accent; bordered: true; focusable: true
@@ -987,6 +1001,8 @@ FocusScope {
                 }
                 Choice.SearchableDropdown {
                     id: destinationPicker; objectName: "destinationPicker"
+                    visible: !root.chooseMoveMonitor
+                    enabled: !root.busy && !!root.moveWindow
                     hostWidget: root.hostWidget
                     width: parent.width; label: root.words.moveTo; accent: root.accent
                     uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
@@ -995,6 +1011,8 @@ FocusScope {
                         return {value: item.value, label: I18n.workspaceTitle(item.name, root.words), description: item.monitor};
                     })
                     placeholderText: root.words.moveTo; emptyText: root.words.noMatches
+                    cancelText: root.words.cancel
+                    onCancelled: root.back(Qt.MouseFocusReason)
                     onChanged: function(value) {
                         root.chooseMoveDestination(value, activationModifiers);
                         destinationPicker.value = Qt.binding(function() { return root.destination; });
@@ -1003,13 +1021,17 @@ FocusScope {
                 Choice.SearchableDropdown {
                     id: moveMonitorPicker; objectName: "moveMonitorPicker"
                     visible: root.chooseMoveMonitor
+                    enabled: !root.busy && !!root.moveWindow
                     hostWidget: root.hostWidget; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
                     width: parent.width; label: root.words.moveMonitor; accent: root.accent
                     value: root.destinationMonitor; placeholderText: root.words.moveMonitor; emptyText: root.words.noMatches
                     options: root.moveMonitors.map(function(m) { return {value:m.name,label:m.name,description:m.description || ""}; })
+                    cancelText: root.words.cancel
+                    onCancelled: root.back(Qt.MouseFocusReason)
                     onChanged: function(value) {
                         root.destinationMonitor = value;
                         moveMonitorPicker.value = Qt.binding(function() { return root.destinationMonitor; });
+                        root.submitMove();
                     }
                     onVisibleChanged: if (!visible) close()
                 }
@@ -1020,6 +1042,14 @@ FocusScope {
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
                     textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
+                LabelButton {
+                    objectName: "moveWorkspaceBack"
+                    visible: root.chooseMoveMonitor
+                    width: parent.width; label: root.words.back + " · " + I18n.workspaceTitle(root.destination, root.words)
+                    accent: root.accent; bordered: true; focusable: true
+                    enabled: !root.busy
+                    onClicked: root.chooseMoveWorkspace()
+                }
                 ReadableText {
                     width: parent.width; visible: root.moveMonitors.length > 1
                     text: I18n.format(root.words.moveMonitorHint, {monitor: root.hostWidget.screenName || root.words.unknownMonitor})
@@ -1027,10 +1057,10 @@ FocusScope {
                     textColor: Qt.alpha(Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 LabelButton {
-                    objectName: "confirmMove"; width: parent.width; label: root.words.moveNow
+                    objectName: "cancelMove"; width: parent.width; label: root.words.cancel
                     accent: root.accent; bordered: true; focusable: true
-                    enabled: !!root.moveWindow && root.moveDestinationReady && !root.busy
-                    onClicked: root.hostWidget.moveWindow(root.moveAddress, root.destination, root.destinationMonitor)
+                    enabled: !root.busy
+                    onClicked: root.back(Qt.MouseFocusReason)
                 }
                 ReadableText {
                     width: parent.width; text: root.words.moveHint

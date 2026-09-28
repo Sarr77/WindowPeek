@@ -27,7 +27,7 @@ It uses the native command's directory, `~/.config/omarchy/plugins`.
 
 ## Update notifications
 
-The compact **Auto updates** footer switch and its label toggle update notifications together.
+The compact **Automatic updates** footer switch and its label toggle update notifications together.
 Enabling is immediate. Disabling opens a confirmation with **Open Updates** and
 a smaller **Turn off** action. Opening Updates changes no preference; closing
 the popup or pressing Escape also keeps notifications enabled. Back restores the
@@ -43,9 +43,9 @@ Opening Updates uses cached results and starts no network request. **Check now**
 works with both switches off. Checks run outside the UI process; metadata results
 live in `manual-updates.json` and do not fetch Git objects or change code.
 
-## Automatic updates
+## Verified updates
 
-**Automatic updates** is a separate, default-on option only on the Updates page:
+**Verified updates** is a separate, default-on option only on the Updates page:
 
 > Automatically install releases verified by Omarchy. Verification may take time — newer updates remain available with your confirmation.
 

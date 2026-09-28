@@ -224,8 +224,8 @@ ShellRoot {
                     var toggle=test.named("updateSwitch");
                     events.mouseMove(toggle,toggle.width/2,toggle.height/2,0,Qt.NoButton,Qt.NoModifier);break;
                 case 28:
-                    test.check(!test.named("updateSwitch").hot && test.named("updateSwitch").text==="Auto updates",
-                        "modal blocks footer hover; compact label is used");
+                    test.check(!test.named("updateSwitch").hot && test.named("updateSwitch").text==="Automatic updates",
+                        "modal blocks footer hover; notification control uses the requested label");
                     test.dismissModal();break;
                 case 29:
                     var restored=test.named("windowFocus");

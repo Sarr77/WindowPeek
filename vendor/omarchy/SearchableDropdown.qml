@@ -98,6 +98,8 @@ Item {
   function focusTrigger() { trigger.forceActiveFocus() }
 
   signal changed(string value)
+  property string cancelText: ""
+  signal cancelled()
   // Modifiers belong to this activation, not a delayed global-key poll.
   property int activationModifiers: Qt.NoModifier
   signal hovered(bool isHovered)
@@ -243,7 +245,7 @@ Item {
         implicitHeight: Math.max(root.popupMinHeight,
                                  Math.min(resultList.contentHeight,
                                           root.popupRowHeight * 6 + 5 * Style.spacing.labelGap)
-                                 + searchHeader.height + separator.height + topPadding + bottomPadding)
+                                 + searchHeader.height + separator.height + cancelButton.height + topPadding + bottomPadding)
         padding: Style.spacing.hairline
         leftPadding: Border.left(root.popupBorderSpec) + Style.spacing.hairline
         rightPadding: Border.right(root.popupBorderSpec) + Style.spacing.hairline
@@ -322,7 +324,7 @@ Item {
 
             Item {
               width: parent.width
-              height: Math.max(0, popup.availableHeight - searchHeader.height - 1)
+              height: Math.max(0, popup.availableHeight - searchHeader.height - 1 - cancelButton.height)
 
               WindowPeek.ReadableText { shadowHost: root.hostWidget;
                 textFormat: Text.PlainText
@@ -422,10 +424,20 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPositionChanged: resultList.currentIndex = parent.index
-                    onClicked: function(mouse) { resultList.selectCurrent(mouse.modifiers) }
+                    onClicked: function(mouse) {
+                      resultList.currentIndex = parent.index
+                      resultList.selectCurrent(mouse.modifiers)
+                    }
                   }
                 }
               }
+            }
+            WindowPeek.LabelButton {
+              id: cancelButton; objectName: "dropdownCancel"
+              visible: root.cancelText !== ""
+              width: parent.width; height: visible ? implicitHeight : 0
+              label: root.cancelText; accent: root.accent; bordered: true; focusable: true
+              onClicked: { popup.close(); root.cancelled(); }
             }
           }
         }

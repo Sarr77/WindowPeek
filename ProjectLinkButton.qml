@@ -7,6 +7,8 @@ ActionButton {
     property bool discussion: false
     readonly property color iconColor: discussion ? accent : "#e9b44c"
     fontSize: Style.font.title
+    leftPadding: Style.space(16)
+    rightPadding: Style.space(16)
     implicitHeight: Math.max(Style.space(48), caption.implicitHeight + Style.space(20))
     contentItem: Item {
         Shape {

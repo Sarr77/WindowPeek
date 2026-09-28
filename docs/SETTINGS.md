@@ -73,7 +73,7 @@ This section contains background controls followed by **Text shadow**,
 ### Panel background
 
 With **Wallpaper** selected, **Follow bar style** sits beside its default label.
-It is off by default. Enable it to use Solid while the bar is opaque and restore
+It is on by default. It uses Solid while the bar is opaque and restores
 Wallpaper when the bar is transparent, including changes made by double-clicking
 the bar. The saved Wallpaper colors, transparency, blur and grain stay unchanged.
 The list, previews and menus follow the same effective style. Selecting Solid or
@@ -311,8 +311,8 @@ terminal confirmation; **View changes** opens the comparison. Without an availab
 update, the second button is **Version history**.
 
 - **Update notifications** checks for newer repository code and shows a notice.
-  It is the same setting as **Auto updates** in the footer.
-- **Automatic updates** installs only verified, immutable releases automatically.
+  It is the same setting as **Automatic updates** in the footer.
+- **Verified updates** installs only verified, immutable releases automatically.
 
 Both start enabled and are independent. Manual updates can install code still
 awaiting catalog verification. Development copies and local edits are protected.
@@ -350,7 +350,7 @@ not reset an existing setup. Missing preferences use the corresponding defaults.
 | Panel background | Wallpaper |
 | Wallpaper transparency | Starts at 70%; may be lowered once per theme for very poor contrast |
 | Transparency-mode transparency | 8%, independently of Wallpaper |
-| Grain / wallpaper blur / Follow bar style | On / off / off |
+| Grain / wallpaper blur / Follow bar style | On / off / on |
 | Accent | Adapted: pink `#D898F5` in Tokyo Night, theme accent elsewhere |
 | Color editing scope | Current theme |
 | Panel scale / bar text scale | 100% each, following Omarchy at that scale |

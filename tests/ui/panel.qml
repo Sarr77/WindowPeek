@@ -72,8 +72,7 @@ ShellRoot {
                     events.keyClick(Qt.Key_4, Qt.NoModifier, 0);
                     test.check(picker.filtered.length === 1 && picker.filtered[0].label === "Workspace 4"
                         && picker.filtered[0].value === "4", "number search finds the labeled workspace with its original destination");
-                    panel.destination = "4";
-                    test.find(panel, "confirmMove").clicked();
+                    events.keyClick(Qt.Key_Return, Qt.NoModifier, 0);
                     test.check(host.moved === "0x1:4", "move uses selected address and explicit destination");
                     panel.back(); panel.showSettings(); break;
                 case 5:

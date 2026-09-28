@@ -38,7 +38,8 @@ Find WindowPeek on Omarchy’s bar, or open it with **Super + Alt + P**.
 | **Page Up / Page Down** | Scroll by a page |
 | **Esc** | Go back or close |
 
-After opening with **Super + Alt + P**, number keys work without Ctrl for five seconds. **0** selects the tenth window. Change bindings in **Settings → Controls → Keyboard & mouse shortcuts**.
+After opening with **Super + Alt + P**, number keys work without Ctrl for five
+seconds. **0** selects the tenth window. Change bindings in **Settings → Controls → Keyboard & mouse shortcuts**.
 
 [Full controls](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md#keyboard-controls)
 
@@ -60,7 +61,7 @@ Settings offers 30 languages and live previews while you customize.
 
 **Settings → Controls → Updates** lets you check for updates, review changes and install through Omarchy’s terminal confirmation.
 
-The footer’s **Auto updates** switch enables notifications. The separate **Automatic updates** option installs verified releases automatically. Both start enabled; you control them independently.
+The footer’s **Automatic updates** switch enables notifications. The separate **Verified updates** option installs verified releases in the background.
 
 [How updates work](https://github.com/Sarr77/WindowPeek/blob/main/docs/UPDATES.md)
 
@@ -78,7 +79,7 @@ WindowPeek has no telemetry. Window titles and previews are not saved to disk; u
 omarchy plugin remove sarr.windowpeek
 ```
 
-Your windows and saved preferences stay in place.
+Your saved preferences survive reinstalls.
 
 ## Development and credits
 

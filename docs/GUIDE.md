@@ -92,12 +92,14 @@ Search or scroll to a workspace. Existing workspaces keep their monitor. For a
 new workspace, choose a monitor in the next step; **Shift + click** or
 **Shift + Enter** uses the screen containing WindowPeek. With one monitor, no
 extra choice is needed. **Back**, Escape or right-click returns to workspace
-selection; an outside click cancels. **Move to Scratchpad** stays at the bottom
+selection; **Cancel** or an outside click cancels. **Move to Scratchpad** stays at the bottom
 of the workspace step. Any preview already open stays visible while
 choosing, whether you open the menu from its row or the preview itself.
 
 **Move** opens a larger form showing the window’s current workspace and monitor.
-Choose a workspace and, when creating one, its monitor, then press **Move now**.
+Choose a workspace and, when creating one, its monitor. The final selection moves
+the window immediately. **Cancel** is available at both steps, including inside
+the selection lists. Escape closes a list; **Back** leaves the move view.
 Shift while selecting a new workspace chooses WindowPeek’s screen here too.
 **Move to Scratchpad** above the dropdown remains a direct action. These moves
 leave your current workspace in place and never relocate an existing workspace.

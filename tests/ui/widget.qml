@@ -60,13 +60,16 @@ ShellRoot {
                 test.check(test.saved(b,"persistSettings",{doubleClickExpand:true}) && a.doubleClickExpand && b.doubleClickExpand,
                     "double-click can be restored explicitly");
                 test.check(a.includeSpecial && b.includeSpecial, "special workspaces are included by default");
+                test.check(a.followBarStyle && b.followBarStyle && a.panelStyle === "solid" && b.panelStyle === "solid",
+                    "fresh widgets follow the opaque bar on both monitors");
+                test.check(test.saved(a,"persistSettings",{followBarStyle:false}) && !a.followBarStyle && !b.followBarStyle,
+                    "saved false overrides the follow-bar default on both monitors");
                 test.check(a.panelStyle === "wallpaper" && b.panelStyle === "wallpaper"
                     && a.backgroundTexture && b.backgroundTexture && !a.backgroundBlur,
                     "fresh widgets default to Wallpaper with grain and no blur");
                 test.check(a.wallpaperTransparency === 70 && !a.wallpaperTransparencyRule.initialized
                     && a.hints.mode === "auto" && a.hints.used === 0 && a.hints.remaining === 100 && a.hints.enabled,
                     "fresh defaults leave theme assessment pending and start the full 100-display hint budget");
-                test.check(!a.followBarStyle && !b.followBarStyle, "following the bar is opt-in");
                 test.check(!a.keepSearchFocus && !b.keepSearchFocus, "strict focus is opt-in");
                 a.runtime.preferences.readBlocked = true;
                 test.check(!test.saved(a,"persistSettings",{keepSearchFocus:true}) && !a.keepSearchFocus && !b.keepSearchFocus,
