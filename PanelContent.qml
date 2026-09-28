@@ -281,6 +281,7 @@ FocusScope {
         shortcutModifiers.reset();
         if (!takeFocus) { search.focus = false; focus = false; }
         mode = "windows"; search.text = ""; selectedAddress = "";
+        list.tabMoveAction = false;
         closingFocusNotice = null;
         var first = inventory.windows.find(function(window) { return window.active; });
         orderAddress = first ? first.address : "";
@@ -577,15 +578,59 @@ FocusScope {
             if (editorScroll.visible && item === editorScroll.contentItem) { root.reveal(focused, editorScroll); return; }
         }
     }
+    function returnTypingToSearch(event) {
+        if (!expanded || !shortcutsAvailable || search.activeFocus) return false;
+        var modifiers = Shortcuts.eventMask(event, true);
+        // Window selection and configured navigation must win over text input.
+        if (Shortcuts.digit(event) >= 0 && (modifiers === Shortcuts.mask(shortcuts.numbers)
+                || (quickSelection && modifiers === Qt.NoModifier))) return false;
+        var navigation = ["previous", "next", "windowSide", "moveSide", "pageUp", "pageDown", "first", "last", "move"];
+        if (navigation.some(function(id) { return Shortcuts.matches(event, root.shortcuts[id]); })) return false;
+        var editing = (modifiers === Qt.NoModifier || modifiers === Qt.ShiftModifier || modifiers === Qt.ControlModifier)
+            && (event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete);
+        var clipboard = (modifiers === Qt.ControlModifier || modifiers === (Qt.ControlModifier | Qt.ShiftModifier))
+            && [Qt.Key_A, Qt.Key_C, Qt.Key_V, Qt.Key_X, Qt.Key_Z, Qt.Key_Y].indexOf(event.key) >= 0;
+        var textModifiers = !(modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+            || modifiers === (Qt.ControlModifier | Qt.AltModifier); // AltGr text
+        var text = textModifiers && event.text && /[^\x00-\x1f\x7f]/.test(event.text);
+        if (!editing && !clipboard && !text) return false;
+        // Before KeyPress is dispatched, return ownership to the native field.
+        // It handles the original event with native editing, undo and layouts.
+        search.forceActiveFocus(Qt.OtherFocusReason);
+        return true;
+    }
+    // Native Tab order handles the contents; only the two panel boundaries wrap.
+    readonly property Item firstTabControl: availableUpdateButton.visible && availableUpdateButton.enabled ? availableUpdateButton
+        : closePinnedButton.visible && closePinnedButton.enabled ? closePinnedButton
+        : pinPanelButton.visible && pinPanelButton.enabled ? pinPanelButton : settingsButton
+    function navigateOuterControls(event) {
+        if (!expanded || !shortcutsAvailable || search.activeFocus
+                || Shortcuts.eventMask(event, true) !== Qt.NoModifier) return false;
+        var direction = event.key === Qt.Key_Down ? 1 : event.key === Qt.Key_Up ? -1
+            : event.key === Qt.Key_Right ? (rtl ? -1 : 1)
+            : event.key === Qt.Key_Left ? (rtl ? 1 : -1) : 0;
+        if (!direction) return false;
+        // Only the main panel's surrounding buttons participate. Search keeps
+        // native caret/list navigation; Tab is the way into and out of the list.
+        var controls = [availableUpdateButton, closePinnedButton, pinPanelButton, settingsButton,
+            recoveryButton, protectionOff, hintsToggle, updateSwitch, authorCredit]
+            .filter(function(item) { return item.visible && item.enabled; });
+        var index = controls.findIndex(function(item) { return item.activeFocus; });
+        if (index < 0) return false;
+        controls[(index + direction + controls.length) % controls.length].forceActiveFocus(
+            direction > 0 ? Qt.TabFocusReason : Qt.BacktabFocusReason);
+        event.accepted = true;
+        return true;
+    }
     Keys.onShortcutOverride: function(event) {
         logoModifiers.key(event, true);
         Qt.callLater(root.revealKeyboardFocus);
-        event.accepted = false;
+        event.accepted = returnTypingToSearch(event);
     }
     Keys.onEscapePressed: function(event) { navigateBack(null, Qt.TabFocusReason); event.accepted = true; }
     Keys.onPressed: function(event) {
         updateControl(event, true);
-        if (!handleWindowShortcut(event)) handleListNavigation(event);
+        if (!handleWindowShortcut(event) && !navigateOuterControls(event)) handleListNavigation(event);
     }
     Keys.onReleased: function(event) { updateControl(event, false); }
     Connections { target: root.hostWidget; function onMoveCompleted() { if (root.mode === "move") root.back(); } }
@@ -619,6 +664,8 @@ FocusScope {
             }
             LabelButton {
                 id: availableUpdateButton; objectName: "availableUpdateButton"
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.backtab: root.mode === "windows" && root.firstTabControl === availableUpdateButton ? authorCredit : null
                 anchors.right: closePinnedButton.visible ? closePinnedButton.left
                     : pinPanelButton.visible ? pinPanelButton.left : settingsButton.left
                 anchors.rightMargin: Style.space(8)
@@ -638,6 +685,8 @@ FocusScope {
             }
             LabelButton {
                 id: closePinnedButton; objectName: "closePinnedPanel"
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.backtab: root.mode === "windows" && root.firstTabControl === closePinnedButton ? authorCredit : null
                 anchors.right: pinPanelButton.left; anchors.rightMargin: Style.space(8)
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.panelPinned && root.expansion > 0
@@ -648,6 +697,8 @@ FocusScope {
             }
             PinButton {
                 id: pinPanelButton; objectName: "pinPanelButton"
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.backtab: root.mode === "windows" && root.firstTabControl === pinPanelButton ? authorCredit : null
                 anchors.right: settingsButton.left; anchors.rightMargin: Style.space(8)
                 anchors.verticalCenter: parent.verticalCenter
                 visible: (root.mode !== "windows" || root.panelPinned) && root.expansion > 0
@@ -664,6 +715,8 @@ FocusScope {
             }
             LabelButton {
                 id: settingsButton; objectName: "settingsButton"
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.backtab: root.mode === "windows" && root.firstTabControl === settingsButton ? authorCredit : null
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(implicitWidth, parent.width * (pinPanelButton.visible ? 0.22 : 0.4))
                 opacity: root.expansion; enabled: root.expanded
@@ -708,6 +761,7 @@ FocusScope {
             }
             LabelButton {
                 id: recoveryButton; objectName: "focusRecoveryNotice"
+                focusable: true
                 anchors.right: protectionOff.visible ? protectionOff.left : parent.right
                 anchors.rightMargin: protectionOff.visible ? Style.space(6) : 0; anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(implicitWidth, parent.width * 0.4)
@@ -733,6 +787,7 @@ FocusScope {
             }
             LabelButton {
                 id: protectionOff; objectName: "turnOffFocusProtection"
+                focusable: true
                 anchors.right: parent.right; anchors.rightMargin: 0; anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(implicitWidth, parent.width * 0.25)
                 visible: root.focusNotice.canDisable === true
@@ -775,6 +830,7 @@ FocusScope {
         rows: root.rows
         expanded: root.expanded; expansion: root.expansion
         opened: root.opened && !root.blockingModalOpen; selectedAddress: root.selectedAddress
+        highlightSelection: false
         showShortcuts: (root.controlHeld || root.quickSelection) && root.shortcutsAvailable
         previewBoundsItem: root.previewBoundsItem
         scrollbarGutter: root.scrollbarGutter
@@ -1173,6 +1229,8 @@ FocusScope {
             }
             ActionButton {
                 id: authorCredit; objectName: "authorCredit"
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.tab: root.mode === "windows" ? root.firstTabControl : null
                 textOnly: true; fontSize: Style.font.caption; accent: root.accent
                 foreground: Qt.alpha(Color.popups.text, 0.65)
                 opacity: root.expansion; visible: root.expansion > 0

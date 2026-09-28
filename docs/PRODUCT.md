@@ -111,6 +111,14 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   smaller card or leaves the old area, including when the logo is disabled.
 - Home/End, Page Up/Down, arrows and Enter work in hover with the saved bindings.
   Tab and side arrows expand to expose controls; Shift+Enter opens the Move form.
+  In the expanded panel, Tab/Shift+Tab treats the window list as one stop between
+  search and the footer. Entry restores the selected window/action; arrows navigate
+  within the list, and the next Tab leaves it. The outline clears on exit and
+  returns with the remembered action on re-entry. Arrows on surrounding buttons
+  cycle only through those buttons, skipping search and the list. Search retains
+  its normal caret/list behavior. Popups keep their own focus cycle.
+  Typing from a main-panel control immediately returns to search; Ctrl + number
+  retains priority. Enter activates the focused control.
   Typing in hover expands the panel and immediately searches the entered text;
   saved shortcuts keep priority. Expanded search retains keyboard focus even
   when the pointer is outside. Closing returns the keyboard to the application.

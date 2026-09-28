@@ -33,6 +33,20 @@ FocusScope {
         opened = false;
         closed(typeof reason === "number" ? reason : Qt.MouseFocusReason);
     }
+    function revealKeyboardFocus() {
+        var item = root.Window.window ? root.Window.window.activeFocusItem : null;
+        for (var ancestor = item; ancestor; ancestor = ancestor.parent) {
+            if (ancestor !== supportScroll.contentItem) continue;
+            var top = item.mapToItem(supportScroll.contentItem, 0, 0).y;
+            var next = supportScroll.contentY;
+            if (top < next) next = top;
+            else if (top + item.height > next + supportScroll.height) next = top + item.height - supportScroll.height;
+            supportScroll.cancelFlick();
+            supportScroll.contentY = Math.max(0, Math.min(next, supportScroll.contentHeight - supportScroll.height));
+            return;
+        }
+    }
+    Keys.onShortcutOverride: function(event) { Qt.callLater(root.revealKeyboardFocus); event.accepted = false; }
     Keys.onEscapePressed: function(event) { close(Qt.TabFocusReason); event.accepted = true; }
     MouseArea { anchors.fill: parent; anchors.margins: -root.dismissMargin; hoverEnabled: true; onClicked: root.close(); onWheel: function(wheel) { wheel.accepted = true; } }
     DropdownSurface {
@@ -76,11 +90,21 @@ FocusScope {
                         loopAnimation: false
                         Accessible.ignored: true
                     }
+                    ReadableText {
+                        objectName: "projectSupportMission"
+                        width: parent.width
+                        text: root.words.projectSupportMission; textFormat: Text.PlainText; wrapMode: Text.Wrap
+                        horizontalAlignment: Text.AlignHCenter
+                        font.family: Style.font.family; font.pixelSize: Style.font.title
+                        textColor: Color.popups.text
+                    }
                 }
                 Column {
                     width: parent.width; spacing: Style.space(12)
                     ProjectLinkButton {
                         id: catalog; objectName: "starWindowPeekCatalog"
+                        KeyNavigation.priority: KeyNavigation.BeforeItem
+                        KeyNavigation.backtab: linkError.visible ? linkError : issues
                         width: parent.width; text: root.words.starWindowPeekCatalog; accent: root.accent
                         enabled: !BrowserLinks.busy
                         onClicked: root.openLink("https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek")
@@ -92,7 +116,9 @@ FocusScope {
                         onClicked: root.openLink("https://github.com/Sarr77/WindowPeek")
                     }
                     ProjectLinkButton {
-                        objectName: "projectSupportIssues"
+                        id: issues; objectName: "projectSupportIssues"
+                        KeyNavigation.priority: KeyNavigation.BeforeItem
+                        KeyNavigation.tab: linkError.visible ? linkError : catalog
                         width: parent.width; text: root.words.reportIssue; accent: root.accent; discussion: true
                         enabled: !BrowserLinks.busy
                         onClicked: root.openLink("https://github.com/Sarr77/WindowPeek/issues")
@@ -106,7 +132,9 @@ FocusScope {
                     font.family: Style.font.family; font.pixelSize: Style.font.title
                 }
                 EditField {
-                    objectName: "projectSupportLinkError"
+                    id: linkError; objectName: "projectSupportLinkError"
+                    KeyNavigation.priority: KeyNavigation.BeforeItem
+                    KeyNavigation.tab: catalog
                     visible: BrowserLinks.failed && BrowserLinks.lastUrl === root.requestedUrl
                     width: parent.width; readOnly: true; text: BrowserLinks.lastUrl
                     Accessible.name: root.words.browserOpenFailed

@@ -14,7 +14,7 @@ ShellRoot {
     property int locale: 0
     property int tabs: 0
     property int snapshots: 0
-    property int rowTabs: 0
+    property int rowVisits: 0
     property real deepestScroll: 0
     property real settingsScroll: 0
     property string imageName: ""
@@ -188,22 +188,28 @@ ShellRoot {
                     host.snapshot = data;
                     window.height = 350 * test.scale; panel.begin(); test.tabs = 0;
                     break;
-                case 23: events.keyClick(Qt.Key_Tab, Qt.NoModifier, 0); break;
+                case 23: events.keyClick(test.tabs ? Qt.Key_Down : Qt.Key_Tab, Qt.NoModifier, 0); break;
                 case 24:
                     var target = window.activeFocusItem;
                     var list = test.named("windowList");
                     if (target.objectName === "windowFocus" || target.objectName === "windowMove") {
-                        test.rowTabs++;
+                        test.rowVisits++;
                         var position = target.mapToItem(list, 0, 0);
                         test.check(position.y >= -1 && position.y + target.height <= list.height + 1,
-                            "Tab target stays within the window list: y=" + position.y);
+                            "Arrow-selected target stays within the window list: y=" + position.y);
                         test.deepestScroll = Math.max(test.deepestScroll, list.contentY);
                     }
                     if (++test.tabs < 32) test.step = 23;
                     break;
                 case 25:
-                    test.check(test.rowTabs >= 12 && test.deepestScroll > test.named("windowList").height,
-                        "keyboard traverses windows beyond the first viewport");
+                    test.check(test.rowVisits >= 12 && test.deepestScroll > test.named("windowList").height,
+                        "arrows traverse windows beyond the first viewport");
+                    var selected = panel.selectedAddress;
+                    events.keyClick(Qt.Key_Tab, Qt.NoModifier, 0);
+                    test.check(test.named("hintsToggle").activeFocus, "one Tab leaves the scrolled list");
+                    events.keyClick(Qt.Key_Backtab, Qt.ShiftModifier, 0);
+                    test.check(window.activeFocusItem.objectName === "windowFocus" && panel.selectedAddress === selected,
+                        "Shift+Tab restores the deep selection");
                     window.height = 580 * test.scale;
                     test.showSettings(); break;
                 case 26:

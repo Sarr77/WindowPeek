@@ -136,6 +136,10 @@ change. It uses the production capture component, without changing its behavior.
   hover, wheel and clicks passing through a visible hint, plus scaled placement.
   Preview checks cover active-window priority,
   all windows/workspaces, hint independence and height bounds in 30 locales.
+- `tab-navigation` checks one-stop list entry/exit in both directions, remembered
+  window/action, arrow navigation, filtering, hidden controls, RTL and modal focus
+  boundaries at 100% and 200%. `row-navigation` also checks immediate search typing
+  from row and footer controls.
 - Number shortcut tests cover Ctrl+1–9/0 at 100% and 200%, displayed window/tab
   ordering, filtering, named and special workspaces, numeric keypad input,
   missing positions, repeated keys and blocking in settings, menus and
@@ -425,7 +429,8 @@ host settings, restarts, updates, removes and reinstalls the fixture while
 checking saved preferences and unchanged live configuration. The saved values
 include distinct per-theme Wallpaper levels, surface colors and presets,
 custom shortcuts, preview choices, labels and scaling. A fresh install checks
-Wallpaper with grain, no blur, a pending per-theme contrast assessment and the
+following the bar style while preserving the Wallpaper choice, grain, no blur,
+a pending per-theme contrast assessment and the
 full automatic hint budget starting at zero displays. A system sandbox
 may require permission to create this nested namespace. Git commits made by
 these tests exist only in disposable fixture repositories.

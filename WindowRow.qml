@@ -14,6 +14,8 @@ Item {
     property bool hintsAllowed: true
     property bool previewAllowed: hintsAllowed
     property bool expanded: true
+    property bool focusTabStop: true
+    property bool moveTabStop: true
     property real expansion: expanded ? 1 : 0
     property bool compact: false
     property int shortcutIndex: -1
@@ -26,7 +28,7 @@ Item {
     signal focusRequested(string address)
     signal bringRequested(string address)
     signal moveRequested(string address)
-    signal actionFocused(string address)
+    signal actionFocused(string address, bool moveAction)
     signal navigateRequested(string address, int delta, bool moveAction)
     function focusAction(moveAction) {
         if (root.expanded) (moveAction ? move : main).forceActiveFocus(Qt.OtherFocusReason);
@@ -77,8 +79,8 @@ Item {
         pressed: pointer.pressed
         selected: root.selected && !move.activeFocus
         currentWindow: root.window.active
-        activeFocusOnTab: root.expanded
-        onActiveFocusChanged: if (activeFocus) root.actionFocused(root.window.address)
+        activeFocusOnTab: root.expanded && (root.focusTabStop || main.activeFocus)
+        onActiveFocusChanged: if (activeFocus) root.actionFocused(root.window.address, false)
         Keys.onPressed: function(event) { root.navigate(event, false); }
         Accessible.role: Accessible.Button
         Accessible.name: root.window.app + " · " + root.window.title
@@ -201,8 +203,8 @@ Item {
         accent: root.accent
         hovered: !root.busy && movePointer.containsMouse
         pressed: movePointer.pressed
-        activeFocusOnTab: root.expanded
-        onActiveFocusChanged: if (activeFocus) root.actionFocused(root.window.address)
+        activeFocusOnTab: root.expanded && (root.moveTabStop || move.activeFocus)
+        onActiveFocusChanged: if (activeFocus) root.actionFocused(root.window.address, true)
         Keys.onPressed: function(event) { root.navigate(event, true); }
         Accessible.role: Accessible.Button
         Accessible.name: root.words.move + " · " + root.window.app

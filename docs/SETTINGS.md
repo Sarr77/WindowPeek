@@ -300,7 +300,8 @@ Technical settings, errors and the author credit keep their application wording.
 Change the opening shortcut, window selection and navigation keys, preview-hiding
 modifier, and mouse modifiers for moving windows. The editor checks for conflicts,
 lets you reset one action or the whole draft, and saves only with **Apply**.
-Existing system bindings are not overwritten.
+Existing system bindings are not overwritten. Tab and Shift+Tab move between
+controls, treating the window list as one stop; use arrows inside the list.
 
 [Full keyboard guide](GUIDE.md#keyboard-controls)
 

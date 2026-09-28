@@ -2,7 +2,9 @@
 
 Znajdź okno i przejdź wprost do niego.
 
-Zachowaj workflow Omarchy, a WindowPeek zastąpi ci Docka i Menu Start. Wtyczka zbiera otwarte okna na jednej liście dostępnej z górnego paska Omarchy. Wybieraj lub szukaj na wszystkich workspace’ach i monitorach, podejrzyj okno przed przełączeniem albo przenieś je w inne miejsce. Już nigdy nie zgubisz zakładki Hyprlanda.
+Zachowaj workflow Omarchy, a WindowPeek zastąpi ci Docka i Menu Start.
+
+Wtyczka zbiera otwarte okna na jednej liście dostępnej z górnego paska Omarchy. Wybieraj lub szukaj na wszystkich workspace’ach i monitorach, podejrzyj okno przed przełączeniem albo przenieś je w inne miejsce. Już nigdy nie zgubisz zakładki Hyprlanda.
 
 [Katalog Omarchy](https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek) · [Instrukcja (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md) · [Ustawienia (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md) · [Historia zmian (EN)](https://github.com/Sarr77/WindowPeek/blob/main/CHANGELOG.md)
 
@@ -31,6 +33,7 @@ WindowPeek znajdziesz na pasku Omarchy. Otworzysz go również przez **Super + A
 |----|----|
 | **Super + Alt + P** | Otwórz WindowPeek |
 | Pisanie | Szukaj okien |
+| **Tab / Shift + Tab** | Przechodź między kontrolkami; lista okien to jeden przystanek |
 | **↑ / ↓** | Wybierz okno |
 | **← / →**, potem **Enter** | Wybierz okno lub akcję Przenieś |
 | **Shift + Enter** | Otwórz Przenieś dla wybranego okna |
@@ -38,7 +41,9 @@ WindowPeek znajdziesz na pasku Omarchy. Otworzysz go również przez **Super + A
 | **Page Up / Page Down** | Przewiń listę o stronę |
 | **Esc** | Wróć lub zamknij |
 
-Po otwarciu przez **Super + Alt + P** cyfry działają bez Ctrl przez pięć sekund. **0** wybiera dziesiąte okno. Przypisania zmienisz w **Ustawienia → Sterowanie → Skróty klawiatury i myszy**.
+Po otwarciu przez **Super + Alt + P** cyfry działają bez Ctrl przez pięć sekund. **0** wybiera dziesiąte okno.
+
+Przypisania zmienisz w **Ustawienia → Sterowanie → Skróty klawiatury i myszy**.
 
 [Pełna obsługa klawiatury (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md#keyboard-controls)
 

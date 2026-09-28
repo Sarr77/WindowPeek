@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.5
+
+- Use Tab to enter or leave the window list in one step. Arrows select windows
+  and their Move actions; returning restores the last selection and focus outline.
+  Outside the list, arrows move between the surrounding buttons.
+- Keep typing into search from any main-panel control, including Move, while
+  preserving Ctrl + number shortcuts and native text editing.
+- Keep keyboard navigation inside popups and bring focused controls into view.
+- Clarify keyboard navigation in the guides and both README shortcut tables.
+
 ## 0.7.3
 
 - Personalize Settings and hover artwork with 37 bundled Omarchy animations or

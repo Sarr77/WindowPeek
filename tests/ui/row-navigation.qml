@@ -8,6 +8,7 @@ import "WindowPeek" as Plugin
 ShellRoot {
     id: test
     property int step: 0
+    property bool advancing: false
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     function check(ok, message) { if (!ok) throw new Error(message); }
     function key(code, modifiers) { events.keyClick(code, modifiers || Qt.NoModifier, 0); }
@@ -33,6 +34,8 @@ ShellRoot {
     Timer {
         interval: 140; running: true; repeat: true
         onTriggered: {
+            if (test.advancing) return;
+            test.advancing = true;
             try {
                 switch (test.step++) {
                 case 0: panel.begin(); break;
@@ -89,9 +92,69 @@ ShellRoot {
                     test.key(Qt.Key_Return);
                     test.check(panel.mode === "windows" && !host.moved && !host.focused,
                         "removing the focused window cannot act on its replacement");
+                    host.setLanguage("en"); panel.searchField.text = ""; panel.searchField.forceActiveFocus(); break;
+                case 6:
+                    panel.selectedAddress = "0x2";
+                    test.key(Qt.Key_Right);
+                    test.check(test.focused("0x2", "windowMove"), "typing test starts with Move focused");
+                    test.key(Qt.Key_P);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "p",
+                        "typing from Move returns to search without losing the first character");
+                    test.key(Qt.Key_R); break;
+                case 7:
+                    test.key(Qt.Key_Right);
+                    test.check(window.activeFocusItem.objectName === "windowMove", "filtered query can return to Move");
+                    var first = panel.shortcutAddresses[0];
+                    test.key(Qt.Key_1, Qt.ControlModifier);
+                    test.check(host.focused === first && panel.searchField.text === "pr", "Ctrl+number from Move activates the visible ordinal without editing");
+                    host.focused = "";
+                    test.key(Qt.Key_Backspace);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "p", "Backspace from Move edits the saved query");
+                    test.key(Qt.Key_Right); test.key(Qt.Key_Left); test.key(Qt.Key_Space);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "p " && !host.focused && panel.mode === "windows",
+                        "space from the window action types rather than activating a window");
+                    panel.searchField.text = ""; break;
+                case 8:
+                    panel.selectedAddress = "0x2"; panel.searchField.forceActiveFocus();
+                    test.key(Qt.Key_Tab);
+                    test.check(!panel.searchField.activeFocus, "Tab visits controls");
+                    test.key(Qt.Key_P);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "p", "typing after Tab immediately returns to search");
+                    panel.searchField.text = "";
+                    for (var name of ["settingsButton", "updateSwitch", "authorCredit", "hintsToggle"]) {
+                        var control = test.find(panel, name);
+                        control.forceActiveFocus(Qt.TabFocusReason);
+                        test.key(Qt.Key_P);
+                        test.check(panel.searchField.activeFocus && panel.searchField.text === "p" && panel.mode === "windows" && !panel.blockingModalOpen,
+                            "typing from " + name + " goes to search");
+                        panel.searchField.text = "";
+                    }
+                    test.find(panel, "updateSwitch").forceActiveFocus(Qt.TabFocusReason);
+                    test.key(Qt.Key_2);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "2" && !host.focused,
+                        "unmodified digits from controls are search text");
+                    panel.searchField.text = "Project"; panel.searchField.selectAll(); panel.searchField.copy(); panel.searchField.text = "";
+                    test.find(panel, "authorCredit").forceActiveFocus(Qt.TabFocusReason);
+                    test.key(Qt.Key_V, Qt.ControlModifier);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "Project", "paste from footer uses the native search editor");
+                    test.find(panel, "settingsButton").forceActiveFocus(Qt.TabFocusReason);
+                    test.key(Qt.Key_A, Qt.ControlModifier); test.key(Qt.Key_Backspace);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "", "Ctrl+A and Backspace still edit the query from a control");
+                    test.find(panel, "authorCredit").forceActiveFocus(Qt.TabFocusReason); test.key(Qt.Key_Return); break;
+                case 9:
+                    test.check(panel.blockingModalOpen, "Enter on footer opens its popup");
+                    test.key(Qt.Key_P); test.key(Qt.Key_1, Qt.ControlModifier);
+                    test.check(panel.searchField.text === "" && !panel.searchField.activeFocus && !host.focused,
+                        "popup owns text and blocks background Ctrl+number");
+                    test.key(Qt.Key_Escape); break;
+                case 10:
+                    test.check(!panel.blockingModalOpen && panel.mode === "windows", "Escape closes only the popup");
+                    test.key(Qt.Key_P);
+                    test.check(panel.searchField.activeFocus && panel.searchField.text === "p", "typing resumes immediately after popup dismissal");
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }
+            finally { test.advancing = false; }
         }
     }
 }

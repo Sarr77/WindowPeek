@@ -92,6 +92,24 @@ Left/Right follow their physical column positions, mirrored in RTL; Up/Down
 preserve the action column and reveal the next window across workspace headings.
 At the search text edge, the arrow toward Move transfers focus into that column.
 Cursor movement and text selection inside the search field retain their normal behavior.
+On the expanded window list, typing or editing from a row, header or footer control
+returns focus to the native search field during ShortcutOverride, before KeyPress.
+No text is synthesized or appended manually. Enter/Tab/navigation keep their actions;
+configured number shortcuts (Ctrl by default) and quick selection take precedence.
+Popups, recovery dialogs and other pages retain ownership of their input.
+Tab/Shift+Tab follow the native control order: header, search, the window list
+as one stop, then footer. WindowList keeps one row action in the Tab sequence,
+using the selected address and last action column; arrows update that target.
+A missing selection falls back to the first row for the next deliberate Tab entry,
+without activating a replacement when a window closes. Explicit boundary links keep traversal inside the
+expanded list or active modal; hidden and disabled controls are skipped.
+Keyboard navigation reveals offscreen targets without reacting to pointer focus.
+Remembered selection is independent of its outline: only a focused row action
+displays the keyboard outline. Search and header/footer focus hide it without
+resetting the address or column. Search remains a separate Tab stop before the list. Plain arrows on surrounding buttons
+cycle through enabled visible header/notice/footer actions only. They do not enter
+the list or search; native search editing, modal input and ordinal shortcuts retain
+priority. This path does not change preview capture or animation geometry.
 
 IPC open/toggle and the automatic Super+Alt+P binding request quick selection.
 After the expanded controller's bindings settle, PanelContent starts a five-second

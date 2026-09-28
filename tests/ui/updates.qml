@@ -223,8 +223,13 @@ ShellRoot {
         find(panel,"hintsToggle").forceActiveFocus(Qt.OtherFocusReason);
         events.keyClick(Qt.Key_Tab,Qt.NoModifier,0);
         check(toggle.keyboardFocusVisible,"Tab visibly focuses notification toggle");
+        var query = panel.searchField.text;
         events.keyClick(Qt.Key_Space,Qt.NoModifier,0); settle();
-        check(dialog.opened && toggle.checked,"keyboard requests the same opt-out confirmation");
+        check(panel.searchField.activeFocus && !dialog.opened,"space from the main-list footer continues typing");
+        panel.searchField.text = query;
+        toggle.forceActiveFocus(Qt.TabFocusReason);
+        events.keyClick(Qt.Key_Return,Qt.NoModifier,0); settle();
+        check(dialog.opened && toggle.checked,"Enter requests the same opt-out confirmation");
         events.keyClick(Qt.Key_Tab,Qt.NoModifier,0);
         events.keyClick(Qt.Key_Space,Qt.NoModifier,0); flush();
         check(!toggle.checked && toggle.keyboardFocusVisible,"notification toggle works with keyboard " + JSON.stringify({checked:toggle.checked, focus:toggle.activeFocus, visual:toggle.visualFocus, pointer:toggle.pointerFocus, key:toggle.keyboardFocusVisible}));

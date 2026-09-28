@@ -2,7 +2,9 @@
 
 Find a window and go straight to it.
 
-Keep Omarchy’s fast workflow, and WindowPeek will replace your Dock and Menu Start. Put your open windows in one list on Omarchy’s bar. Search across workspaces and monitors, peek at a window before switching to it, or move it somewhere else. You'll never lose a Hyprland tab again.
+Keep Omarchy’s fast workflow, and WindowPeek will replace your Dock and Menu Start.
+
+Put your open windows in one list on Omarchy’s bar. Search across workspaces and monitors, peek at a window before switching to it, or move it somewhere else. You'll never lose a Hyprland tab again.
 
 [Omarchy Plugins](https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek) · [User guide](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md) · [Settings guide](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md) · [Changelog](https://github.com/Sarr77/WindowPeek/blob/main/CHANGELOG.md)
 
@@ -31,6 +33,7 @@ Find WindowPeek on Omarchy’s bar, or open it with **Super + Alt + P**.
 |----|----|
 | **Super + Alt + P** | Open WindowPeek |
 | Type | Search windows |
+| **Tab / Shift + Tab** | Move between controls; the window list is one stop |
 | **↑ / ↓** | Select a window |
 | **← / →**, then **Enter** | Choose the window or its Move action |
 | **Shift + Enter** | Open Move for the selected window |
@@ -38,8 +41,9 @@ Find WindowPeek on Omarchy’s bar, or open it with **Super + Alt + P**.
 | **Page Up / Page Down** | Scroll by a page |
 | **Esc** | Go back or close |
 
-After opening with **Super + Alt + P**, number keys work without Ctrl for five
-seconds. **0** selects the tenth window. Change bindings in **Settings → Controls → Keyboard & mouse shortcuts**.
+After opening with **Super + Alt + P**, number keys work without Ctrl for five seconds. **0** selects the tenth window.
+
+Change bindings in **Settings → Controls → Keyboard & mouse shortcuts**.
 
 [Full controls](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md#keyboard-controls)
 

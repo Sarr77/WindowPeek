@@ -85,6 +85,8 @@ FocusScope {
         ActionButton {
           id: cancelButton
           objectName: "cancelUpdateOff"
+          KeyNavigation.priority: KeyNavigation.BeforeItem
+          KeyNavigation.backtab: confirmButton
           fontSize: Style.font.title
           width: actions.stacked ? actions.width : root.notificationMode ? actions.width - actions.confirmWidth - actions.columnSpacing : Math.max(implicitWidth,
             Math.min(actions.width * 0.3, actions.width - confirmButton.implicitWidth - actions.columnSpacing))
@@ -98,6 +100,8 @@ FocusScope {
         ActionButton {
           id: confirmButton
           objectName: "confirmUpdateOff"
+          KeyNavigation.priority: KeyNavigation.BeforeItem
+          KeyNavigation.tab: cancelButton
           fontSize: Style.font.title
           width: actions.stacked ? (root.notificationMode ? Math.min(actions.width, actions.confirmWidth) : actions.width)
             : actions.width - cancelButton.width - actions.columnSpacing

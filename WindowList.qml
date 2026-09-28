@@ -16,6 +16,18 @@ Flickable {
     property bool opened: true
     property bool hideScrollbar: false
     property string selectedAddress: ""
+    property bool highlightSelection: true
+    property bool tabMoveAction: false
+    // Only the selected action participates in Tab order; arrows own the grid.
+    readonly property string tabAddress: {
+        var first = "";
+        for (var row of rows) {
+            if (row.kind !== "window") continue;
+            if (row.address === selectedAddress) return row.address;
+            if (!first) first = row.address;
+        }
+        return first;
+    }
     property bool showShortcuts: false
     readonly property var shortcutAddresses: visibleWindowAddresses()
     readonly property Item focusedAction: {
@@ -192,8 +204,10 @@ Flickable {
                         compact: list.compact
                         previewBoundsItem: list.previewBoundsItem
                         expanded: list.expanded
+                        focusTabStop: list.tabAddress === window.address && !list.tabMoveAction
+                        moveTabStop: list.tabAddress === window.address && list.tabMoveAction
                         expansion: list.expansion
-                        selected: list.expanded && list.selectedAddress === window.address
+                        selected: list.expanded && list.highlightSelection && list.selectedAddress === window.address
                         shortcutIndex: list.shortcutAddresses.indexOf(window.address)
                         showShortcut: list.showShortcuts
                         enabled: list.opened
@@ -204,7 +218,10 @@ Flickable {
                         onFocusRequested: function(address) { list.focusRequested(address); }
                         onBringRequested: function(address) { list.bringRequested(address); }
                         onMoveRequested: function(address) { list.moveRequested(address); }
-                        onActionFocused: function(address) { list.actionFocused(address); }
+                        onActionFocused: function(address, moveAction) {
+                            list.tabMoveAction = moveAction;
+                            list.actionFocused(address);
+                        }
                         onNavigateRequested: function(address, delta, moveAction) { list.navigateRequested(address, delta, moveAction); }
                     }
                 }

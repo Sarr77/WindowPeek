@@ -127,9 +127,26 @@ numbered workspaces 1–10. A failed move shows an error instead of pretending i
 | ↑ / ↓ on a row action | Change rows, keeping the same action |
 | Hold Ctrl in the window list | Show shortcut numbers beside visible windows and tabs |
 | Ctrl + 1–9 / 0 in the window list | Switch to the matching numbered window or tab; 0 means tenth. The numeric keypad works with Num Lock on or off |
-| Tab / Shift + Tab | Move through visible controls |
-| Enter / Space on a control | Activate it |
+| Tab / Shift + Tab | Move between controls; enter or leave the window list in one step |
+| Enter on a control | Activate it |
+| Space | Type in expanded search; activate the focused control in menus |
 | Escape | Close a picker, go back, or close the main list |
+
+In the expanded panel, Tab moves through the header controls, search, the window
+list and the footer. Shift+Tab goes backwards. The list is one stop: entering it
+restores the selected window and action, or starts at the first window. Use
+↑/↓ for windows and ←/→ for the window or Move action; the next Tab leaves the
+list. Only the focused row action has a keyboard outline; moving to search or
+other controls removes it, and returning to the list restores it.
+On header and footer buttons, arrows move between the surrounding buttons only,
+skipping the list and search. Down/right moves forward and up/left moves back
+(horizontal directions reverse in right-to-left layouts). Search keeps its normal
+text and list navigation. Hidden or disabled controls are skipped. Popups keep Tab within their own
+controls and return focus to their opener when closed.
+
+Start typing from any control on the expanded window list to continue searching
+without clicking the input. Ctrl + number keeps selecting a window instead of
+entering text. Other pages and open popups retain their own input.
 
 Home, End, Page Up/Down and ↑/↓ also work directly in the hover list.
 Enter or Space selects its highlighted window. Tab, Shift+Tab and the side arrows

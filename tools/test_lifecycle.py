@@ -80,13 +80,15 @@ def inside(base):
             print('PASS clean installation through actual Omarchy CLI and PluginRegistry', flush=True)
             wait_saved(lambda: json.loads(run('omarchy-shell','shell','testState'))['ready'])
             initial = json.loads(run('omarchy-shell','shell','testState'))['defaults']
-            assert initial['panelStyle'] == 'wallpaper' and initial['backgroundTexture'] is True
+            assert initial['selectedPanelStyle'] == 'wallpaper' and initial['followBarStyle'] is True
+            assert initial['panelStyle'] == ('wallpaper' if initial['barTransparent'] else 'solid')
+            assert initial['backgroundTexture'] is True
             assert initial['backgroundBlur'] is False and initial['wallpaperTransparency'] == 70
             assert initial['wallpaperInitialized'] is False, 'New install copied theme assessment history'
             assert initial['hintsMode'] == 'auto' and initial['hintsUsed'] == 0
             assert initial['hintsRemaining'] == 100 and initial['hintsEnabled'] is True
             assert initial['wheelScrollSpeed'] == 102
-            print('PASS fresh install uses Wallpaper/grain and a new automatic hint budget', flush=True)
+            print('PASS fresh install follows bar style, preserves Wallpaper/grain and starts automatic hints at zero', flush=True)
             preferences = {'language':'pl','accentColor':'#EF98F5','hintsUsed':37,'hintsMode':'auto','autoUpdates':False,
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
                            'uiScale':1.25,'barScale':1.1,'customLabels':{'barText':'My windows'},
