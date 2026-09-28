@@ -113,8 +113,11 @@ ShellRoot {
                     test.check(panel.mode==="windows" && panel.recoveryOpen,"Back returns to the review that opened help");
                     panel.navigateBack();test.check(!panel.recoveryOpen,"next Back returns to main panel");
                     panel.showSettings();test.find(panel,"settingsControlsSection").expanded=true;
-                    var entry=test.find(panel,"troubleshootingEntry"); panel.ensureVisible(entry); break;
-                case 5: test.click("troubleshootingEntry"); break;
+                    var entry=test.find(panel,"hintsSupportEntry"); panel.ensureVisible(entry); break;
+                case 5: test.click("hintsSupportEntry"); test.step=60; break;
+                case 60:
+                    test.check(panel.mode==="support", "Troubleshooting lives under Hints and Support");
+                    test.click("troubleshootingEntry"); test.step=6; break;
                 case 6:
                     test.check(panel.mode==="troubleshooting", "Controls opens nested editor");
                     test.click("keepSearchFocusToggle"); break;
@@ -123,7 +126,8 @@ ShellRoot {
                     panel.ensureVisible(test.find(panel,"focusWarningPreferences"));test.capture("warnings");
                     break;
                 case 8:
-                    panel.navigateBack(); test.check(panel.mode==="settings","right-click navigation returns one level");
+                    panel.navigateBack(); test.check(panel.mode==="support","right-click navigation returns to Hints and Support");
+                    panel.navigateBack(); test.check(panel.mode==="settings","next Back returns to Settings");
                     panel.begin(); recovery.suggested=true;break;
                 case 9:
                     test.click("focusRecoveryNotice");break;

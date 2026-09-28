@@ -1,0 +1,41 @@
+var en = {
+    title: "Updates", summary: "Check for updates and choose when to install",
+    checking: "Checking…", unchecked: "Check for a newer version",
+    available: "Update available", current: "WindowPeek is up to date",
+    ahead: "This copy is ahead of the public version. Manage it with Git",
+    failed: "Could not check for updates. Try again",
+    local: "This copy has local changes. Use Git to update it safely",
+    development: "Local development version. Use Git to update it and preserve your changes",
+    verified: "This update is verified by Omarchy",
+    unverified: "This update has not been verified by Omarchy",
+    unknown: "Could not confirm Omarchy verification",
+    noticeHint: "Review the new version. You can update with your approval, even before Omarchy verification",
+    check: "Check now", changes: "View changes", history: "Version history", install: "Update…",
+    changesHelp: "Opens changes on GitHub in your browser",
+    explain: "Omarchy shows the changes in a terminal and asks before installing",
+    launchFailed: "Could not open the terminal. Try again",
+    checksHelp: "Checks every 6 hours. Lets you know when a newer version is available",
+    autoHelp: "Automatically install releases verified by Omarchy. Verification may take time — newer updates remain available with your confirmation",
+    checked: "Last checked", attempted: "Last attempt"
+};
+var pl = {
+    title: "Aktualizacje", summary: "Sprawdź aktualizacje i zdecyduj, kiedy je zainstalować",
+    checking: "Sprawdzanie…", unchecked: "Sprawdź, czy jest nowsza wersja",
+    available: "Dostępna aktualizacja", current: "WindowPeek jest aktualny",
+    ahead: "Ta kopia wyprzedza wersję publiczną. Zarządzaj nią przez Git",
+    failed: "Nie udało się sprawdzić aktualizacji. Spróbuj ponownie",
+    local: "Ta kopia ma lokalne zmiany. Aktualizuj ją bezpiecznie przez Git",
+    development: "Lokalna wersja robocza. Aktualizuj przez Git, aby zachować swoje zmiany",
+    verified: "Ta aktualizacja jest zweryfikowana przez Omarchy",
+    unverified: "Ta aktualizacja nie została zweryfikowana przez Omarchy",
+    unknown: "Nie udało się potwierdzić weryfikacji Omarchy",
+    noticeHint: "Zobacz nową wersję. Możesz zatwierdzić jej instalację także przed weryfikacją Omarchy",
+    check: "Sprawdź teraz", changes: "Zobacz zmiany", history: "Historia wersji", install: "Aktualizuj…",
+    changesHelp: "Otwiera zmiany na GitHubie w przeglądarce",
+    explain: "Omarchy pokazuje zmiany w terminalu i pyta o zgodę przed instalacją",
+    launchFailed: "Nie udało się otworzyć terminala. Spróbuj ponownie",
+    checksHelp: "Sprawdza co 6 godzin. Informuje, gdy pojawi się nowsza wersja",
+    autoHelp: "Automatycznie instaluj wydania zweryfikowane przez Omarchy. Weryfikacja może potrwać — nowsze aktualizacje pozostają dostępne po Twoim zatwierdzeniu",
+    checked: "Ostatnie sprawdzenie", attempted: "Ostatnia próba"
+};
+function words(locale) { return String(locale).split(/[-_]/)[0] === "pl" ? pl : en; }

@@ -66,7 +66,7 @@ ShellRoot {
                     test.edit("8");test.click(test.named("hoverLogoLoopToggle"));break;
                 case 6:
                     test.blurred("non-focusable loop switch removes cooldown caret");
-                    test.check(host.hoverLogoCooldown===8 && !host.hoverLogoLoop,"field saves and switch still receives click: cooldown="+host.hoverLogoCooldown+" loop="+host.hoverLogoLoop);
+                    test.check(host.hoverLogoCooldown===8*60 && !host.hoverLogoLoop,"field saves the displayed minutes and switch still receives click: cooldown="+host.hoverLogoCooldown+" loop="+host.hoverLogoLoop);
                     test.prepare(test.named("settingsLogoLoopDelay"));break;
                 case 7:
                     test.edit("1.5");test.click(test.field);

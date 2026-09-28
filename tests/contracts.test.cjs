@@ -5,8 +5,13 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 function load(file, globals = {}) {
+    const source = fs.readFileSync(path.join(root, file), 'utf8');
+    globals = {...globals};
+    for (const [, relative, alias] of source.matchAll(/^\.import "([^"\n]+)" as (\w+)$/gm)) {
+        if (!(alias in globals)) globals[alias] = load(path.join(path.dirname(file), relative));
+    }
     const context = vm.createContext(globals);
-    vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8').replace(/^\.import .*\n/gm, ''), context, { filename: file });
+    vm.runInContext(source.replace(/^\.import .*\n/gm, ''), context, { filename: file });
     return context;
 }
 const model = load('WindowModel.js');
@@ -144,6 +149,32 @@ test('move plans accept only an explicit current destination and safely quote wo
     assert.ok(commands.destinations(snapshot, '0x1', false).every(item => !item.value.startsWith('special:')));
 });
 
+test('new workspaces require a monitor while existing destinations retain their monitor', () => {
+    const snapshot = {clients:[{address:'0x1',workspace:{id:1,name:'1'}}],
+        monitors:[{id:7,name:'TEST-A'},{id:8,name:'TEST-B'}],
+        workspaces:[{id:1,name:'1',monitorID:7},{id:4,name:'4',monitorID:8}]};
+    const targets = commands.destinations(snapshot,'0x1',true);
+    const newTarget = targets.find(w=>w.value==='2'), existing = targets.find(w=>w.value==='4');
+    assert.equal(commands.monitorChoice(snapshot,newTarget,'TEST-A',false),'');
+    assert.equal(commands.monitorChoice(snapshot,newTarget,'TEST-A',true),'TEST-A');
+    assert.equal(commands.monitorChoice(snapshot,existing,'TEST-A',true),'TEST-B');
+    assert.equal(commands.move(snapshot,'0x1','2'),null);
+    assert.equal(commands.move(snapshot,'0x1','2','unplugged'),null);
+    assert.equal(commands.move(snapshot,'0x1','2','TEST-B').monitor,8);
+    assert.equal(commands.move(snapshot,'0x1','4').monitor,8);
+    assert.equal(commands.move(snapshot,'0x1','4','TEST-A'),null);
+    const changed = structuredClone(snapshot);
+    changed.workspaces.push({id:2,name:'2',monitorID:7});
+    assert.equal(commands.move(changed,'0x1','2','TEST-B'),null,'another window creating the chosen workspace on a different monitor cancels the move');
+    changed.workspaces.at(-1).monitorID=8;
+    assert.equal(commands.move(changed,'0x1','2','TEST-B').monitor,8,'the same monitor still accepts a now-existing destination');
+    snapshot.monitors.pop();
+    assert.equal(commands.move(snapshot,'0x1','2','TEST-B'),null);
+    assert.equal(commands.monitorChoice(snapshot,newTarget,'TEST-A',false),'TEST-A','one screen needs no redundant prompt');
+    snapshot.monitors[0].disabled=true;
+    assert.equal(commands.monitorChoice(snapshot,newTarget,'TEST-A',true),'','Shift never falls back from a disconnected invoking screen');
+});
+
 test('new durable settings win over stale inline values without dropping unrelated choices', () => {
     const saved = { _windowpeekRevision: 20, language: 'pl', hintsUsed: 80 };
     const inline = { _windowpeekRevision: 10, language: 'en', barLabel: 'name' };
@@ -242,6 +273,27 @@ test('appearance preserves saved presets while restoring the last applied color'
     assert.equal(appearance.resolve(restored, 'tokyo-night', '#FFFFFF'), '#123456');
     assert.equal(restored.colorPresets.length, 1);
     assert.equal(appearance.normalize({ uiScale: 7 }).uiScale, 2);
+});
+
+test('appearance presets retain scope, allow names across themes and reject broken associations', () => {
+    let settings = appearance.upsertPreset({}, '', 'Amber', '#ff8800', null, {scope:'theme',theme:'tokyo-night'});
+    settings = appearance.upsertPreset(settings, '', 'Amber', '#aa9900', null, {scope:'theme',theme:'osaka-jade'});
+    settings = appearance.upsertPreset(settings, '', 'Amber', '#ffaa00', null, {scope:'all'});
+    assert.equal(settings.colorPresets.length,3);
+    const [tokyo,osaka,global]=settings.colorPresets;
+    assert.equal(appearance.presetAvailable(tokyo,'tokyo-night'),true);
+    assert.equal(appearance.presetAvailable(tokyo,'osaka-jade'),false);
+    assert.equal(appearance.presetAvailable(osaka,'osaka-jade'),true);
+    assert.equal(appearance.presetAvailable(global,''),true);
+    assert.equal(appearance.upsertPreset(settings,'','Amber','#ffaa00',null,{scope:'all'}),null);
+    assert.equal(appearance.upsertPreset(settings,'','Invalid','#ffaa00',null,{scope:'theme',theme:'../../etc'}),null);
+    settings=appearance.upsertPreset(settings,tokyo.id,'Tokyo amber','#123456');
+    assert.equal(settings.colorPresets[0].theme,'tokyo-night','renaming through older API preserves scope');
+    const normalized=appearance.normalize(JSON.parse(JSON.stringify(settings)));
+    assert.equal(JSON.stringify(normalized.colorPresets),JSON.stringify(settings.colorPresets));
+    const legacy=appearance.normalize({colorPresets:[{id:'preset-old',name:'Old Tokyo name',color:'#123456'}]}).colorPresets[0];
+    assert.equal(legacy.scope,'all');assert.equal(legacy.theme,undefined);
+    assert.equal(appearance.normalize({colorPresets:[{...legacy,scope:'theme',theme:'bad/id'}]}).colorPresets.length,0);
 });
 
 test('custom labels stay literal, validate variables and fall back to the current language', () => {

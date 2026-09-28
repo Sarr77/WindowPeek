@@ -1,10 +1,64 @@
-# Automatic updates
+# Updates
 
-Updates are enabled by default. The small switch in the panel footer saves the
-choice for all monitors. Turning updates off requires confirmation; Cancel,
-Escape and the default Enter leave them enabled. A failed save keeps the last
-saved choice and shows an error. Repair an unreadable or damaged preferences
-file before restarting the shell; it is never silently overwritten.
+## Checking and installing
+
+Open **Settings → Controls → Updates**. The page shows the current status and
+last check time. **Check now** looks for newer public code in `Sarr77/WindowPeek`;
+when an update is found, the same button becomes **Update…**. **View changes**
+opens the checked comparison on GitHub; otherwise **Version history** opens the
+public history. A newer commit can be available without a version-number change.
+An unreachable catalog is shown as unknown, never as verified. Checking uses the
+status area without flashing the button label or moving controls.
+
+**Update…** opens `omarchy plugin update sarr.windowpeek` in a terminal.
+Omarchy fetches the current default branch, shows the changes and asks before
+applying them. This can install code not yet verified by the catalog. Review the
+terminal's diff: it may be newer than the earlier check. Declining keeps the
+installed code; accepting an update restarts the bar after the commit changes.
+There is no `--yes`, administrator access or downloaded installer. GitHub draft
+releases are not a public source.
+
+Manual updates require a clean standard Git installation from the original
+repository. Development links, forks, local changes and ahead copies are protected.
+Their page keeps **Check now** and **Version history** as matching buttons, with a
+short explanation that installation is protected. Development copies are managed with Git. The worker checks
+eligibility again in the terminal and shares the automatic updater's process lock.
+It uses the native command's directory, `~/.config/omarchy/plugins`.
+
+## Update notifications
+
+The compact **Auto updates** footer switch and its label toggle update notifications together.
+Enabling is immediate. Disabling opens a confirmation with **Open Updates** and
+a smaller **Turn off** action. Opening Updates changes no preference; closing
+the popup or pressing Escape also keeps notifications enabled. Back restores the
+previous view, including any unsaved editor draft.
+Clicking outside a confirmation closes only the popup; the underlying panel stays open.
+The version and author on the right open the project support popup, not Updates. The same notification
+setting is available on the Updates page and is enabled by default. It checks
+metadata every six hours while panels are idle; it does not install anything.
+An available update appears beside Settings in the expanded window list and opens
+Updates. Back restores the search and list position. Turning notifications off
+stops scheduled metadata checks and hides that notice; manual checking still works.
+
+Opening Updates uses cached results and starts no network request. **Check now**
+works with both switches off. Checks run outside the UI process; metadata results
+live in `manual-updates.json` and do not fetch Git objects or change code.
+
+## Automatic updates
+
+**Automatic updates** is a separate, default-on option only on the Updates page:
+
+> Automatically install releases verified by Omarchy. Verification may take time — newer updates remain available with your confirmation.
+
+It installs only the verified stable releases described below. Unverified code
+always requires manual confirmation. Existing saved choices are preserved;
+changing notifications does not change automatic installation, or vice versa.
+Turn both options off to stop scheduled update requests.
+
+Turning automatic installation off requires confirmation. Cancel, Escape and the
+default Enter preserve it. Mouse dismissal leaves no focus highlight; keyboard
+dismissal returns focus to the setting. A failed save keeps the saved choice.
+Unreadable settings are never silently overwritten.
 
 ## Schedule and storage
 

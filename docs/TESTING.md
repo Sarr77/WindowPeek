@@ -1,5 +1,24 @@
 # Tests
 
+Manual updates: `python -B -m unittest discover -s tests -p test_manual_updates.py`
+checks read-only discovery, stale/local code, catalog failure, opt-out, caching,
+TTY confirmation and the shared automatic/manual lock. `python tools/test_ui.py updates`
+covers the shared page, navigation, status and deliberate terminal action.
+Repeat with `--scale 2` for the larger interface.
+
+To apply the marketplace's current static scanner locally, obtain its source
+checkout and run:
+
+```sh
+node tools/check_marketplace.mjs --scanner=/path/to/omarchy-plugin-marketplace --out=dist/security-baseline.json
+```
+
+This uses the unchanged scanner and scope resolver, serving the local Git-visible
+files through an in-memory snapshot adapter. It does not publish, approve or
+create a commit. Reports record the scanner commit and a content hash.
+`--ref=<commit>` scans an existing historical commit instead. Local `passed`
+is not marketplace approval of an uploaded SHA.
+
 Run offline checks from the project directory:
 
 ```sh
@@ -533,6 +552,21 @@ restores scrolling beneath it. Neither offscreen case validates compositor key d
 The Scratchpad footer remains full width and fixed during scrolling/filtering,
 is absent from list rows, and is disabled for windows already in Scratchpad.
 
+`move-monitors` covers both destination UIs at 100% and 200%: monitor selection,
+Shift+click/Enter, an existing workspace on the other monitor, one-monitor mode,
+disconnects, clean reopening and Back/Escape/right-click through the steps.
+`move-monitors-native` requires `WINDOWPEEK_ISOLATED=1` and two private outputs
+named WPTEST/WPTEST2. It creates four fictional windows and exercises actual Lua
+dispatch plus action verification: new and existing destinations, a group member,
+bring and Scratchpad. Silent moves must preserve both visible workspaces, focus
+and all other windows. Never run this fixture against a user's desktop.
+
+`logo-hints` varies artwork zoom and independent dimensions while measuring the
+hint's frame and text scale at 100% and 200%. `appearance-fit` checks that a form
+just beyond the available height fits by shrinking its sample, keeps controls
+and spacing unchanged, and restores the sample on a larger viewport. At smaller
+heights it must still scroll and retain a usable sample. Repeat at 200%.
+
 `python3 tools/test_ui.py navigation` checks right-click Back on settings controls,
 text fields, both dropdown types, editor drafts, the move form and update-disable
 confirmation. It checks section collapse before leaving Settings and closing a
@@ -574,6 +608,11 @@ mouse returns hide the focus ring while keyboard returns retain it. Run at both
 `python tools/test_ui.py settings-input-native --desktop` and `--scale 2`.
 The native fixture targets only its own window. `scrolling` covers live refresh
 and springy/firm boundaries.
+`scaling-drag-native` requires a private compositor (`WINDOWPEEK_ISOLATED=1`).
+At 100% and 200%, it drags the production Interface Size slider forward and back,
+including one-pixel movements after each relayout. Values must follow the pointer
+without reversing while the entire panel scales live. It also verifies pointer
+release, unchanged saved settings, keyboard input and Cancel.
 `input-focus` checks outside-click blur and caret removal across text and numeric
 editors, searches and the image chooser at 100% and 200%. It covers saved values,
 non-focusable switches, selection drags, hidden/disabled fields and Tab traversal.
@@ -798,7 +837,11 @@ cooldown, expiry and hidden-window lifecycle. `outside-wheel-native` uses a real
 Wayland scroll receiver behind the production Bar/panel to check that the first
 outside wheel event reaches it in compact, expanded and Settings/dropdown modes;
 outside button presses still dismiss the panel. It covers right-click section
-hierarchy, Move-menu pass-through, keyboard opening with the pointer outside,
+hierarchy and explicit header pinning: outside clicks keep a pinned panel open
+while the other app receives real keyboard input, including after Back returns
+to Search. Close dismisses directly, a new opening starts unpinned, and Unpin
+restores outside-click dismissal. It also covers
+Move-menu pass-through, keyboard opening with the pointer outside,
 and the very first wheel event without intervening pointer motion. Run both UI
 scales privately. Expired-handle checks include the outside-input observer.
 
@@ -1267,3 +1310,148 @@ For cadence measurements, use compositor presentation timestamps and collapse
 consecutive identical widths before comparing intervals. `frameSwapped` alone
 does not prove that distinct widths reached the display. Record CPU time separately
 from elapsed render/submission time to distinguish computation from waiting.
+
+### Artwork library and placement
+
+`python3 tools/test_ui.py logo-library` (also `--scale 2`) covers all 37 local
+animations, search, draft/Apply/Cancel, save failure, complete artwork reset, missing files,
+recent custom GIFs, Ctrl move/zoom, independent resize handles and static-logo
+motion. Handle clicks centre one axis while preserving proportions; small pointer
+jitter is still a click, and drag release must not also centre the artwork.
+Both chooser arrows must reset layout-only changes and restore the full preset,
+including timing, without altering the other view. A failed save preserves every
+old value. Catalogue tests verify reset presets match fresh-install defaults.
+The top-left corner grows and shrinks both dimensions around a fixed centre,
+preserves custom stretched proportions, and saves only on release.
+`logo-picker-native` checks real pointer selection through library → file
+browser → library, escaped file names and one-level Escape navigation. It also
+opens Motion and clicks the parent dialog, selects the last option and closes the
+list by its trigger: all must keep the library open. Set `WP_CASE=protected` in a
+private compositor to repeat this on the native focus-protection surface. Run native
+fixtures only in an isolated compositor or during an agreed desktop test.
+
+`WP_CASE=outside` and `protected-outside` click a real fictional application
+while the library, nested dropdown and file browser are open. The application
+must receive the click and keyboard focus while the chooser and draft survive.
+Escape closes one level at a time; ordinary outside dismissal resumes after
+the chooser closes. Repeat at 100% and 200%.
+
+`tools/import_logo_effects.py` verifies every prepared GIF against its pinned
+source, including decoded transparency, colours, dimensions and frame delays.
+This catches trails caused by retaining old frames after making the backdrop
+transparent. The catalogue test also checks every frame's disposal metadata.
+`logo-effects --desktop --image PREFIX` captures actual Qt playback of Bouncy balls
+and Burn after their final frames, beside the original posters. Compare each
+`PREFIX.EFFECT.played.png` with `PREFIX.EFFECT.poster.png`: pixels must match.
+
+`logo-performance --desktop --log <path>` reports CPU ticks and UI timer intervals
+while the test surface changes width with original, pixel, GIF, tinted GIF and
+motion variants, then hides the artwork. These are scheduling/CPU measurements,
+not compositor presentation times. Run on a private compositor with fake content;
+compare equivalent hardware/backend conditions. Hidden decorations should stop
+playback. `logo-catalog.test.cjs` also validates saved IDs, bundled assets, bounded
+layout values and local recent-file history. Existing playback, cooldown and
+Settings-visit tests remain applicable to the shared renderer.
+
+`logo-reveal` checks simultaneous GIF playback, pause/resume, single opening pass
+and release of the capture layer. Run `--desktop --image PREFIX` on a private GPU,
+then `python3 tools/test_logo_reveal_pixels.py PREFIX` to check all six effects:
+transparent pending/start frames, partial/distinct fragments, and unchanged final pixels including
+alpha. This pixel check requires ImageMagick only as a development tool. Software
+tests check the fade fallback. `logo-library` covers save/Cancel/reset of effects;
+`settings-visit` checks the actual Settings entry before deferred playback runs,
+source replacement, submenu continuation, and visible static artwork after a
+denied cooldown. It also supports `--desktop` on a private GPU. The performance fixture
+also compares the same custom GIF with no effect, Scatter and tinted Pixels.
+
+`logo-placement` exercises vertical/diagonal movement of a shortened landscape
+image in a viewport smaller than its default height, movement to all edges,
+unchanged size on translation, fitted oversized images and saturation of both
+resize handles without shrinking the other dimension. Edge cases check continued
+growth with minimal translation, gesture reversal and release persistence at
+both horizontal boundaries, vertical growth, and proportional corner zoom.
+All four edges and all four corner dots are checked for position, outward growth,
+inward shrinkage, fixed-centre resizing and preservation of corner proportions.
+The 25% zoom/250% width regression verifies continued growth to viewport bounds,
+unchanged height, reversal and persistence. Height and corner zoom also cross the
+old 250% ceiling; persisted layout values accept the resulting wider range.
+Run at 100% and 200%; `--desktop` supports private compositor checks.
+`logo-library` checks Qt double-click sequences for axis centering, inert single
+clicks, pointer jitter and symmetric resizing through the full Settings panel.
+
+`logo-controls-native --desktop` requires a private compositor
+(`WINDOWPEEK_ISOLATED=1`). At 100% and 200%, it sends virtual Wayland keyboard and
+pointer events to the production panel: all four axis-centering double-clicks, artwork double-click centering on both
+axes without changing custom size/proportions or toggling Settings, Ctrl
+held across pointer exit/re-entry, release outside, normal app focus afterward,
+right Ctrl held before opening, and closing while Ctrl remains held. This checks
+actual layer-surface focus and input delivery, which QtTest events bypass.
+Repeat with `WP_CASE=protected` to cover the existing typing-protection surface.
+`WP_CASE=gestures` sends real press/move/release gestures through all eight
+handles, shrinking and growing each one and checking persistence and proportions.
+It then tests five centering targets independently: left/right, top/bottom and
+the artwork itself. `gestures-low` starts at 25% zoom with width filling the
+viewport; `gestures-protected` repeats on the typing-protection surface. Run at
+100% and 200%, including a short artwork area. These cases reproduced both the
+old minimum-zoom lock and overlapping hit areas after extreme flattening.
+
+`logo-random` checks random GIF playback in the real panel: new openings, resizing,
+Settings submenu returns, layout/tint edits, independent cooldowns and chooser
+Apply/Cancel. It verifies that saved motion/reveal stay independent and cooldown
+cannot be bypassed by picking another GIF. The catalogue test exercises every
+possible next choice, default parity and local-source validation.
+
+The appearance `editor` fixture covers saving/editing theme and global preset
+scopes, switching themes while editing, mismatched-preset rejection, legacy global
+entries and Cancel/save failures. Its 30-language pass checks the full HEX remains
+visible beside the preset name; scope appears on a separate line.
+
+`logo-library` checks artwork transparency preview, save/Cancel, failed saves,
+per-view independence and both opacity-only and full artwork resets.
+It verifies the default changes to 50% when choosing a bundled or custom GIF.
+`logo-random` checks rendered half opacity in hover and preserves a manual Settings
+value across random draws; catalogue tests also cover still images and endpoints.
+`WP_CASE=opacity` with `logo-picker-native --desktop --scale 2` checks actual
+pointer clicks on transparency and reset, saving, reopening and Cancel on the
+production surface. The chooser must fit the screen without hiding its actions.
+
+`row-motion-native` runs only on an isolated desktop. It watches the rendered
+positions of Move and Active through complete expand/collapse cycles and rapid
+reversals. Small lists exercise the scrollbar threshold, including fractional
+scale. Settings section tests visit Hints and Support, validate all 30 locales,
+scroll to the last instruction and preserve pin/focus on Back. Updates tests
+assert that checking replaces the status without moving controls, retains the
+button label, and offers public history for development installations.
+
+### Update and support navigation
+
+`updates` at 100% and 200% exercises the single Check now/Update action, uniform
+font sizes, English/Polish layout without scrolling, stable checking status,
+notification opt-out, footer/page preference synchronization and independent
+automatic-install confirmation with real mouse and keyboard events.
+Footer notification opt-out covers Open Updates, explicit Turn off, immediate
+enabling, Escape/close/outside dismissal, pointer/keyboard focus restoration,
+concurrent preference changes, failed saves and preserving nested editor drafts.
+
+`support` covers the version/author popup's three exact browser arguments,
+launcher failure and retry, mouse close, keyboard Escape and retained parent page.
+At 100% and 200% it also checks background hover/preview blocking, another GIF
+on reopening, stopped hidden playback, disabled-animation posters and a bounded
+layout without scrolling in all 30 languages. Preview requests and browser
+launches use probes; pointer and keyboard events are real Qt events.
+The same test checks hidden background scrollbars without changes to row width
+or scroll position, original GIF colors, custom solid colors, Wallpaper blur and
+grain, and Glass popover tint. For offscreen OpenGL captures at either scale:
+
+```sh
+QT_QPA_PLATFORMTHEME= QT_QUICK_CONTROLS_STYLE=Basic QT_QUICK_BACKEND=rhi QSG_RHI_BACKEND=opengl python3 tools/test_ui.py support --desktop --image /tmp/windowpeek-support
+```
+
+In a private compositor, `focus-settings-native` with `WP_CASE=project-popup`
+or `WP_CASE=notification-popup` checks outside dismissal from Settings and the
+window list, with and without protection. Only the popup closes; another app
+receives typing. It also checks the bar label and outer panel padding.
+It also visits Troubleshooting from Hints and Support and preserves guide sections.
+`focus-settings` retains warning/recovery origins and their Back behavior;
+`settings-sections` checks all 30 locales and guide layout. All use isolated
+profiles and fictional data; browser commands are captured, not submitted.

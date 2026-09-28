@@ -16,10 +16,15 @@ FocusScope {
     readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
     readonly property var entry: hostWidget ? hostWidget.inventory.windows.find(function(w) { return w.address === root.address; }) : null
     readonly property var destinations: hostWidget ? Commands.destinations(hostWidget.snapshot, address, true) : []
-    readonly property var filtered: destinations.filter(function(item) {
+    readonly property var monitors: Commands.monitors(hostWidget ? hostWidget.snapshot : null)
+    property string destination: ""
+    property string workspaceSearch: ""
+    readonly property bool choosingMonitor: !!destination
+    readonly property var choices: choosingMonitor ? monitors.map(function(m) { return {value:m.name,name:m.name,monitor:m.description || ""}; }) : destinations
+    readonly property var filtered: choices.filter(function(item) {
         if (item.value === "special:scratchpad") return false;
         var q = search.text.trim().toLocaleLowerCase();
-        return !q || (I18n.workspaceTitle(item.name, words) + " " + item.monitor).toLocaleLowerCase().indexOf(q) >= 0;
+        return !q || ((root.choosingMonitor ? item.name : I18n.workspaceTitle(item.name, words)) + " " + item.monitor).toLocaleLowerCase().indexOf(q) >= 0;
     })
     readonly property bool busy: !!hostWidget && hostWidget.actionBusy
     property alias searchField: search
@@ -32,8 +37,8 @@ FocusScope {
     height: parent ? parent.height / uiScale : 600
     scale: uiScale; transformOrigin: Item.TopLeft
     visible: opened; z: 100
-    Keys.onEscapePressed: close()
-    BackMouseArea { enabled: root.opened; onClicked: root.close() }
+    Keys.onEscapePressed: back()
+    BackMouseArea { enabled: root.opened; onClicked: root.back() }
     function open() {
         if (!opened) previousFocus = window ? window.activeFocusItem : null;
         opened = true; results.currentIndex = 0;
@@ -44,14 +49,28 @@ FocusScope {
         if (previousFocus && previousFocus.visible && previousFocus.enabled) previousFocus.forceActiveFocus();
         previousFocus = null;
     }
+    function back() {
+        if (!choosingMonitor) { close(); return; }
+        destination = ""; search.text = workspaceSearch; search.forceActiveFocus();
+    }
     function show(value, position) {
-        address = value; invocation = position; search.text = "";
+        address = value; invocation = position; destination = ""; workspaceSearch = ""; search.text = "";
         hostWidget.clearError();
         open();
     }
-    function select(value) {
-        if (busy || !entry || !destinations.some(function(item) { return item.value === value; })) return;
-        hostWidget.moveWindow(address, value);
+    function select(value, modifiers) {
+        if (busy || !entry) return;
+        if (choosingMonitor) {
+            if (monitors.some(function(m) { return m.name === value; })) hostWidget.moveWindow(address, destination, value);
+            return;
+        }
+        var target = destinations.find(function(item) { return item.value === value; });
+        if (!target) return;
+        var monitor = Commands.monitorChoice(hostWidget.snapshot, target, hostWidget.screenName || "", !!(modifiers & Qt.ShiftModifier));
+        if (Commands.needsMonitor(target) && !monitor) {
+            workspaceSearch = search.text; destination = value; search.text = ""; search.forceActiveFocus(); return;
+        }
+        hostWidget.moveWindow(address, value, monitor);
     }
     onFilteredChanged: results.currentIndex = filtered.length ? 0 : -1
     Connections {
@@ -106,14 +125,26 @@ FocusScope {
                     textColor: Qt.alpha(Color.popups.text, 0.65)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
+                ReadableText {
+                    width: parent.width; visible: root.choosingMonitor
+                    text: I18n.workspaceTitle(root.destination, root.words) + " · " + root.words.moveMonitor
+                    textFormat: Text.PlainText; wrapMode: Text.Wrap
+                    textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.body
+                }
+                ReadableText {
+                    width: parent.width; visible: !root.choosingMonitor && root.monitors.length > 1
+                    text: I18n.format(root.words.moveMonitorHint, {monitor: root.hostWidget.screenName || root.words.unknownMonitor})
+                    textFormat: Text.PlainText; wrapMode: Text.Wrap
+                    textColor: Qt.alpha(Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                }
             }
             EditField {
                 id: search; objectName: "moveMenuSearch"
                 width: parent.width; accent: root.accent
-                placeholderText: root.words.moveTo
+                placeholderText: root.choosingMonitor ? root.words.moveMonitor : root.words.moveTo
                 Keys.onDownPressed: { if (results.count) { results.currentIndex = 0; results.forceActiveFocus(); } }
-                Keys.onReturnPressed: { if (root.filtered.length) root.select(root.filtered[0].value); }
-                Keys.onEnterPressed: { if (root.filtered.length) root.select(root.filtered[0].value); }
+                Keys.onReturnPressed: function(event) { if (root.filtered.length) root.select(root.filtered[0].value, event.modifiers); }
+                Keys.onEnterPressed: function(event) { if (root.filtered.length) root.select(root.filtered[0].value, event.modifiers); }
             }
             ListView {
                 id: results; objectName: "moveMenuList"
@@ -130,8 +161,8 @@ FocusScope {
                     if (currentIndex <= 0) search.forceActiveFocus();
                     else decrementCurrentIndex();
                 }
-                Keys.onReturnPressed: { if (currentIndex >= 0) root.select(root.filtered[currentIndex].value); }
-                Keys.onEnterPressed: { if (currentIndex >= 0) root.select(root.filtered[currentIndex].value); }
+                Keys.onReturnPressed: function(event) { if (currentIndex >= 0) root.select(root.filtered[currentIndex].value, event.modifiers); }
+                Keys.onEnterPressed: function(event) { if (currentIndex >= 0) root.select(root.filtered[currentIndex].value, event.modifiers); }
                 delegate: Rectangle {
                     id: row
                     required property var modelData
@@ -156,7 +187,7 @@ FocusScope {
                         id: label; anchors.left: parent.left; anchors.leftMargin: Style.space(8)
                         anchors.right: monitor.left; anchors.rightMargin: Style.space(6)
                         anchors.verticalCenter: parent.verticalCenter
-                        text: I18n.workspaceTitle(row.modelData.name, root.words)
+                        text: root.choosingMonitor ? row.modelData.name : I18n.workspaceTitle(row.modelData.name, root.words)
                         textFormat: Text.PlainText; elide: Text.ElideRight
                         textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                     }
@@ -170,7 +201,7 @@ FocusScope {
                     MouseArea {
                         id: mouse; anchors.fill: parent; hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.select(row.modelData.value)
+                        onClicked: function(mouse) { root.select(row.modelData.value, mouse.modifiers); }
                     }
                 }
                 ReadableText {
@@ -190,7 +221,13 @@ FocusScope {
                 width: parent.width; spacing: Style.space(8)
                 Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
                 LabelButton {
+                    objectName: "moveMenuBack"; visible: root.choosingMonitor
+                    width: parent.width; label: root.words.back; focusable: true
+                    onClicked: root.back()
+                }
+                LabelButton {
                     id: scratchpad; objectName: "moveMenuScratchpad"
+                    visible: !root.choosingMonitor
                     width: parent.width; label: root.words.moveToScratchpad
                     accent: root.accent; bordered: true; focusable: true
                     enabled: !root.busy && !!root.entry

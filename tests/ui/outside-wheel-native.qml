@@ -11,6 +11,7 @@ ShellRoot {
     property int step: 0
     property int received: 0
     property int clicks: 0
+    property int appKeys: 0
     property int initialFollow: -1
     property int currentFollow: -1
     property real expiryStarted: 0
@@ -38,10 +39,14 @@ ShellRoot {
     Window {
         id: app; visible:true; width:1600;height:1000;title:"Fictional scroll receiver"
         color:"#112233"
-        MouseArea {
-            anchors.fill:parent
-            onWheel:function(event){test.received+=event.angleDelta.y;event.accepted=true;}
-            onClicked:test.clicks++
+        Item {
+            id: receiver; anchors.fill:parent; focus:true
+            Keys.onPressed:function(event){test.appKeys++;event.accepted=true;}
+            MouseArea {
+                anchors.fill:parent
+                onWheel:function(event){test.received+=event.angleDelta.y;event.accepted=true;}
+                onClicked:{test.clicks++;receiver.forceActiveFocus();}
+            }
         }
     }
     QtObject {
@@ -195,6 +200,50 @@ ShellRoot {
                 case 35:
                     test.check(test.currentFollow===test.initialFollow,"compositor restores mouse behavior if the shell stops renewing");
                     focusLease.active=false;
+                    panel.showSettings();break;
+                case 36:test.over(find(panel.body,"pinPanelButton"),"click");break;
+                case 37:
+                    test.check(panel.body.panelPinned,"real click pins Settings");
+                    test.previous=test.appKeys;test.outside("click");break;
+                case 38:
+                    test.check(panel.opened && panel.body.mode==="settings" && app.active,"outside app receives focus without closing pinned Settings");
+                    keys.write("key A\n");break;
+                case 39:
+                    test.check(test.appKeys>test.previous,"keyboard input reaches the other application");
+                    widget.persistSettings({keepSearchFocus:true});
+                    panel.body.showUpdates();break;
+                case 40:
+                    test.check(panel.body.panelPinned && panel.body.mode==="updates","pin survives entering a submenu");
+                    test.over(find(panel.body,"settingsButton"),"click");break;
+                case 41:
+                    test.check(panel.body.mode==="settings" && panel.body.panelPinned,"Back preserves pin");
+                    test.over(find(panel.body,"settingsButton"),"click");break;
+                case 42:
+                    test.check(panel.body.mode==="windows" && panel.body.panelPinned,"pin remains after returning to the list");
+                    test.check(widget.keepSearchFocus && !widget.focusRecovery.searchEligible
+                        && !widget.focusRecovery.protectionEligible && !panel.surface.searchKeyboardActive,
+                        "explicit pin pauses typing hold and focus-loss detection without changing the saved protection choice");
+                    test.previous=test.appKeys;test.outside("click");break;
+                case 43:
+                    test.check(panel.opened && app.active,"pinned search allows focus in another app");
+                    keys.write("key B\n");break;
+                case 44:
+                    test.check(test.appKeys>test.previous,"pinned search does not retain the other app's keyboard");
+                    test.over(find(panel.body,"closePinnedPanel"),"click");break;
+                case 45:
+                    test.check(!panel.opened,"Close dismisses the pinned panel directly");
+                    panel.showSettings();break;
+                case 46:
+                    test.check(!panel.body.panelPinned,"new opening starts unpinned");
+                    test.over(find(panel.body,"pinPanelButton"),"click");break;
+                case 47:
+                    test.check(panel.body.panelPinned,"pin can be enabled again");
+                    test.over(find(panel.body,"pinPanelButton"),"click");break;
+                case 48:
+                    test.check(!panel.body.panelPinned,"real Unpin click removes pin");
+                    test.outside("click");break;
+                case 49:
+                    test.check(!panel.opened,"outside click dismisses after Unpin");
                     console.log("WINDOWPEEK_TEST_PASS");stop();Qt.quit();break;
                 }
             } catch(error){console.error("WINDOWPEEK_TEST_FAIL step "+(test.step-1)+": "+error);stop();Qt.quit();}

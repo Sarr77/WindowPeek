@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import "LogoWords.js" as LogoCopy
+import "UpdateWords.js" as UpdateCopy
 import QtQuick.Window
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
@@ -97,7 +99,11 @@ FocusScope {
         if (recoveryOpen) recoveryDialog.prepareClose();
     }
     function finishDismiss() {
+        projectSupport.opened = false;
+        confirmation.opened = false;
+        retainedEditorMode = "";
         recoveryOpen = false;
+        panelPinned = false;
         recoveryDialog.closingPresentation = null;
         mode = "windows";
         closingHeight = -1;
@@ -105,9 +111,13 @@ FocusScope {
     }
     property Item previewBoundsItem: root
     property real scrollbarGutter: Style.spacing.popupPadding
+    property real modalDismissMargin: 0
     property real maximumHeight: Infinity
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
     readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property bool updateAvailable: !!hostWidget && !!hostWidget.runtime
+        && hostWidget.preference("checkUpdates", true) === true
+        && !!hostWidget.runtime.updates && hostWidget.runtime.updates.manualAvailable
     readonly property bool rtl: hostWidget && hostWidget.language === "ar"
     readonly property bool compact: hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     property alias searchField: search
@@ -120,13 +130,24 @@ FocusScope {
         if (mode === "windows" || mode === "move") settingsVisit = false;
         else if (mode === "settings") settingsVisit = true;
     }
-    onOpenedChanged: if (!opened) settingsVisit = false
+    onOpenedChanged: if (!opened) settingsVisit = false;
     property string settingsReturnMode: ""
+    property string updatesReturnMode: "windows"
+    property real updatesReturnScrollY: 0
+    property string retainedEditorMode: ""
+    readonly property bool blockingModalOpen: projectSupport.opened || confirmation.opened
+    function dismissModalOutside() {
+        // The physical click belongs to another application. Keep the parent
+        // panel and its scroll, without focusing the modal's origin control.
+        if (projectSupport.opened) projectSupport.close(Qt.NoFocusReason);
+        else if (confirmation.opened) confirmation.cancel(Qt.NoFocusReason);
+    }
     property real settingsScrollY: 0
     property real mainScrollY: 0
     property bool opened: false
     property bool expanded: true
     property bool compactPinned: false
+    property bool panelPinned: false
     property bool barLabelHovered: false
     property real expansion: expanded ? 1 : 0
     property bool showHint: !!hostWidget && hostWidget.hints.enabled
@@ -134,14 +155,21 @@ FocusScope {
     property bool pointerInsidePanel: contentPointer.hovered
     HoverHandler { id: contentPointer; blocking: false }
     property string orderAddress: ""
+    readonly property bool logoControlHeld: logoModifiers.active && logoModifiers.known && logoModifiers.shiftDown
+    PreviewModifiers {
+        id: logoModifiers
+        modifier: "Ctrl"
+        active: root.opened && root.mode === "settings" && !!root.hostWidget && root.hostWidget.settingsLogo
+            && uncoveredSettings.visible && !root.recoveryOpen && !root.currentPopup
+    }
     readonly property bool controlHeld: shortcutModifiers.known && shortcutModifiers.controlDown
     readonly property bool quickSelection: quickSelectionTimer.running && shortcutsAvailable
     readonly property var shortcutModifierState: shortcutModifiers
     readonly property bool shortcutsAvailable: opened && mode === "windows" && !busy
-        && !confirmation.opened && !recoveryOpen && !!hostWidget && !hostWidget.moveMenuOpen
+        && !confirmation.opened && !projectSupport.opened && !recoveryOpen && !!hostWidget && !hostWidget.moveMenuOpen
     readonly property var shortcutAddresses: list.shortcutAddresses
     readonly property bool interacting: list.interacting
-    readonly property bool backgroundToggleAllowed: opened && mode === "windows" && !busy && !interacting && !confirmation.opened && !recoveryOpen
+    readonly property bool backgroundToggleAllowed: opened && mode === "windows" && !busy && !interacting && !confirmation.opened && !projectSupport.opened && !recoveryOpen
     readonly property real listContentHeight: list.contentHeight
     readonly property var preview: Preview.arrange(view, orderAddress)
     property alias contentY: list.contentY
@@ -149,6 +177,12 @@ FocusScope {
     property string selectedAddress: ""
     property string moveAddress: ""
     property string destination: ""
+    property string destinationMonitor: ""
+    readonly property var selectedDestination: destinations.find(function(item) { return item.value === root.destination; }) || null
+    readonly property var moveMonitors: Commands.monitors(hostWidget ? hostWidget.snapshot : null)
+    readonly property bool chooseMoveMonitor: Commands.needsMonitor(selectedDestination)
+    readonly property bool moveDestinationReady: !!selectedDestination && (!chooseMoveMonitor
+        || moveMonitors.some(function(m) { return m.name === root.destinationMonitor; }))
     readonly property var inventory: hostWidget ? hostWidget.inventory : Model.normalize(null)
     readonly property var view: Model.search(inventory, search.text, { includeSpecial: hostWidget && hostWidget.includeSpecial })
     readonly property var matches: preview.sections.reduce(function(all, section) { return all.concat(section.windows); }, [])
@@ -159,7 +193,7 @@ FocusScope {
         && moveWindow.workspace.name !== "special:scratchpad" && !busy
     readonly property bool busy: hostWidget && hostWidget.actionBusy
     readonly property var shortcuts: Shortcuts.normalize(hostWidget ? hostWidget.shortcuts : {})
-    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels" || mode === "shortcuts" || mode === "pictures" || mode === "troubleshooting"
+    readonly property bool editing: mode === "appearance" || mode === "scaling" || mode === "labels" || mode === "shortcuts" || mode === "pictures" || mode === "troubleshooting" || mode === "updates" || mode === "support"
     readonly property bool hoverLogoEnabled: !!hostWidget && hostWidget.hoverLogo !== false
     readonly property real listChromeHeight: header.implicitHeight + list.anchors.topMargin
         + list.anchors.bottomMargin + footer.implicitHeight
@@ -167,10 +201,12 @@ FocusScope {
             + list.fittedHeight(Style.space(420), Math.max(0, maximumHeight - listChromeHeight), Style.space(44))
         : mode === "move" ? header.implicitHeight + Style.space(24) + footer.implicitHeight
             + Math.max(moveForm.implicitHeight, destinationPicker.popupOpen
-                ? destinationPicker.y + destinationPicker.height + Style.space(4) + destinationPicker.preferredPopupHeight : 0)
+                ? destinationPicker.y + destinationPicker.height + Style.space(4) + destinationPicker.preferredPopupHeight : 0,
+                moveMonitorPicker.popupOpen ? moveMonitorPicker.y + moveMonitorPicker.height + Style.space(4) + moveMonitorPicker.preferredPopupHeight : 0)
         : mode === "settings" ? Style.space(640)
-        : mode === "appearance" || mode === "shortcuts" ? Math.min(maximumHeight, Math.max(Style.space(540),
-            header.implicitHeight + editorScroll.anchors.topMargin + editorColumn.implicitHeight
+        : mode === "appearance" || mode === "shortcuts" || mode === "scaling" ? Math.min(maximumHeight, Math.max(Style.space(540),
+            header.implicitHeight + editorScroll.anchors.topMargin
+            + (mode === "appearance" && appearance.item ? appearance.item.preferredHeight : editorColumn.implicitHeight)
             + editorScroll.anchors.bottomMargin + footer.implicitHeight))
         : Style.space(540)
     signal closeRequested()
@@ -185,7 +221,7 @@ FocusScope {
         objectName: "barLabelHint"
         hostWidget: root.hostWidget
         belowAnchor: true; anchorItem: root.previewBoundsItem
-        requested: root.opened && !root.recoveryOpen && root.barLabelHovered && !root.busy && !root.interacting
+        requested: root.opened && !root.recoveryOpen && !root.blockingModalOpen && root.barLabelHovered && !root.busy && !root.interacting
             && !root.hostWidget.moveMenuOpen
         text: root.mode !== "windows" ? root.words.closePanelHint
             : root.hostWidget && root.hostWidget.doubleClickExpand
@@ -200,11 +236,12 @@ FocusScope {
         hostWidget: root.hostWidget
         belowAnchor: true
         anchorItem: root.previewBoundsItem
-        requested: root.opened && !root.recoveryOpen && root.mode === "windows" && !root.interacting
+        requested: root.opened && !root.recoveryOpen && !root.blockingModalOpen && root.mode === "windows" && !root.interacting
             && root.pointerInsidePanel
             && !root.busy && (root.hostWidget.openOnHover || root.hostWidget.doubleClickExpand)
             && !root.hostWidget.moveMenuOpen && !hoverLogo.hovered && !list.rowHovered && !root.barLabelHovered
-            && !list.scrollbar.hovered && !(root.expanded && (settingsButton.hot || search.hovered
+            && !list.scrollbar.hovered && !(root.expanded && (settingsButton.hot || availableUpdateButton.hot
+                || pinPanelButton.hot || closePinnedButton.hot || search.hovered
                 || hintsToggle.pointerHovered || updateSwitch.pointerHovered))
             && (emptySpace.containsMouse || list.backgroundHovered || root.outerBackgroundHovered)
         text: root.hostWidget && root.hostWidget.doubleClickExpand
@@ -275,9 +312,10 @@ FocusScope {
     function dismiss() {
         opened = false;
         list.cancelFlick();
-        appearance.closePickers(); settingsContent.closePickers(); destinationPicker.close();
+        appearance.closePickers(); settingsContent.closePickers(); destinationPicker.close(); moveMonitorPicker.close();
         labelsEditor.closePickers();
         confirmation.opened = false;
+        projectSupport.opened = false;
         if (hostWidget) { hostWidget.cancelAppearance(); hostWidget.cancelLabels(); }
         // Keep the current view until the enclosing surface has finished fading.
     }
@@ -286,12 +324,13 @@ FocusScope {
         settingsReturnMode = ""; settingsScrollY = 0;
         mode = "settings"; settingsVisit = true; editorScroll.cancelFlick(); editorScroll.contentY = 0;
         settingsContent.begin();
-        Qt.callLater(function() { settingsContent.focusLanguage(); });
+        Qt.callLater(function() { if (root.opened && root.mode === "settings") settingsContent.focusLanguage(); });
     }
     function returnToSettings(focusReason) {
         var restoreReason = typeof focusReason === "number" ? focusReason : settingsContent.editorFocusReason;
         mode = "settings";
         Qt.callLater(function() {
+            if (!root.opened || root.mode !== "settings") return;
             editorColumn.forceLayout();
             editorScroll.cancelFlick();
             editorScroll.contentY = Math.min(settingsScrollY, Math.max(0, editorScroll.contentHeight - editorScroll.height));
@@ -309,17 +348,50 @@ FocusScope {
         mode = "troubleshooting";
         editorScroll.cancelFlick(); editorScroll.contentY = 0;
     }
+    function showUpdates() {
+        if (mode === "updates") return;
+        updatesReturnMode = mode;
+        // Arm retention before changing mode. A derived mode binding can briefly
+        // deactivate a Loader before its dependent retention binding updates.
+        retainedEditorMode = mode;
+        updatesReturnScrollY = editorScroll.contentY;
+        if (mode === "windows") mainScrollY = list.contentY;
+        else if (mode === "settings") { settingsReturnMode = "updates"; settingsScrollY = editorScroll.contentY; }
+        if (hostWidget && hostWidget.windowPreview) hostWidget.windowPreview.dismiss();
+        if (!expanded) expandRequested();
+        mode = "updates";
+        editorScroll.cancelFlick(); editorScroll.contentY = 0;
+    }
     function back(focusReason) {
+        if (mode === "updates") {
+            if (updatesReturnMode === "settings") root.returnToSettings(focusReason);
+            else if (updatesReturnMode === "windows") { mode = "windows"; restoreSearchView(mainScrollY); }
+            else {
+                mode = updatesReturnMode;
+                Qt.callLater(function() {
+                    editorColumn.forceLayout(); editorScroll.cancelFlick();
+                    editorScroll.contentY = Math.max(0, Math.min(root.updatesReturnScrollY, editorScroll.contentHeight - editorScroll.height));
+                    updateSwitch.forceActiveFocus(typeof focusReason === "number" ? focusReason : Qt.MouseFocusReason);
+                });
+            }
+            retainedEditorMode = "";
+            return;
+        }
         var returnToSettings = editing;
         if (editing && hostWidget) { hostWidget.cancelAppearance(); hostWidget.cancelLabels(); }
-        appearance.closePickers(); destinationPicker.close(); settingsContent.closePickers();
+        appearance.closePickers(); destinationPicker.close(); moveMonitorPicker.close(); settingsContent.closePickers();
         labelsEditor.closePickers();
         if (mode === "troubleshooting" && troubleshootingReturn.mode !== "settings") {
             var previous = troubleshootingReturn;
             mode = previous.mode;
             if (previous.review) openRecovery(previous.scroll);
             else if (mode === "windows") restoreSearchView(previous.scroll);
-            else editorScroll.contentY = previous.scroll;
+            else {
+                editorScroll.contentY = previous.scroll;
+                if (mode === "support") Qt.callLater(function() {
+                    if (root.mode === "support" && supportLoader.item) supportLoader.item.focusTroubleshooting(focusReason);
+                });
+            }
         } else if (returnToSettings) root.returnToSettings(focusReason);
         else { mode = "windows"; restoreSearchView(mainScrollY); }
     }
@@ -333,9 +405,14 @@ FocusScope {
         }
         return item.popupOpen === true && typeof item.close === "function" ? item : null;
     }
-    readonly property var currentPopup: root.mode === "windows" ? null : findOpenPopup(root)
+    readonly property var currentPopup: projectSupport.opened ? projectSupport : confirmation.opened ? confirmation : root.mode === "windows" ? null : findOpenPopup(root)
+    // A chooser owns an unfinished selection. Let the user visit another app
+    // without dismissing the chooser or its parent Settings panel.
+    readonly property bool keepOpenOutside: panelPinned || blockingModalOpen || (root.mode === "pictures" && pictures.picking)
+    readonly property bool allowFocusHandoff: panelPinned || blockingModalOpen
+    readonly property Item popupContainerInputItem: root.mode === "pictures" ? pictures.popupContainerInputItem : null
     function navigateBack(position, focusReason) {
-        if (confirmation.opened) confirmation.cancel();
+        if (confirmation.opened) confirmation.cancel(focusReason);
         else if (recoveryOpen) { if (recoveryDialog.choosingIgnore) recoveryDialog.activate("back"); else recoveryDialog.cancel(); }
         else if (currentPopup) currentPopup.close();
         else if (mode === "settings" && settingsContent.collapseSection()) return;
@@ -348,14 +425,22 @@ FocusScope {
         if (!expanded) expandRequested();
         if (hostWidget.windowPreview) hostWidget.windowPreview.dismiss();
         if (mode === "windows") mainScrollY = list.contentY;
-        moveAddress = address; destination = ""; hostWidget.clearError(); mode = "move";
+        moveAddress = address; destination = ""; destinationMonitor = ""; hostWidget.clearError(); mode = "move";
         editorScroll.contentY = 0;
         Qt.callLater(function() { if (root.opened && root.mode === "move") destinationPicker.open(); });
     }
     function moveToScratchpad() {
         if (!canMoveToScratchpad) return;
         destinationPicker.close();
+        moveMonitorPicker.close();
         hostWidget.moveWindow(moveAddress, "special:scratchpad");
+    }
+    function chooseMoveDestination(value, modifiers) {
+        destination = value;
+        destinationMonitor = Commands.monitorChoice(hostWidget.snapshot, selectedDestination,
+            hostWidget.screenName || "", !!(modifiers & Qt.ShiftModifier));
+        if (chooseMoveMonitor && !destinationMonitor)
+            Qt.callLater(function() { if (root.opened && root.mode === "move" && root.chooseMoveMonitor) moveMonitorPicker.open(); });
     }
     function moveSelection(delta) {
         if (!matches.length) { selectedAddress = ""; return; }
@@ -388,7 +473,7 @@ FocusScope {
         } else if (event.key === Qt.Key_Escape) { closeRequested(); event.accepted = true; }
     }
     function handleWindowShortcut(event) {
-        if (!opened || mode !== "windows" || confirmation.opened
+        if (!opened || mode !== "windows" || confirmation.opened || projectSupport.opened
                 || !hostWidget || hostWidget.moveMenuOpen) return false;
         var modifiers = Shortcuts.eventMask(event, true);
         if (modifiers !== Shortcuts.mask(shortcuts.numbers) && !(quickSelection && modifiers === Qt.NoModifier)) return false;
@@ -411,6 +496,7 @@ FocusScope {
     }
     function updateControl(event, pressed) {
         shortcutModifiers.key(event, pressed);
+        logoModifiers.key(event, pressed);
     }
     function handleListNavigation(event) {
         if (!shortcutsAvailable) return false;
@@ -480,6 +566,7 @@ FocusScope {
         }
     }
     Keys.onShortcutOverride: function(event) {
+        logoModifiers.key(event, true);
         Qt.callLater(root.revealKeyboardFocus);
         event.accepted = false;
     }
@@ -495,24 +582,77 @@ FocusScope {
 
     Column {
         id: header; objectName: "panelHeader"; visible: !root.recoveryOpen; width: parent.width; spacing: Style.space(10) * root.expansion
+        enabled: !root.blockingModalOpen
+        opacity: root.blockingModalOpen ? 0.14 : 1
         Item {
             width: parent.width; height: Style.space(29)
             ReadableText {
                 id: panelTitle; objectName: "panelTitle"
-                width: Math.min(implicitWidth, parent.width - Math.max(settingsButton.width, countBadge.width) - Style.space(8))
+                width: Math.max(0, Math.min(implicitWidth, parent.width - Math.max(settingsButton.width
+                    + (availableUpdateButton.visible ? availableUpdateButton.width + Style.space(8) : 0)
+                    + (pinPanelButton.visible ? pinPanelButton.width + Style.space(8) : 0)
+                    + (closePinnedButton.visible ? closePinnedButton.width + Style.space(8) : 0), countBadge.width) - Style.space(8)))
                 text: root.mode === "windows" ? (root.hostWidget ? root.hostWidget.textTemplates.panelTitle : "WindowPeek")
                     : root.mode === "troubleshooting" ? root.words.troubleshooting
                     : root.mode === "pictures" ? root.words.picturesAndGifs
+                    : root.mode === "support" ? root.words.hintsSupport
+                    : root.mode === "updates" ? UpdateCopy.words(root.hostWidget.language).title
                     : root.mode === "move" ? root.words.moveTo : root.mode === "labels" ? I18n.words(root.hostWidget.language).labels : root.words.settings
                 textFormat: Text.PlainText; elide: Text.ElideRight
                 textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
+                anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
             }
             LabelButton {
+                id: availableUpdateButton; objectName: "availableUpdateButton"
+                anchors.right: closePinnedButton.visible ? closePinnedButton.left
+                    : pinPanelButton.visible ? pinPanelButton.left : settingsButton.left
+                anchors.rightMargin: Style.space(8)
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.mode === "windows" && root.updateAvailable && root.expansion > 0
+                opacity: root.expansion; enabled: root.expanded
+                width: Math.min(implicitWidth, parent.width * (root.panelPinned ? 0.28 : 0.45))
+                label: root.words.updateAvailable
+                accent: root.accent; bordered: true; focusable: true
+                foreground: Color.popups.text; background: Qt.alpha(root.accent, 0.12)
+                onClicked: root.showUpdates()
+                PanelHint {
+                    hostWidget: root.hostWidget; requested: availableUpdateButton.hot && availableUpdateButton.visible
+                    belowAnchor: true; anchorItem: root.previewBoundsItem
+                    text: UpdateCopy.words(root.hostWidget ? root.hostWidget.language : "en").noticeHint
+                }
+            }
+            LabelButton {
+                id: closePinnedButton; objectName: "closePinnedPanel"
+                anchors.right: pinPanelButton.left; anchors.rightMargin: Style.space(8)
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.panelPinned && root.expansion > 0
+                opacity: root.expansion; enabled: root.expanded
+                width: Math.min(implicitWidth, parent.width * 0.18)
+                label: root.words.closePanel; accent: root.accent; focusable: true
+                onClicked: root.closeRequested()
+            }
+            PinButton {
+                id: pinPanelButton; objectName: "pinPanelButton"
+                anchors.right: settingsButton.left; anchors.rightMargin: Style.space(8)
+                anchors.verticalCenter: parent.verticalCenter
+                visible: (root.mode !== "windows" || root.panelPinned) && root.expansion > 0
+                opacity: root.expansion; enabled: root.expanded
+                width: implicitWidth
+                text: root.panelPinned ? root.words.unpinPanel : root.words.pinPanel
+                accent: root.accent; checked: root.panelPinned
+                onClicked: root.panelPinned = !root.panelPinned
+                PanelHint {
+                    hostWidget: root.hostWidget; requested: pinPanelButton.hovered && pinPanelButton.visible
+                    belowAnchor: true; anchorItem: root.previewBoundsItem
+                    text: pinPanelButton.text + "\n" + root.words.pinPanelHelp
+                }
+            }
+            LabelButton {
                 id: settingsButton; objectName: "settingsButton"
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(implicitWidth, parent.width * 0.4)
+                width: Math.min(implicitWidth, parent.width * (pinPanelButton.visible ? 0.22 : 0.4))
                 opacity: root.expansion; enabled: root.expanded
                 label: root.mode === "windows" ? root.words.settings : root.words.back
                 accent: root.accent; focusable: true
@@ -615,10 +755,13 @@ FocusScope {
 
     WindowList {
         id: list
+        enabled: !root.blockingModalOpen
+        opacity: root.blockingModalOpen ? 0.14 : 1
+        hideScrollbar: root.blockingModalOpen
         hostWidget: root.hostWidget
         rows: root.rows
         expanded: root.expanded; expansion: root.expansion
-        opened: root.opened; selectedAddress: root.selectedAddress
+        opened: root.opened && !root.blockingModalOpen; selectedAddress: root.selectedAddress
         showShortcuts: (root.controlHeld || root.quickSelection) && root.shortcutsAvailable
         previewBoundsItem: root.previewBoundsItem
         scrollbarGutter: root.scrollbarGutter
@@ -640,6 +783,7 @@ FocusScope {
     ReadableText {
         anchors.centerIn: list; width: root.width - Style.space(28)
         visible: !root.recoveryOpen && root.mode === "windows" && root.matches.length === 0
+        opacity: root.blockingModalOpen ? 0.14 : 1
         text: root.inventory.status !== "ready" ? root.words.unavailable
             : root.inventory.windows.length ? root.words.noMatches : root.words.emptyWindows
         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter
@@ -648,6 +792,8 @@ FocusScope {
 
     Item {
         id: settingsBranding; objectName: "settingsBranding"
+        enabled: !root.blockingModalOpen
+        opacity: root.blockingModalOpen ? 0.14 : 1
         z: 1
         x: editorScroll.x; y: editorScroll.y
         width: editorScroll.width; height: editorScroll.height
@@ -660,7 +806,14 @@ FocusScope {
             width: parent.width; height: Math.max(0, parent.height - y)
             visible: height > 0
             clip: true
+            LogoPlacement {
+                id: settingsLogoPlacement; anchors.fill: parent; hostWidget: root.hostWidget
+                artwork: settingsLogoArt; target: "settings"; editing: root.logoControlHeld && root.mode === "settings"
+                naturalAspect: settingsLogoArt.sourceAspect
+            }
             PanelLogo {
+                id: settingsLogoArt
+                hintText: LogoCopy.words(root.hostWidget ? root.hostWidget.language : "en").adjust
                 objectName: "settingsOmarchyLogo"
                 sessionActive: root.settingsVisit && root.opened && !!root.hostWidget && root.hostWidget.settingsLogo
                 hintAnchor: root.previewBoundsItem
@@ -669,11 +822,7 @@ FocusScope {
                 loopDelay: root.hostWidget ? root.hostWidget.settingsLogoLoopDelay : 0
                 cooldownSlot: "settings"
                 cooldown: root.hostWidget ? root.hostWidget.settingsLogoCooldown : 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                y: settingsBranding.height - height - Style.space(48) - parent.y
-                visible: y + height > 0 && y < parent.height
-                width: Math.min(parent.width * 0.72, Style.space(324))
-                height: width * 285 / 1215
+                visible: settingsBranding.visible && uncoveredSettings.visible
                 // Effects stay in the backdrop; its texture can show through the mark.
                 hostWidget: root.hostWidget; accent: root.accent
             }
@@ -682,6 +831,9 @@ FocusScope {
 
     Flickable {
         id: editorScroll; objectName: "editorScroll"
+        enabled: !root.blockingModalOpen
+        opacity: root.blockingModalOpen ? 0.14 : 1
+        interactive: !root.blockingModalOpen
         anchors.top: header.bottom; anchors.topMargin: Style.space(12)
         anchors.bottom: footer.top; anchors.bottomMargin: Style.space(12)
         // Keep hidden editors ready without relaying every resize frame through them.
@@ -694,8 +846,10 @@ FocusScope {
         boundsBehavior: Flickable.StopAtBounds
         WheelScroll { view: editorScroll; speed: root.hostWidget ? root.hostWidget.wheelScrollSpeed : 102 }
         QQC.ScrollBar.vertical: ScrollHandle {
+            objectName: "editorScrollbar"
+            enabled: !root.blockingModalOpen
             parent: root
-            visible: editorScroll.visible && size < 1 && policy !== QQC.ScrollBar.AlwaysOff
+            visible: editorScroll.visible && !root.blockingModalOpen && size < 1 && policy !== QQC.ScrollBar.AlwaysOff
             x: root.rtl ? -(root.scrollbarGutter + width) / 2 : root.width + (root.scrollbarGutter - width) / 2
             y: editorScroll.y; height: editorScroll.height; accent: root.accent
         }
@@ -706,6 +860,7 @@ FocusScope {
                 visible: root.mode === "settings"; width: parent.width
                 hostWidget: root.hostWidget
                 onOpenEditor: function(mode) {
+                    if (mode === "updates") { root.showUpdates(); return; }
                     if (mode === "troubleshooting") root.rememberTroubleshootingOrigin();
                     root.settingsReturnMode = mode;
                     root.settingsScrollY = editorScroll.contentY;
@@ -722,6 +877,32 @@ FocusScope {
                 visible: root.mode === "troubleshooting"; width: parent.width
                 hostWidget: root.hostWidget
             }
+            Loader {
+                id: updatesLoader
+                width: parent.width; active: root.mode === "updates"; visible: active
+                onLoaded: item.focusFirst()
+                sourceComponent: UpdatesPage {
+                    objectName: "updatesPage"
+                    hostWidget: root.hostWidget
+                    onToggleAutomatic: {
+                        if (root.hostWidget.autoUpdates) confirmation.open();
+                        else root.hostWidget.toggleUpdates();
+                    }
+                }
+            }
+            Loader {
+                id: supportLoader
+                width: parent.width
+                active: root.mode === "support" || root.retainedEditorMode === "support"
+                    || ((root.mode === "troubleshooting" || root.retainedEditorMode === "troubleshooting") && root.troubleshootingReturn.mode === "support")
+                visible: root.mode === "support"
+                onLoaded: item.focusFirst()
+                sourceComponent: HintsSupportPage {
+                    objectName: "hintsSupportPage"
+                    hostWidget: root.hostWidget
+                    onTroubleshootingRequested: root.showTroubleshooting()
+                }
+            }
             LogoSettings {
                 id: pictures; objectName: "logoSettings"
                 visible: root.mode === "pictures"; width: parent.width
@@ -730,11 +911,13 @@ FocusScope {
             Loader {
                 id: appearance
                 width: parent.width
-                active: root.mode === "appearance"; visible: active
+                active: root.mode === "appearance" || root.retainedEditorMode === "appearance"; visible: root.mode === "appearance"
                 onLoaded: item.begin()
                 function closePickers() { if (item && item.closePickers) item.closePickers(); }
                 sourceComponent: AppearanceEditor {
                     hostWidget: root.hostWidget
+                    availableHeight: editorScroll.height
+                    scrollOffset: editorScroll.contentY
                     onFinished: function(reason) { root.returnToSettings(reason); }
                     onEnsureVisible: function(item) { root.ensureVisible(item); }
                 }
@@ -742,7 +925,7 @@ FocusScope {
             Loader {
                 id: scaling
                 width: parent.width
-                active: root.mode === "scaling"; visible: active
+                active: root.mode === "scaling" || root.retainedEditorMode === "scaling"; visible: root.mode === "scaling"
                 onLoaded: item.begin()
                 function closePickers() { if (item && item.closePickers) item.closePickers(); }
                 sourceComponent: ScalingEditor {
@@ -754,7 +937,7 @@ FocusScope {
             Loader {
                 id: shortcutsEditor
                 width: parent.width
-                active: root.mode === "shortcuts"; visible: active
+                active: root.mode === "shortcuts" || root.retainedEditorMode === "shortcuts"; visible: root.mode === "shortcuts"
                 onLoaded: item.begin()
                 sourceComponent: ShortcutsEditor {
                     hostWidget: root.hostWidget
@@ -766,7 +949,7 @@ FocusScope {
             Loader {
                 id: labelsEditor
                 width: parent.width
-                active: root.mode === "labels"; visible: active
+                active: root.mode === "labels" || root.retainedEditorMode === "labels"; visible: root.mode === "labels"
                 onLoaded: item.begin()
                 function closePickers() { if (item && item.closePickers) item.closePickers(); }
                 sourceComponent: LabelsEditor {
@@ -812,13 +995,42 @@ FocusScope {
                         return {value: item.value, label: I18n.workspaceTitle(item.name, root.words), description: item.monitor};
                     })
                     placeholderText: root.words.moveTo; emptyText: root.words.noMatches
-                    onChanged: function(value) { root.destination = value; }
+                    onChanged: function(value) {
+                        root.chooseMoveDestination(value, activationModifiers);
+                        destinationPicker.value = Qt.binding(function() { return root.destination; });
+                    }
+                }
+                Choice.SearchableDropdown {
+                    id: moveMonitorPicker; objectName: "moveMonitorPicker"
+                    visible: root.chooseMoveMonitor
+                    hostWidget: root.hostWidget; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
+                    width: parent.width; label: root.words.moveMonitor; accent: root.accent
+                    value: root.destinationMonitor; placeholderText: root.words.moveMonitor; emptyText: root.words.noMatches
+                    options: root.moveMonitors.map(function(m) { return {value:m.name,label:m.name,description:m.description || ""}; })
+                    onChanged: function(value) {
+                        root.destinationMonitor = value;
+                        moveMonitorPicker.value = Qt.binding(function() { return root.destinationMonitor; });
+                    }
+                    onVisibleChanged: if (!visible) close()
+                }
+                ReadableText {
+                    objectName: "moveDestinationMonitor"
+                    width: parent.width; visible: !!root.selectedDestination && !root.chooseMoveMonitor && !!root.selectedDestination.monitor
+                    text: root.words.moveMonitor + ": " + (root.selectedDestination ? root.selectedDestination.monitor : "")
+                    textFormat: Text.PlainText; wrapMode: Text.Wrap
+                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                }
+                ReadableText {
+                    width: parent.width; visible: root.moveMonitors.length > 1
+                    text: I18n.format(root.words.moveMonitorHint, {monitor: root.hostWidget.screenName || root.words.unknownMonitor})
+                    textFormat: Text.PlainText; wrapMode: Text.Wrap
+                    textColor: Qt.alpha(Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 LabelButton {
                     objectName: "confirmMove"; width: parent.width; label: root.words.moveNow
                     accent: root.accent; bordered: true; focusable: true
-                    enabled: !!root.moveWindow && !!root.destination && !root.busy
-                    onClicked: root.hostWidget.moveWindow(root.moveAddress, root.destination)
+                    enabled: !!root.moveWindow && root.moveDestinationReady && !root.busy
+                    onClicked: root.hostWidget.moveWindow(root.moveAddress, root.destination, root.destinationMonitor)
                 }
                 ReadableText {
                     width: parent.width; text: root.words.moveHint
@@ -830,6 +1042,8 @@ FocusScope {
     }
     Column {
         id: footer; objectName: "panelFooter"; visible: !root.recoveryOpen; width: parent.width; anchors.bottom: parent.bottom; spacing: Style.space(9)
+        enabled: !root.blockingModalOpen
+        opacity: root.blockingModalOpen ? 0.14 : 1
         Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
         ReadableText {
             width: parent.width; visible: !!root.hostWidget && (!!root.hostWidget.actionError || root.hostWidget.saveFailed)
@@ -851,18 +1065,22 @@ FocusScope {
                 width: parent.width; height: Math.max(0, footerContent.hoverHeight - y)
                 visible: root.hoverLogoEnabled && root.mode === "windows" && root.expansion < 1
                 opacity: 1 - root.expansion
+                LogoPlacement {
+                    id: hoverLogoPlacement; anchors.fill: parent; hostWidget: root.hostWidget
+                    artwork: hoverLogo; target: "hover"; naturalAspect: hoverLogo.sourceAspect
+                    bottomMargin: Style.space(6); edgeMargin: Style.space(6)
+                    baselineWidth: Math.max(1, Math.min(width * 0.72, Style.space(324), (height - Style.space(12)) * naturalAspect))
+                }
                 PanelLogo {
                     id: hoverLogo
                     objectName: "hoverOmarchyLogo"
+                    selectionActive: root.opened && !!root.hostWidget && root.hostWidget.hoverLogo
                     hintAnchor: root.previewBoundsItem
                     source: root.hostWidget ? root.hostWidget.hoverLogoImage : ""
                     loopAnimation: !root.hostWidget || root.hostWidget.hoverLogoLoop
                     loopDelay: root.hostWidget ? root.hostWidget.hoverLogoLoopDelay : 0
                     cooldownSlot: "hover"
                     cooldown: root.hostWidget ? root.hostWidget.hoverLogoCooldown : 0
-                    anchors.centerIn: parent
-                    width: Math.max(0, Math.min(parent.width * 0.72, Style.space(324), (parent.height - Style.space(12)) * 1215 / 285))
-                    height: width * 285 / 1215
                     hostWidget: root.hostWidget; accent: root.accent
                 }
             }
@@ -879,28 +1097,60 @@ FocusScope {
                     remaining: root.hostWidget ? root.hostWidget.hints.remaining : Settings.hintLimit
                     onClicked: if (root.hostWidget) root.hostWidget.toggleHints()
                 }
-                UpdateSwitch {
-                    id: updateSwitch; objectName: "updateSwitch"; text: root.words.autoUpdates; accent: root.accent
-                    checked: root.hostWidget && root.hostWidget.autoUpdates && root.hostWidget.updatesAvailable
+                ActionButton {
+                    id: updateSwitch; objectName: "updateSwitch"
+                    text: root.words.autoUpdatesShort; accent: root.accent; textOnly: true
+                    readonly property bool pointerHovered: hovered
+                    checked: !!root.hostWidget && root.hostWidget.preference("checkUpdates", true) === true
+                    enabled: !!root.hostWidget
+                    implicitWidth: footerUpdateTrack.implicitWidth + Style.space(6) + notificationLabel.implicitWidth
+                    width: Math.min(implicitWidth, Math.max(Style.space(40), root.width - hintsToggle.width - authorCredit.implicitWidth - Style.space(40)))
+                    implicitHeight: Style.space(24); padding: 0
+                    Accessible.role: Accessible.CheckBox
+                    Accessible.checkable: true
+                    Accessible.checked: checked
+                    Accessible.onToggleAction: if (enabled) clicked()
+                    contentItem: Item {
+                        Ui.ToggleSwitch {
+                            id: footerUpdateTrack
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            checked: updateSwitch.checked; trackHeight: Style.space(10)
+                            interactive: false; cursorRing: false
+                            foreground: updateSwitch.foreground; accent: root.accent
+                            opacity: updateSwitch.hot ? 1 : 0.4
+                        }
+                        ReadableText {
+                            id: notificationLabel
+                            anchors.left: footerUpdateTrack.right; anchors.leftMargin: Style.space(6)
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: updateSwitch.text; textFormat: Text.PlainText; elide: Text.ElideRight
+                            textColor: updateSwitch.hot ? root.accent : Qt.alpha(Color.popups.text, 0.4)
+                            font.family: Style.font.family; font.pixelSize: Math.max(9, Style.font.caption - 1)
+                            font.underline: updateSwitch.keyboardFocusVisible
+                        }
+                    }
                     onClicked: {
-                        if (!root.hostWidget || !root.hostWidget.updatesAvailable) return;
-                        if (root.hostWidget.autoUpdates) confirmation.open(); else root.hostWidget.toggleUpdates();
+                        if (!root.hostWidget) return;
+                        if (checked) confirmation.open(true);
+                        else root.hostWidget.persistSettings({checkUpdates: true});
                     }
                     PanelHint {
-                        hostWidget: root.hostWidget; requested: updateSwitch.pointerHovered
+                        hostWidget: root.hostWidget; requested: updateSwitch.hovered
                         belowAnchor: true; anchorItem: root.previewBoundsItem
-                        text: root.hostWidget && root.hostWidget.updatesAvailable ? root.words.autoUpdatesHint : root.words.updatesUnavailable
+                        text: root.words.updateNotificationsHint
                     }
                 }
             }
-            AuthorCredit {
-                objectName: "authorCredit"
+            ActionButton {
+                id: authorCredit; objectName: "authorCredit"
+                textOnly: true; fontSize: Style.font.caption; accent: root.accent
+                foreground: Qt.alpha(Color.popups.text, 0.65)
                 opacity: root.expansion; visible: root.expansion > 0
                 anchors.right: parent.right
-                // Align the footer text with the header label inside its button.
                 anchors.rightMargin: Math.max(0, Math.round((settingsButton.width - headerActionMetrics.advanceWidth) / 2))
                 anchors.verticalCenter: parent.verticalCenter
                 text: "v" + root.hostWidget.version + " · by Sarr"
+                onClicked: projectSupport.open()
             }
         }
     }
@@ -919,10 +1169,30 @@ FocusScope {
         z: 1000003
         onClicked: if (root.currentPopup) root.currentPopup.close()
     }
+    ProjectSupport {
+        id: projectSupport; objectName: "projectSupport"
+        anchors.fill: parent; z: 30; hostWidget: root.hostWidget; dismissMargin: root.modalDismissMargin
+        onClosed: function(reason) { if (reason !== Qt.NoFocusReason) authorCredit.forceActiveFocus(reason); }
+    }
     UpdateConfirmation {
-        id: confirmation; anchors.fill: parent; z: 10; words: root.words; rtl: root.rtl; accent: root.accent
-        onCanceled: updateSwitch.forceActiveFocus()
-        onConfirmed: { if (root.hostWidget) root.hostWidget.persistSettings({ autoUpdates: false }); updateSwitch.forceActiveFocus(); }
+        id: confirmation; objectName: "updateConfirmation"
+        anchors.fill: parent; z: 10; words: root.words; rtl: root.rtl; accent: root.accent; hostWidget: root.hostWidget
+        dismissMargin: root.modalDismissMargin
+        onOpenedChanged: if (opened && root.hostWidget && root.hostWidget.windowPreview) root.hostWidget.windowPreview.dismiss()
+        function restoreOrigin(reason) {
+            if (reason === Qt.NoFocusReason) return;
+            if (notificationMode) updateSwitch.forceActiveFocus(reason);
+            else if (updatesLoader.item) updatesLoader.item.focusAutomatic(reason);
+        }
+        onCanceled: function(focusReason) { restoreOrigin(focusReason); }
+        onConfirmed: function(focusReason) {
+            if (root.hostWidget) root.hostWidget.persistSettings(notificationMode ? {checkUpdates:false} : {autoUpdates:false});
+            restoreOrigin(focusReason);
+        }
+        onUpdatesRequested: function(focusReason) {
+            root.showUpdates();
+            Qt.callLater(function() { if (updatesLoader.item) updatesLoader.item.focusFirst(); });
+        }
     }
     FocusRecoveryDialog {
         id: recoveryDialog; objectName: "focusRecoveryDialog"; anchors.fill: parent; z: 20

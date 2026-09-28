@@ -3,6 +3,7 @@ import qs.Commons
 import "vendor/omarchy" as Choice
 import "Appearance.js" as Appearance
 import "I18n.js" as I18n
+import "UpdateWords.js" as UpdateCopy
 
 Column {
     id: root
@@ -48,9 +49,9 @@ Column {
     }
     function focusEditor(mode, reason) {
         if (typeof reason !== "number") reason = editorFocusReason;
-        if (mode === "shortcuts" || mode === "troubleshooting") {
+        if (mode === "shortcuts" || mode === "troubleshooting" || mode === "updates" || mode === "support") {
             controlsSection.expanded = true;
-            var control = mode === "shortcuts" ? shortcutsEntry : troubleshootingEntry;
+            var control = (mode === "support" || mode === "troubleshooting") ? supportEntry : mode === "updates" ? updatesEntry : shortcutsEntry;
             control.forceActiveFocus(reason);
             if (reason === Qt.TabFocusReason || reason === Qt.BacktabFocusReason) ensureVisible(control);
             return;
@@ -387,18 +388,19 @@ Column {
             onClicked: root.edit("shortcuts", shortcutsEntry)
         }
         SettingsRow {
-            id: troubleshootingEntry; objectName: "troubleshootingEntry"
-            width: parent.width; text: root.words.troubleshooting
-            description: root.words.troubleshootingSummary
+            id: updatesEntry; objectName: "updatesEntry"
+            width: parent.width; text: UpdateCopy.words(root.hostWidget.language).title
+            description: UpdateCopy.words(root.hostWidget.language).summary
             accent: root.accent; bordered: true
-            onClicked: root.edit("troubleshooting", troubleshootingEntry)
+            onClicked: root.edit("updates", updatesEntry)
         }
-        ControlsHelp {
-            doubleClickExpand: !!root.hostWidget && root.hostWidget.doubleClickExpand
-            shortcuts: root.hostWidget ? root.hostWidget.shortcuts : {}
-            objectName: "controlsHelp"
-            width: parent.width; language: root.hostWidget ? root.hostWidget.language : "en"
-            accent: root.accent
+        SettingsRow {
+            id: supportEntry; objectName: "hintsSupportEntry"
+            palette: root.hostWidget ? root.hostWidget.surfaces : null
+            width: parent.width; text: root.words.hintsSupport
+            description: root.words.hintsSupportSummary
+            accent: root.accent; bordered: true
+            onClicked: root.edit("support", supportEntry)
         }
     }
 }

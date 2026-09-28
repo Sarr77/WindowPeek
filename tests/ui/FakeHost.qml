@@ -96,6 +96,8 @@ QtObject {
     property bool updatesAvailable: false
     property string focused: ""
     property string moved: ""
+    property string movedMonitor: ""
+    property string screenName: "TEST-A"
     property string brought: ""
     property string destinationRequested: ""
     property bool moveMenuOpen: false
@@ -144,7 +146,7 @@ QtObject {
         destinationRequested = address; return true;
     }
     function bringWindow(address) { brought = address; return true; }
-    function moveWindow(address, destination) { moved = address + ":" + destination; return true; }
+    function moveWindow(address, destination, monitor) { moved = address + ":" + destination; movedMonitor = monitor || ""; return true; }
     function clearError() { actionError = ""; }
     function panelClosed() { cancelAppearance(); cancelLabels(); }
     function previewLabels(values) { labelsPreview = Labels.normalize(values); }

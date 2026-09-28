@@ -49,7 +49,10 @@ ShellRoot {
         check(find(panel,"colorTargetPicker").value === target,"sample selects " + target);
         check(point.x === previewPosition.x && point.y === previewPosition.y
             && find(panel,"editorScroll").contentY === savedScroll,
-            "preview stays under the pointer after controls for " + target + " settle");
+            "preview stays under the pointer after controls for " + target + " settle: "
+            + JSON.stringify({before:previewPosition,after:point,scroll:find(panel,"editorScroll").contentY,
+                savedScroll:savedScroll,viewport:find(panel,"editorScroll").height,content:find(panel,"editorScroll").contentHeight,
+                preview:find(panel,"appearanceLivePreview").height,preferred:find(panel,"appearanceEditor").preferredHeight}));
     }
     function capture(suffix, next) {
         var prefix = Quickshell.env("WINDOWPEEK_TEST_IMAGE");

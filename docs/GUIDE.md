@@ -18,11 +18,26 @@ The middle mouse button also toggles between these views when used on empty
 space or a workspace heading. Buttons, window rows and the scrollbar keep their
 own left-click actions.
 
-The compact footer shows a subtle Omarchy logo in the theme color. It uses the
-space occupied by search and footer controls in the expanded view, keeping their
-heights similar. In **Settings → Personalization → Pictures and Gifs**, each logo has its own selector:
-plain Omarchy, **Omarchy · Pixel animation**, or a local PNG, JPEG, WebP, SVG or
-animated GIF. Changing or restoring one leaves the other unchanged. Each also has
+Settings and its subpanels have the **pin icon** beside Back. Pin keeps the panel open
+when you click another app, while letting that app receive keyboard input.
+The pin stays through submenu navigation and returning to the list. **Unpin**
+restores outside-click dismissal; **Close**, to its left, closes the panel directly.
+A new opening starts unpinned. This pin is separate from compact bar-click pinning
+and typing protection.
+While pinned, typing protection pauses its keyboard hold and intentional focus
+changes do not trigger warnings. Unpin restores the saved protection behavior.
+
+If an update is available, a button beside Settings opens its details before
+you choose whether to install it. It uses the background check's cached result.
+
+Settings defaults to **Random GIF**: one of the 37 bundled Omarchy animations
+is selected on each new opening. Hover keeps the original pixel-animated
+Omarchy wordmark. Both use theme colors by default. Resizing and returning from a Settings submenu
+keep the same GIF. This does not randomize colors, motion or opening effects.
+The compact footer uses the space occupied by search and footer controls in the expanded view, keeping their
+heights similar. In **Settings → Personalization → Pictures and Gifs**, choose
+artwork separately for the compact panel and Settings. Changing or restoring one
+leaves the other unchanged. Each also has
 its own visibility switch and, for animations, a **Loop animation** switch and
 **Delay loop** field. Looping is on by default; the pause between repetitions
 defaults to 4.2 seconds. Enter whole or fractional seconds (`0.3` or `0,3`), then
@@ -33,17 +48,69 @@ visit starts another playback if cooldown permits. The
 saved delay stays available when looping is switched back on. **Cooldown** prevents
 restarting the animation when reopening the panel too soon: enter seconds or
 minutes, including fractions. During that interval the logo stays still. Each
-logo keeps its own cooldown, starting when its last animated appearance ends;
-zero (the default) allows animation on every opening. The reset arrows restore
-4.2 seconds for Delay loop and zero for Cooldown, without changing the other logo.
+logo keeps its own cooldown, starting when its last animated appearance ends.
+The defaults are one minute for hover and zero for Settings; zero allows animation
+on every opening. The timing reset arrows restore those values and the 4.2-second
+loop delay, without changing the other logo.
 Enable **Shared cooldown** to use one interval for both logos. Playing either
 animation then delays both, even when they use different images. Turning sharing
 off restores the separate cooldown values.
 Animations stop while hidden.
-The chooser shows supported formats: GIF for animation; PNG, JPEG, WebP and SVG
-for still images. Browse folders or paste a full file path, preview, then Apply.
-The built-in animation
-keeps the theme color and translucent wordmark, with a passing pixel glint.
+The original pixel animation keeps the theme color and translucent wordmark,
+with a passing pixel glint.
+The **Pictures and Gifs** chooser includes the two original presets and 37
+Omarchy animations. **Random GIF** enables random selection (the default in Settings);
+**Next GIF** previews another candidate without saving it as a fixed choice.
+Search by name, select a result to preview it, then choose
+**Use this**. **Cancel** leaves the saved choice alone. Only one preview runs.
+The library and file browser stay open when you click another application.
+Use **Back**, **Cancel** or **Esc** to close them; your unfinished choice stays
+available while you work elsewhere.
+**Your files** opens the local file browser and remembers up to 12 applied files;
+removing a recent entry never deletes the original. A missing file can be selected
+again. GIF, PNG, JPG, WebP and SVG files remain in their original location.
+
+Choose **Use theme colors** or retain the image's original colors.
+**Transparency** fades the artwork itself, including GIFs and the pixel wordmark,
+independently for each view. Preview it before **Use this**; **Cancel** discards
+the change. GIFs default to 50% transparency in both views; still images and the
+pixel wordmark retain their original opacity. Reset restores the source's default.
+Manual values remain in effect when changing files or drawing another random GIF. Transparent pixels in files
+stay transparent, and the original pixel wordmark retains its subtle base tint. **Motion** adds
+an optional pulse, float, sway, spin or breathing effect to either a built-in
+choice or your own artwork. Loop delay and cooldown keep their existing behavior.
+
+**Opening effect** adds pixels, assembling fragments, a wipe, horizontal blinds,
+a circular reveal or a fade to any image or GIF. **Replay** previews it;
+**Use this** saves it for that view. It plays once per opening alongside the GIF
+and optional Motion. Returning from a Settings submenu resumes the same effect.
+Cooldown applies; **None** removes the effect without changing your file.
+Software rendering uses a simple fade instead of the GPU patterns.
+
+Use the visual editor to change size, proportions and position. In the main Settings view,
+hold **Ctrl** over the artwork: drag inside its outline to move it, use the wheel
+to resize proportionally, or drag the left/right handles to change width and the
+top/bottom handles to change height.
+Drag any corner dot to resize both dimensions together, keeping your current
+proportions, including any custom stretch.
+Controls and keyboard focus stay in Settings while Ctrl is held, even when the
+pointer leaves the panel. Release Ctrl to leave editing mode.
+Move a handle outward to enlarge the artwork, or inward to shrink it.
+Resizing and zooming expand both sides equally while there is
+room. At an edge, the artwork shifts only as far as needed to keep growing inside
+the available area. Growth stops when that area is full, without shrinking the
+other dimension. Shrinking stops at a small usable size so the handles remain
+reachable.
+Double-click either side handle to centre horizontally, or the top/bottom handle to centre
+vertically within the artwork area. This keeps your width, height and zoom settings.
+While holding Ctrl, double-click the picture itself to centre it on both axes,
+keeping its size and proportions. The arrow on the visual editor resets placement.
+The arrow beside the artwork chooser restores the complete default for that view:
+pixel wordmark in hover or random GIF in Settings, 100% scale and proportions,
+default position, theme colors,
+effects and playback. It leaves the other view and original files unchanged.
+Artwork stays inside the available decoration area and does not cover controls.
+
 Hover the logo for its own help or a window row for that window's actions.
 Hover unused panel space for its expand/collapse gesture. These hints stay below
 the panel in both modes and take no space in the list. During the automatic
@@ -100,14 +167,19 @@ monitor. This also applies to windows in the scratchpad.
 **Ctrl + click** a row or preview for a small workspace menu at the pointer.
 It follows the selected panel style, including the aligned wallpaper used by
 Wallpaper dropdowns.
-Search or scroll to a destination, then click it to move the window. **Move to
-Scratchpad** stays at the bottom. Any preview already open stays visible while
+Search or scroll to a workspace. Existing workspaces keep their monitor. For a
+new workspace, choose a monitor in the next step; **Shift + click** or
+**Shift + Enter** uses the screen containing WindowPeek. With one monitor, no
+extra choice is needed. **Back**, Escape or right-click returns to workspace
+selection; an outside click cancels. **Move to Scratchpad** stays at the bottom
+of the workspace step. Any preview already open stays visible while
 choosing, whether you open the menu from its row or the preview itself.
-Escape, right-click or an outside click cancels the menu.
 
 **Move** opens a larger form showing the window’s current workspace and monitor.
-Choose a destination and press **Move now**, or use **Move to Scratchpad** above
-the dropdown. These moves leave your current workspace in place.
+Choose a workspace and, when creating one, its monitor, then press **Move now**.
+Shift while selecting a new workspace chooses WindowPeek’s screen here too.
+**Move to Scratchpad** above the dropdown remains a direct action. These moves
+leave your current workspace in place and never relocate an existing workspace.
 
 **Ctrl + Shift + click** brings the window to the active ordinary workspace of
 the monitor containing WindowPeek, then focuses it. It can take a window out of
@@ -170,7 +242,11 @@ Help and hover hints follow the saved bindings. Manually added Hyprland shortcut
 remain active alongside WindowPeek’s managed opening shortcut; the editor does
 not rewrite your Hyprland configuration.
 
-**Controls** also covers dropdowns, color editing and mouse gestures.
+**Controls → Hints and Support** covers dropdowns, color editing and mouse gestures.
+It also explains the **?** hints button. **Report Bugs or Post Your Ideas** opens
+the project’s GitHub Issues in your default browser. The guide has expandable
+sections for the window list, moving windows, keyboard controls and Settings;
+its key combinations follow your saved shortcuts.
 
 Number shortcuts count the first ten window rows in the visible part of the
 list, including individual group tabs; workspace headings do not count. Numbers
@@ -229,7 +305,7 @@ wide header. The header stays in place while its contents expand below it.
   workspaces and springy scrolling start enabled.
 - **Personalization:** panel background, colors, panel and bar size, bar label
   and custom text.
-- **Controls:** editable action shortcuts and mouse modifiers, plus the keyboard and mouse guide.
+- **Controls:** editable shortcuts, troubleshooting, updates, and **Hints and Support**.
 
 Switches, language, delays and list choices save as you change them. A failed
 save shows an error and leaves the previous choice in effect.
@@ -314,9 +390,12 @@ windows. Grain remains selectable through **Color element**.
 **Only [theme]** keeps a separate choice for that theme. **All themes** uses
 that element’s settings everywhere, retaining individual theme choices for later.
 Expand **Appearance presets** to save up to 24 named sets of accent and surface
-colors, brightness and field transparency. Applying a preset uses the selected
-theme scope. Presets retain theme-following colors; existing single-color
-presets still work. Background mode, its main transparency slider, blur and grain
+colors, brightness and field transparency. When saving or editing a preset, choose
+**All themes** or **Only [theme]**. Its button shows that scope; the list contains
+global presets and those for the current theme. Applying a preset uses its saved
+scope. **WindowPeek pink** belongs to Tokyo Night. Older presets without a theme
+association remain global; you can assign a theme when editing them.
+Presets retain theme-following colors; existing single-color presets still work. Background mode, its main transparency slider, blur and grain
 switches remain separate settings.
 
 Each slider has a reset arrow. The element’s **↺** resets its color, brightness
@@ -333,6 +412,8 @@ Panel size and bar text scale independently from 80% to 200%. At 100% they
 follow Omarchy’s settings. The bar’s height may limit its text size; the editor
 shows when this happens. **↺** restores 100%. Apply saves; Cancel or Back undoes
 changes, including resets.
+The editor grows to fit its controls and preview. Scrolling is needed only when
+the available screen height is too small for the selected scale.
 
 ### Custom text
 
@@ -372,7 +453,8 @@ Preferences are stored outside the plugin in
 if set. They survive restarts, updates and reinstalls. WindowPeek does not
 share preferences with ScratchPeek.
 
-For automatic updates, see [update details](UPDATES.md). For installation from
+For **Settings → Controls → Updates**, manual terminal confirmation and automatic
+updates, see [update details](UPDATES.md). For installation from
 a local source directory, see [development](DEVELOPMENT.md).
 
 ## Known issues
@@ -426,7 +508,7 @@ translated into English and Polish, with English used for other locales.
 
 ## Search loses keyboard focus
 
-Open **Settings → Controls → Troubleshooting** if moving the pointer to another
+Open **Settings → Controls → Hints and Support → Troubleshooting** if moving the pointer to another
 window interrupts your search. **Keep search focus** is off by default. Enabling
 it protects each opened search panel and blocks scrolling outside it, including
 touchpad scrolling. Inside scrolling still works. Click outside or press Esc to
@@ -439,7 +521,7 @@ optional temporary protection, see [focus recovery](FOCUS_RECOVERY.md).
 
 In **Review options → Ignore warnings**, choose until logout, this identified
 application, or all focus warnings. This only mutes advice; it does not change
-keyboard behavior or enable protection. **Settings → Controls → Troubleshooting**
+keyboard behavior or enable protection. **Settings → Controls → Hints and Support → Troubleshooting**
 keeps the detected application list and lets you restore warnings for each app,
 this session or globally. For conditions, the option to give the requesting
 window more room, and detection limits, see [Known Issues](KNOWN_ISSUES.md#typing-is-redirected-when-another-application-requests-a-window-resize).

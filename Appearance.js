@@ -45,9 +45,11 @@ function normalize(settings) {
   if (Array.isArray(settings.colorPresets)) settings.colorPresets.slice(0, 24).forEach(function(p) {
     if (!p || typeof p.id !== "string" || !/^preset-[a-zA-Z0-9-]{1,64}$/.test(p.id)) return;
     var name = presetName(p.name), color = hex(p.color);
-    if (!name || !color || ids[p.id] || names[name.toLowerCase()]) return;
-    ids[p.id] = true; names[name.toLowerCase()] = true;
-    var preset = {id: p.id, name: name, color: color};
+    var scope = presetScope(p), nameKey = scope && presetNameKey(name, scope);
+    if (!name || !color || !scope || ids[p.id] || names[nameKey]) return;
+    ids[p.id] = true; names[nameKey] = true;
+    var preset = {id: p.id, name: name, color: color, scope:scope.scope};
+    if (scope.theme) preset.theme = scope.theme;
     if (p.style && typeof p.style === "object") preset.style = normalizeStyle(p.style);
     presets.push(preset);
   });
@@ -99,10 +101,26 @@ function restoreColor(settings, savedSettings, theme) {
   }
   return result;
 }
-function upsertPreset(settings, id, name, color, style) {
+// Older presets have no theme association; never infer one from their name.
+function presetScope(preset) {
+  if (preset && preset.scope === "theme") {
+    var theme = themeId(preset.theme);
+    return theme ? {scope:"theme",theme:theme} : null;
+  }
+  return {scope:"all"};
+}
+function presetNameKey(name, scope) { return scope.scope + ":" + (scope.theme || "") + ":" + name.toLowerCase(); }
+function presetAvailable(preset, theme) {
+  var scope = presetScope(preset);
+  return !!scope && (scope.scope === "all" || scope.theme === themeId(theme));
+}
+function upsertPreset(settings, id, name, color, style, scope) {
   var result = normalize(settings), label = presetName(name), value = hex(color);
-  if (!label || !value || result.colorPresets.some(function(p) { return p.id !== id && p.name.toLowerCase() === label.toLowerCase(); })) return null;
   var index = result.colorPresets.findIndex(function(p) { return p.id === id; });
+  var assigned = presetScope(scope || (index >= 0 ? result.colorPresets[index] : null));
+  if (!label || !value || !assigned || result.colorPresets.some(function(p) {
+    return p.id !== id && presetNameKey(p.name,presetScope(p)) === presetNameKey(label,assigned);
+  })) return null;
   if (id && index < 0) return null;
   if (index < 0) {
     if (result.colorPresets.length >= 24) return null;
@@ -110,7 +128,10 @@ function upsertPreset(settings, id, name, color, style) {
     while (result.colorPresets.some(function(p) { return p.id === "preset-" + n; })) n++;
     result.colorPresets.push({id: "preset-" + n, name: label, color: value});
   } else result.colorPresets[index] = {id: id, name: label, color: value};
-  if (style) result.colorPresets.find(function(p) { return p.id === (id || "preset-" + n); }).style = normalizeStyle(style);
+  var preset = result.colorPresets.find(function(p) { return p.id === (id || "preset-" + n); });
+  preset.scope = assigned.scope;
+  if (assigned.theme) preset.theme = assigned.theme;
+  if (style) preset.style = normalizeStyle(style);
   return result;
 }
 function removePreset(settings, id) {

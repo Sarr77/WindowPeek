@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.7.3
+
+- Personalize Settings and hover artwork with 37 bundled Omarchy animations or
+  local images and GIFs. Search the library and choose a random GIF for each
+  Settings visit, now the default; hover keeps its animated Omarchy wordmark.
+- Move, resize, stretch and center Settings artwork with Ctrl and visual handles.
+  Corner handles preserve proportions; double-click centers the artwork.
+  Reset restores the complete artwork preset, including size and position.
+- Choose original or theme colors, transparency, motion and opening effects
+  independently for each view. GIFs default to 50% transparency. Preserve GIF
+  proportions, fix frame-disposal artifacts and stop hidden animation previews.
+- Save appearance presets globally or for one theme. Stabilize live interface
+  scaling and fit the Colors editor to shorter screens without shrinking text.
+- Check for updates and install newer code through Omarchy's terminal confirmation,
+  including updates awaiting catalog verification. Show available updates in the
+  expanded panel. Optional automatic installation still requires a verified,
+  immutable release; preserve existing update preferences and local changes.
+- Pin Settings and its subpanels while using other apps. Close popups with Escape
+  or an outside click while keeping the underlying panel and edits open.
+- Choose a monitor when moving a window to a new workspace; Shift uses the screen
+  containing WindowPeek. Existing workspaces retain their monitor in both move menus.
+- Bring hints, troubleshooting and bug reports together in Hints and Support.
+  Open project links from the version and author, with a random Omarchy animation.
+- Match popup backgrounds to panel styles and hide background scrollbars without
+  shifting content. Block hover previews behind popups, clear stale mouse-focus
+  highlights and keep row labels stable during expansion and collapse.
+
 ## 0.7.2
 
 - Keep text colors and glyph shadows stable from the first opening while wallpaper

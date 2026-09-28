@@ -78,7 +78,8 @@ ShellRoot {
                     editor.selectTarget("wallpaper");
                     test.check(!test.find(editor,"colorPlane").visible,"wallpaper exposes brightness without a meaningless color picker");
                     test.find(editor,"surfaceBrightnessControl").changed(18);
-                    editor.editPreset(""); test.find(editor,"presetNameInput").text = "Surfaces"; editor.savePreset();
+                    editor.editPreset(""); editor.editingPresetScope = "all";
+                    test.find(editor,"presetNameInput").text = "Surfaces"; editor.savePreset();
                     editor.apply();
                     break;
                 case 2:
@@ -90,14 +91,14 @@ ShellRoot {
                     test.check(host.surfaces.rule("windows").color === "","theme row tint does not leak to other themes");
                     editor.begin(); editor.choosePreset(editor.draft.colorPresets[0]); editor.apply();
                     test.check(host.surfaces.rule("windows").color === "#204060","full preset can be applied to another theme");
-                    editor.begin(); editor.resetStyle();
+                    editor.begin(); editor.colorScope = "theme"; editor.resetStyle();
                     test.check(host.surfaces.rule("grain").color === "","whole-scope reset previews defaults");
                     editor.cancel();
                     test.check(host.surfaces.rule("grain").color === "#00CCFF","Cancel restores the complete saved style");
-                    host.rejectSave = true; editor.begin(); editor.resetStyle(); editor.apply();
+                    host.rejectSave = true; editor.begin(); editor.colorScope = "theme"; editor.resetStyle(); editor.apply();
                     test.check(editor.saveFailed,"failed style write keeps editor open");
                     editor.cancel(); host.rejectSave = false;
-                    editor.begin(); editor.resetStyle(); editor.apply();
+                    editor.begin(); editor.colorScope = "theme"; editor.resetStyle(); editor.apply();
                     host.themeId = "tokyo-night";
                     test.check(host.surfaces.rule("windows").color === "#204060","reset preserves the other theme");
                     test.check(host.savedAppearance.colorPresets.length === 1,"reset retains preset library");

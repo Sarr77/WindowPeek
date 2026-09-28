@@ -54,7 +54,12 @@ function logoImage(value) {
     return value;
 }
 function logoChoice(value) {
-    return value === "builtin:omarchy-pixel" ? value : logoImage(value);
+    if (value === "builtin:omarchy-pixel" || value === "builtin:omarchy-random") return value;
+    // Explicit names prevent saved preferences from escaping the bundled directory.
+    var effects = "beams binarypath blackhole bouncyballs bubbles burn colorshift crumble decrypt errorcorrect expand fireworks highlight laseretch matrix middleout orbittingvolley overflow pour print rain randomsequence rings scattered slice slide smoke spotlights spray swarm sweep synthgrid thunderstorm unstable vhstape waves wipe".split(" ");
+    if (typeof value === "string" && value.indexOf("builtin:ttfx-") === 0
+            && effects.indexOf(value.slice(13)) >= 0) return value;
+    return logoImage(value);
 }
 function logoLoopDelay(value) {
     return typeof value === "number" && Number.isFinite(value)

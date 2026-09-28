@@ -82,6 +82,7 @@ ShellRoot {
     TestEvent { id: events }
     FakeHost {
         id: host; updatesAvailable: true
+        property var runtime: ({updates: null})
         Component.onCompleted: savedAppearance = Appearance.normalize({uiScale:test.scale})
     }
     Window {

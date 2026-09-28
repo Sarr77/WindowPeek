@@ -21,7 +21,7 @@ The notice must also suggest applicable alternatives, including different launch
 modes where documented. Detection or silence never authorizes activation. See the
 [recovery design and implementation status](FOCUS_RECOVERY.md).
 
-A separate **Keep search focus** option lives under **Settings → Controls →
+A separate **Keep search focus** option lives under **Settings → Controls → Hints and Support →
 Troubleshooting**. It is off by default and requires a deliberate toggle after
 explaining the symptom, known causes and trade-offs. It protects each opened
 search/pinned compact panel, blocks outside mouse-wheel and touchpad scrolling,
@@ -53,9 +53,15 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   list or its preview. Keep the list in its current mode and retain hover while
   the menu is open. Opening the menu retains any already visible preview and its
   capture until the menu closes or a move starts. Search or scroll to a workspace;
-  selecting it moves the window. Pin Move to Scratchpad below the scrollable list,
+  existing workspaces retain their monitor. A new workspace asks for a monitor;
+  Shift+click or Shift+Enter during workspace selection uses the invoking screen.
+  With one connected monitor, choose it automatically. This applies equally to
+  the full Move form. Never relocate an existing workspace or its other windows.
+  Back/Escape/right-click traverses the monitor step back to workspace selection.
+  Pin Move to Scratchpad below the scrollable workspace list,
   without duplicating it among the rows; disable it when already there.
-  Escape, right-click or an outside click cancels. Keep the menu within the invoking screen.
+  Escape/right-click at the workspace step, or an outside click, cancels.
+  Keep the menu within the invoking screen.
   The separate Move control keeps the full form with explicit Move now confirmation.
   Show the source workspace in both; include its monitor in the full form. Keep a Move to Scratchpad
   action in the main form above the dropdown, reachable without scrolling or choosing
@@ -280,11 +286,25 @@ Carry over these established design decisions where they fit WindowPeek:
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
 - The installed version beside `by Sarr` at the other end of the expanded footer.
-- A subtle automatic-update control beside help, enabled by default. Check about
-  a minute after startup if there has been no check that local day, then every
-  six hours. Restarts preserve the deadline without extra checks. Disabling
-  requires confirmation. Install only immutable WindowPeek releases whose exact
-  commits are verified in the official catalog; preserve settings and local work.
+- A subtle Update notifications control beside help, enabled by default. Its
+  track and label toggle the same setting. The version/author opens a small
+  project support popup with two star actions (Omarchy Plugins and GitHub) and
+  a bugs/ideas action. Star actions open the pages; the user stars on the site.
+  Preserve the current editor, draft, scroll and panel while browsing these links.
+  Notifications check newer repository code every six hours and announce it in
+  the expanded panel; opting out hides the notice and stops scheduled metadata
+  checks. Manual checks still work. The Updates page has one primary action:
+  Check now, becoming Update… when newer code is found, plus a changes/history
+  link. Development copies show a short Git explanation and history.
+- Keep a separate default-on Automatic updates option on the Updates page only.
+  Install only immutable stable releases whose exact commits are verified by
+  Omarchy. Explain that verification may take time and newer code remains
+  available with user confirmation. Preserve saved settings independently.
+  Disabling automatic installation asks for confirmation; mouse dismissal must
+  clear focus styling, while keyboard dismissal restores the keyboard cue.
+- Troubleshooting lives under Hints and Support. Warning/recovery links still
+  open the same editor and Back returns to the origin. Retain support guide
+  expansion and scroll position when visiting Troubleshooting from there.
 
 ## Delivery quality
 
@@ -308,7 +328,7 @@ previews and all monitors, independently of appearance themes.
 
 - Both logo slots expose independent loop-delay and cooldown values with reset.
   Cooldown accepts seconds/minutes and skips reopening animations during the saved
-  interval without extending it; default zero keeps playback on every appearance.
+  interval without extending it; hover defaults to one minute and Settings to zero.
 - Right-click closes the current popup/editor or expanded Settings section before
   leaving Settings. Pointer exit hides background help; wheel input outside the
   card belongs to the underlying application.
@@ -317,3 +337,8 @@ Logo preferences live in Personalization → Pictures and Gifs. Optional shared
 cooldown applies one interval to both animations while preserving the separate
 saved values. Pointer exit/re-entry must preserve the current scroll position in
 every panel; keyboard navigation may scroll to reveal the target control.
+
+Settings artwork defaults to a random bundled Omarchy GIF per opening; hover
+retains the pixel wordmark. Both use theme colors, with fixed choices
+and custom files still available. Resizing, loops and Settings submenu navigation
+keep the selection stable; motion and opening effects remain independent.

@@ -68,11 +68,13 @@ QtObject {
     // Compact keyboard readiness supports shortcuts/type-to-search. Losing it
     // while browsing is not an interrupted search and must not create an incident.
     readonly property bool searchEligible: !!panel && panel.opened
+        && !panel.body.panelPinned
         && panel.body.expanded && panel.body.mode === "windows" && !panel.body.busy && !panel.body.interacting
         && !panel.body.currentPopup && !panel.body.recoveryOpen
         && !panel.destinationMenu.opened && !panel.childPreviewVisible
     readonly property bool eligible: searchEligible && !panel.opening
     readonly property bool protectionEligible: !!panel && panel.opened && !panel.opening
+        && !panel.body.panelPinned
         && !panel.body.busy && !panel.body.interacting && !panel.body.currentPopup
         && !panel.body.recoveryOpen && !panel.destinationMenu.opened
     // Showing a passive thumbnail must not release search's keyboard hold.

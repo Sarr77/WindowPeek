@@ -1,4 +1,7 @@
 singleton Runtime 1.0 Runtime.qml
+UpdatesPage 1.0 UpdatesPage.qml
+ProjectSupport 1.0 ProjectSupport.qml
+ProjectLinkButton 1.0 ProjectLinkButton.qml
 BarAnchorHover 1.0 BarAnchorHover.qml
 WallpaperSource 1.0 WallpaperSource.qml
 WallpaperBackdrop 1.0 WallpaperBackdrop.qml
@@ -45,6 +48,10 @@ UpdateConfirmation 1.0 UpdateConfirmation.qml
 SettingsContent 1.0 SettingsContent.qml
 TroubleshootingSettings 1.0 TroubleshootingSettings.qml
 ControlsHelp 1.0 ControlsHelp.qml
+HintsSupportPage 1.0 HintsSupportPage.qml
+singleton BrowserLinks 1.0 BrowserLinks.qml
+PinButton 1.0 PinButton.qml
+ActionButton 1.0 ActionButton.qml
 SettingsSection 1.0 SettingsSection.qml
 SettingsRow 1.0 SettingsRow.qml
 SurfacePalette 1.0 SurfacePalette.qml
@@ -74,3 +81,7 @@ TextShadowSampler 1.0 TextShadowSampler.qml
 ReadableButton 1.0 ReadableButton.qml
 ReadableBarButton 1.0 ReadableBarButton.qml
 TextReadabilityService 1.0 TextReadabilityService.qml
+LogoArt 1.0 LogoArt.qml
+LogoReveal 1.0 LogoReveal.qml
+LogoBrowser 1.0 LogoBrowser.qml
+LogoPlacement 1.0 LogoPlacement.qml

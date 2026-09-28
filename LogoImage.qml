@@ -8,16 +8,25 @@ Item {
     property bool suspended: false
     property bool loopAnimation: true
     property real loopDelay: 4.2
-    property size sourceSize: Qt.size(1600, 400)
+    property size sourceSize: Qt.size(1024, 1024)
+    property real knownAspect: 0
     readonly property bool animated: /\.gif$/i.test(String(source))
-    readonly property int status: image.item ? image.item.status : Image.Null
+    readonly property real aspect: knownAspect > 0 ? knownAspect : animated ? (probe.implicitHeight > 0 ? probe.implicitWidth / probe.implicitHeight : 1)
+        : image.item && image.item.implicitHeight > 0 ? image.item.implicitWidth / image.item.implicitHeight : 1
+    readonly property int status: image.item ? image.item.status : animated ? probe.status : Image.Null
     readonly property int currentFrame: animated && image.item ? image.item.currentFrame : 0
     readonly property bool finished: animated && image.item ? image.item.finished : false
     readonly property bool animating: animated && image.item ? image.item.playing && !image.item.paused : false
     readonly property bool waitingForLoop: animated && image.item ? image.item.waitingForLoop : false
+    // QMovie stretches both sourceSize axes. Obtain the ratio with Qt's async
+    // static decoder first, then give the movie an explicitly proportional size.
+    Image {
+        id: probe; visible: false; asynchronous: true
+        source: root.animated ? root.source : ""; sourceSize: Qt.size(512,512)
+    }
     Loader {
         id: image; anchors.fill: parent
-        active: String(root.source) !== ""
+        active: String(root.source) !== "" && (!root.animated || probe.status === Image.Ready)
         sourceComponent: root.animated ? motion : still
     }
     Component {
@@ -46,8 +55,10 @@ Item {
                 waitingForLoop = true; remainingPause = root.loopDelay * 1000;
                 pausePlayback();
             }
-            source: root.source; sourceSize: root.sourceSize
-            cache: false; playing: false; fillMode: Image.PreserveAspectFit
+            source: root.source
+            sourceSize: Qt.size(Math.max(1,Math.round(Math.min(root.sourceSize.width, root.sourceSize.height * root.aspect))),
+                Math.max(1,Math.round(Math.min(root.sourceSize.height, root.sourceSize.width / root.aspect))))
+            asynchronous: true; cache: false; playing: false; fillMode: Image.PreserveAspectFit
             function restartPlayback() {
                 syncing = true;
                 loopPause.stop(); waitingForLoop = false;

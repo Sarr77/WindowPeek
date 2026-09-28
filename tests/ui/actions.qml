@@ -55,42 +55,47 @@ ShellRoot {
                     actions.receive(test.token, 0, "ok");
                     var moved = JSON.parse(JSON.stringify(state.snapshot));
                     moved.clients[0].workspace = { id: 4, name: "4" }; moved.clients[0].grouped = [];
+                    moved.clients[0].monitor = 7;
                     state.snapshot = moved; state.refresh(); break;
                 case 7:
+                    test.check(actions.busy && test.completed === 1, "correct workspace on the wrong monitor is not success");
+                    var corrected = JSON.parse(JSON.stringify(state.snapshot)); corrected.clients[0].monitor = 8;
+                    state.snapshot = corrected; state.refresh(); break;
+                case 8:
                     test.check(!actions.busy && test.completed === 2, "move confirmed at explicit destination");
                     actions.focus("0x1", null); break;
-                case 8:
+                case 9:
                     state.failed();
                     test.check(!actions.busy && actions.error === "unavailable", "connection failure clears pending action");
                     actions.focus("0x1", function(ready) { test.releasePanel = ready; }); break;
-                case 9:
+                case 10:
                     test.check(actions.job.phase === "prepare" && !!test.releasePanel, "focus waits for panel release");
                     var count = test.commands;
                     test.releasePanel(); test.releasePanel();
                     test.check(test.commands === count + 1, "surface release dispatches exactly once");
                     actions.receive(test.token, 0, "ok"); break;
-                case 10:
+                case 11:
                     state.failed();
                     var beforeBring = JSON.parse(JSON.stringify(state.snapshot)); beforeBring.activeAddress = "0x3";
                     state.snapshot = beforeBring;
                     test.releasePanel = null;
                     test.check(actions.bring("0x2", "TEST-B", function(ready) { test.releasePanel = ready; }), "bring accepted");
                     break;
-                case 11:
+                case 12:
                     test.check(actions.job.phase === "prepare" && !!test.releasePanel, "bring waits for panel release");
                     test.releasePanel();
                     actions.receive(test.token, 0, "ok");
                     var brought = JSON.parse(JSON.stringify(state.snapshot));
                     brought.clients[1].workspace = { id: 4, name: "4" }; brought.clients[1].monitor = 8;
                     state.snapshot = brought; state.refresh(); break;
-                case 12:
+                case 13:
                     test.check(actions.busy && test.completed === 2, "bring requires focus as well as destination");
                     var activated = JSON.parse(JSON.stringify(state.snapshot)); activated.activeAddress = "0x2";
                     state.snapshot = activated; state.refresh(); break;
-                case 13:
+                case 14:
                     test.check(!actions.busy && test.completed === 3, "bring verifies workspace, monitor and active address");
                     actions.bring("0x2", "disconnected", null); break;
-                case 14:
+                case 15:
                     test.check(!actions.busy && actions.error === "destinationChanged", "bring refuses a missing monitor");
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }

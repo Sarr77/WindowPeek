@@ -6,6 +6,8 @@ Item {
     objectName: "appearanceLivePreview"
     required property var hostWidget
     property string selectedTarget: ""
+    property real maximumHeight: Infinity
+    readonly property real preferredHeight: Style.space(220 + 24 + 8) + menuSample.height
     readonly property var selectionItems: {
         if (selectedTarget === "wallpaper") return [root];
         if (selectedTarget === "menu") return [menuSample];
@@ -41,7 +43,10 @@ Item {
         id:sample; x:Style.space(12); y:x; width:parent.width-x*2; spacing:Style.space(8)
         TooltipContent {
             id: windowSample; objectName: "appearanceWindowSample"
-            hostWidget:root.hostWidget; width:parent.width; maximumHeight:Style.space(220)
+            hostWidget:root.hostWidget; width:parent.width
+            // Leave room for the heading and a complete, clickable sample row.
+            maximumHeight: Math.max(Style.space(170), Math.min(Style.space(220),
+                root.maximumHeight - Style.space(24 + 8) - menuSample.height))
             interactive:false; showHint:false
             wallpaperCanvasSize:Qt.size(root.width,root.height)
             wallpaperOrigin:Qt.point(sample.x+1,sample.y+1)

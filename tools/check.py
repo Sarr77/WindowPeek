@@ -7,6 +7,7 @@ import sys
 root = Path(__file__).resolve().parents[1]
 commands = [
     ["node", "tests/model.test.cjs"],
+    ["node", "--test", "tests/logo-catalog.test.cjs"],
     ["node", "tests/contracts.test.cjs"],
     ["node", "tests/shortcut-bindings.test.cjs"],
     ["node", "tests/search-focus.test.cjs"],
@@ -17,13 +18,14 @@ commands = [
     [sys.executable, "tools/test_qml.py"],
     [sys.executable, "-B", "tools/test_preferences.py"],
 ]
-for case in ("readability-stability", "readability-opening", "window-state", "readability-worker", "bar-readability", "readability-coverage", "text-shadow", "focus-approval", "settings-visit", "focus-issues", "focus-settings", "input-focus", "logo-cooldown", "logo-playback", "branding", "hover-footprint", "hover-navigation", "settings-input", "wallpaper-contrast", "shortcuts-editor", "surfaces", "wallpaper-source", "glass", "quick-selection", "window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
+for case in ("support", "move-monitors", "logo-hints", "appearance-fit", "logo-placement", "logo-reveal", "logo-random", "logo-library", "readability-stability", "readability-opening", "window-state", "readability-worker", "bar-readability", "readability-coverage", "text-shadow", "focus-approval", "settings-visit", "focus-issues", "focus-settings", "input-focus", "logo-cooldown", "logo-playback", "branding", "hover-footprint", "hover-navigation", "settings-input", "wallpaper-contrast", "shortcuts-editor", "surfaces", "wallpaper-source", "glass", "quick-selection", "window-shortcuts", "preview-keys", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns", "navigation", "move-menu", "click-modifiers", "bar-dismiss", "motion", "background", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "hints", "preview", "scrolling", "interaction", "borders"):
     commands.append([sys.executable, "tools/test_ui.py", case])
 commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--style", "compact"])
 commands.append([sys.executable, "tools/test_ui.py", "focus-settings", "--style", "compact", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "focus-issues", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "branding", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "logo-library", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "hover-navigation", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "glass", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "settings-input", "--scale", "2"])
@@ -41,6 +43,7 @@ commands.append([sys.executable, "tools/test_ui.py", "interaction", "--scale", "
 commands.append([sys.executable, "tools/test_ui.py", "hints", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "borders", "--scale", "2"])
 commands.append([sys.executable, "tools/test_ui.py", "review", "--scale", "2"])
+commands.append([sys.executable, "tools/test_ui.py", "updates", "--scale", "2"])
 commands.append([sys.executable, "tools/package.py"])
 commands.append([sys.executable, "tools/check_package.py", "--validate"])
 for command in commands:

@@ -36,7 +36,9 @@ Column {
   property bool colorsExpanded: false
   property bool editingPreset: false
   property string editingPresetId: ""
+  property string editingPresetScope: "theme"
   property bool presetError: false
+  readonly property var availablePresets: (draft.colorPresets || []).filter(function(p) { return Appearance.presetAvailable(p,root.targetTheme); })
   readonly property string themeName: targetTheme.replace(/(^|-)([a-z])/g, function(_, dash, c) { return (dash ? " " : "") + c.toUpperCase(); })
   property bool validHex: true
   property bool saveFailed: false
@@ -46,6 +48,19 @@ Column {
   signal finished(var focusReason)
   signal ensureVisible(var item)
   spacing: Style.space(12)
+  property real availableHeight: Infinity
+  property real scrollOffset: 0
+  property real selectionScrollOffset: 0
+  // Only the sample may give up space. Controls and their gaps keep their size;
+  // long forms still scroll once the sample reaches its usable minimum.
+  readonly property real controlsHeight: {
+    var total = 0, count = 0;
+    for (var child of children) {
+      if (child !== livePreview && child.visible && child.height > 0) { total += child.height; count++; }
+    }
+    return total + count * spacing;
+  }
+  readonly property real preferredHeight: controlsHeight + livePreview.preferredHeight
   readonly property string chosenHex: Appearance.fromHsv(hue, saturation, value)
   readonly property string savedColor: hostWidget
     ? (accentTarget ? Appearance.resolve(hostWidget.savedAppearance, targetTheme, String(hostWidget.themeAccent))
@@ -63,6 +78,7 @@ Column {
     return true;
   }
   function begin() {
+    selectionScrollOffset = 0;
     draft = Appearance.normalize(hostWidget.savedAppearance);
     targetTheme = hostWidget.themeId;
     colorTarget = "accent";
@@ -81,13 +97,17 @@ Column {
     syncHex(accentTarget ? Appearance.resolve(draft,targetTheme,String(hostWidget.themeAccent))
       : Appearance.surfaceColor(draft,colorTarget,targetTheme,hostWidget.surfaces.baseColor(colorTarget)));
   }
-  function closePickers() { targetPicker.close(); modePicker.close(); scopePicker.close(); started = false; }
+  function closePickers() { targetPicker.close(); modePicker.close(); scopePicker.close(); presetScopePicker.close(); started = false; }
   function backWithinEditor() {
-    if (editingPreset) { editingPreset = false; return true; }
+    if (editingPreset) { presetScopePicker.close(); editingPreset = false; return true; }
     if (colorsExpanded) { colorsExpanded = false; return true; }
     return false;
   }
   function selectTarget(target) {
+    // Preserve the point being picked after a scrolled form changes controls.
+    // Capture once per selection: ordinary scrolling must not resize the sample.
+    selectionScrollOffset = Math.max(0, scrollOffset);
+    presetScopePicker.close();
     colorTarget = target; selectedPresetId = ""; editingPreset = false;
     syncFromDraft();
   }
@@ -133,12 +153,14 @@ Column {
     publishPreview();
   }
   function choosePreset(preset) {
+    if (!Appearance.presetAvailable(preset,targetTheme)) return;
+    var scope = Appearance.presetScope(preset).scope;
     selectedPresetId = preset.id || "";
     editingPreset = false; presetError = false;
     if (preset.style) {
-      draft = Appearance.applyStyle(draft,targetTheme,targetTheme ? colorScope : "all",preset.style);
+      draft = Appearance.applyStyle(draft,targetTheme,scope,preset.style);
       syncFromDraft(); publishPreview();
-    } else changeRule("custom", targetTheme ? colorScope : "all", preset.color);
+    } else changeRule("custom", scope, preset.color);
   }
   function restoreSavedColor() {
     draft = accentTarget ? Appearance.restoreColor(draft, hostWidget.savedAppearance, targetTheme)
@@ -161,11 +183,13 @@ Column {
     editingPresetId = id;
     var preset = draft.colorPresets.find(function(p) { return p.id === id; });
     presetNameInput.text = preset ? preset.name : "";
+    editingPresetScope = preset ? Appearance.presetScope(preset).scope : targetTheme ? colorScope : "all";
     editingPreset = true; presetError = false;
     presetNameInput.forceActiveFocus();
   }
   function savePreset() {
-    var next = Appearance.upsertPreset(draft, editingPresetId, presetNameInput.text, chosenHex, Appearance.captureStyle(draft,targetTheme));
+    var next = Appearance.upsertPreset(draft, editingPresetId, presetNameInput.text, chosenHex,
+        Appearance.captureStyle(draft,targetTheme), {scope:editingPresetScope,theme:targetTheme});
     presetError = next === null;
     if (!next) return;
     draft = next;
@@ -192,6 +216,7 @@ Column {
     target: root.hostWidget
     function onThemeIdChanged() {
       if (!root.started) return;
+      presetScopePicker.close();
       root.targetTheme = root.hostWidget.themeId;
       root.selectedPresetId = "";
       root.editingPreset = false;
@@ -237,6 +262,7 @@ Column {
   }
   AppearancePreview {
     id: livePreview; width: parent.width; hostWidget: root.hostWidget
+    maximumHeight: root.availableHeight + root.selectionScrollOffset - root.controlsHeight
     selectedTarget: root.colorTarget
     onElementPicked: function(target) {
       targetPicker.close(); modePicker.close(); scopePicker.close();
@@ -444,7 +470,7 @@ Column {
     focusable: true
     accent: root.accent
     onClicked: {
-      modePicker.close(); scopePicker.close();
+      modePicker.close(); scopePicker.close(); presetScopePicker.close();
       root.colorsExpanded = !root.colorsExpanded;
     }
   }
@@ -485,17 +511,20 @@ Column {
       width: parent.width; spacing: Style.space(6)
       PresetChip {
         objectName: "defaultColorPreset"
+        visible: root.targetTheme === "tokyo-night"
         maximumWidth: parent.width
         label: root.words.scratchPink; swatch: Appearance.tokyoNightAccent; accent: root.accent
+        scopeLabel: I18n.format(root.words.colorThisTheme, {theme:"Tokyo Night"})
         selected: root.mode === "custom" && root.chosenHex === Appearance.tokyoNightAccent && !root.selectedPresetId
-        onClicked: root.choosePreset({color:Appearance.tokyoNightAccent})
+        onClicked: root.choosePreset({color:Appearance.tokyoNightAccent,scope:"theme",theme:"tokyo-night"})
       }
       Repeater {
-        model: root.draft.colorPresets || []
+        model: root.availablePresets
         PresetChip {
           required property var modelData
           maximumWidth: parent.width
           label: modelData.name; swatch: modelData.color; accent: root.accent
+          scopeLabel: modelData.scope === "theme" ? I18n.format(root.words.colorThisTheme,{theme:root.themeName}) : root.words.colorAllThemes
           selected: root.selectedPresetId === modelData.id
           onClicked: root.choosePreset(modelData)
         }
@@ -532,6 +561,18 @@ Column {
         Accessible.name: root.words.presetName
         accent: root.accent
         onAccepted: root.savePreset()
+      }
+      Choice.Dropdown {
+        id: presetScopePicker; objectName: "presetScopePicker"
+        hostWidget: root.hostWidget; width: parent.width
+        uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
+        label: root.words.colorScope; value: root.editingPresetScope; accent: root.accent
+        options: (root.targetTheme ? [{value:"theme",label:I18n.format(root.words.colorThisTheme,{theme:root.themeName})}] : [])
+          .concat([{value:"all",label:root.words.colorAllThemes}])
+        onChanged: function(value) {
+          root.editingPresetScope = value;
+          presetScopePicker.value = Qt.binding(function() { return root.editingPresetScope; });
+        }
       }
       ReadableText {
         visible: root.presetError

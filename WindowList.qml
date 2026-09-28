@@ -14,6 +14,7 @@ Flickable {
     property bool expanded: true
     property real expansion: expanded ? 1 : 0
     property bool opened: true
+    property bool hideScrollbar: false
     property string selectedAddress: ""
     property bool showShortcuts: false
     readonly property var shortcutAddresses: visibleWindowAddresses()
@@ -49,7 +50,9 @@ Flickable {
     function syncRows() { if (windowRows) ListData.syncRows(windowRows, rows); }
     onRowsChanged: syncRows()
     Component.onCompleted: syncRows()
-    width: parent.width - (windowScrollbar.visible ? windowScrollbar.width + Style.space(4) : 0)
+    readonly property bool scrollbarNeeded: visible && contentHeight > height + 0.01 && windowScrollbar.policy !== QQC.ScrollBar.AlwaysOff
+    // Hiding an obscured scrollbar must not resize the rows behind the modal.
+    width: parent.width - (scrollbarNeeded ? windowScrollbar.width + Style.space(4) : 0)
     x: list.rtl ? parent.width - width : 0
     clip: true
     pixelAligned: true
@@ -127,12 +130,15 @@ Flickable {
     QQC.ScrollBar.vertical: ScrollHandle {
         id: windowScrollbar; objectName: "windowScrollbar"
         parent: list.scrollbarParent
+        enabled: list.enabled && list.opened
         LayoutMirroring.enabled: false
         readonly property point listOrigin: {
             list.x; list.y; list.parent.x; list.parent.y;
             return list.mapToItem(parent, 0, 0);
         }
-        visible: list.visible && size < 1 && policy !== QQC.ScrollBar.AlwaysOff
+        // Fractional header/footer animation can leave a 1e-13 px remainder.
+        // Treating it as overflow toggles the gutter and jumps every row by 16 px.
+        visible: list.scrollbarNeeded && !list.hideScrollbar
         x: list.rtl ? listOrigin.x - (list.parent.width - list.width + list.scrollbarGutter + width) / 2
             : listOrigin.x + (list.width + list.parent.width + list.scrollbarGutter - width) / 2
         y: listOrigin.y; height: list.height; accent: list.accent

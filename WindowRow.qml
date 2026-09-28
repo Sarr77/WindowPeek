@@ -211,7 +211,7 @@ Item {
         Keys.onEnterPressed: if (!root.busy) root.moveRequested(root.window.address)
         Keys.onSpacePressed: if (!root.busy) root.moveRequested(root.window.address)
         ReadableText {
-            id: moveLabel; anchors.centerIn: parent
+            id: moveLabel; objectName: "windowMoveLabel"; anchors.centerIn: parent
             width: Math.min(implicitWidth, parent.width - Style.space(16)); elide: Text.ElideRight
             text: root.words.move; textFormat: Text.PlainText
             textColor: root.accent; font.family: Style.font.family; font.pixelSize: Style.font.caption

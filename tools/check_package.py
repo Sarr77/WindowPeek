@@ -31,6 +31,7 @@ def main():
         "FocusIncident.js", "FocusWatch.js", "NativeProtection.js", "SearchFocus.js",
         "FocusRecoveryText.js", "FocusIssues.js", "TextReadability.js",
         "Shortcuts.js", "ShortcutBindings.js", "assets/grain.svg", "assets/grain-tint.svg",
+        "assets/shaders/logo-reveal.frag", "assets/shaders/logo-reveal.frag.qsb",
         "docs/UPDATES.md", "docs/GUIDE.md", "docs/README.pl.md", "docs/KNOWN_ISSUES.md",
         "docs/TROUBLESHOOTING.md", "docs/FOCUS_RECOVERY.md",
         "preview.png", "docs/preview-thumbnail.png", "tools/render_artwork.py",
@@ -53,6 +54,8 @@ def main():
         assert {p.name for p in map(PurePosixPath, names) if len(p.parts) == 2 and p.suffix == ".py"} == {
             "update.py", "wallpaper_contrast.py"}, "Unexpected root Python worker"
         assert json.loads(archive.read("windowpeek/manifest.json")) == manifest
+        for relative in re.findall(r'^\.import "(translations/[^"\n]+\.js)" as ', archive.read("windowpeek/I18n.js").decode(), re.M):
+            required.add(relative)
         version = re.search(r'property string version: "([^"]+)"', archive.read("windowpeek/Runtime.qml").decode())
         assert version and version[1] == manifest["version"], "Runtime/manifest version mismatch"
         releases = re.findall(r"^## ([0-9]+\.[0-9]+\.[0-9]+)$", archive.read("windowpeek/CHANGELOG.md").decode(), re.M)

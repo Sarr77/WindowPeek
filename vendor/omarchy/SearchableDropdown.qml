@@ -98,6 +98,8 @@ Item {
   function focusTrigger() { trigger.forceActiveFocus() }
 
   signal changed(string value)
+  // Modifiers belong to this activation, not a delayed global-key poll.
+  property int activationModifiers: Qt.NoModifier
   signal hovered(bool isHovered)
 
   function optionValue(o) {
@@ -303,7 +305,7 @@ Item {
                   } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     if (resultList.count > 0) {
                       resultList.currentIndex = 0
-                      resultList.selectCurrent()
+                      resultList.selectCurrent(event.modifiers)
                     }
                     event.accepted = true
                   }
@@ -344,11 +346,13 @@ Item {
                 currentIndex: -1
                 keyNavigationEnabled: false
 
-                function selectCurrent() {
+                function selectCurrent(modifiers) {
                   if (currentIndex < 0 || currentIndex >= root.filtered.length) return
                   var v = root.optionValue(root.filtered[currentIndex])
                   root.value = v
+                  root.activationModifiers = typeof modifiers === "number" ? modifiers : Qt.NoModifier
                   root.changed(v)
+                  root.activationModifiers = Qt.NoModifier
                   popup.close()
                 }
 
@@ -370,7 +374,7 @@ Item {
                     resultList.currentIndex = resultList.currentIndex - 1
                     event.accepted = true
                   } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    resultList.selectCurrent(); event.accepted = true
+                    resultList.selectCurrent(event.modifiers); event.accepted = true
                   }
                 }
 
@@ -418,7 +422,7 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPositionChanged: resultList.currentIndex = parent.index
-                    onClicked: resultList.selectCurrent()
+                    onClicked: function(mouse) { resultList.selectCurrent(mouse.modifiers) }
                   }
                 }
               }

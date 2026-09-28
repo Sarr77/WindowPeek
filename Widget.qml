@@ -12,6 +12,7 @@ import "Shortcuts.js" as Shortcuts
 import "Appearance.js" as Appearance
 import "WindowModel.js" as Model
 import "Labels.js" as Labels
+import "LogoCatalog.js" as LogoCatalog
 
 BarWidget {
     id: root
@@ -75,13 +76,13 @@ BarWidget {
     readonly property bool settingsLogoLoop: preference("settingsLogoLoop", true) === true
     readonly property real hoverLogoLoopDelay: Settings.logoLoopDelay(preference("hoverLogoLoopDelay", 4.2))
     readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(preference("settingsLogoLoopDelay", 4.2))
-    readonly property real hoverLogoCooldown: Settings.logoCooldown(preference("hoverLogoCooldown", 0))
+    readonly property real hoverLogoCooldown: Settings.logoCooldown(preference("hoverLogoCooldown", LogoCatalog.artworkDefaults("hover").hoverLogoCooldown))
     readonly property real settingsLogoCooldown: Settings.logoCooldown(preference("settingsLogoCooldown", 0))
     readonly property bool sharedLogoCooldownEnabled: preference("sharedLogoCooldownEnabled", false) === true
     readonly property real sharedLogoCooldown: Settings.logoCooldown(preference("sharedLogoCooldown", 0))
     readonly property string logoImage: Settings.logoImage(preference("logoImage", ""))
-    readonly property string hoverLogoImage: Settings.logoChoice(preference("hoverLogoImage", logoImage))
-    readonly property string settingsLogoImage: Settings.logoChoice(preference("settingsLogoImage", logoImage))
+    readonly property string hoverLogoImage: Settings.logoChoice(preference("hoverLogoImage", logoImage || LogoCatalog.artworkDefaults("hover").hoverLogoImage))
+    readonly property string settingsLogoImage: Settings.logoChoice(preference("settingsLogoImage", logoImage || LogoCatalog.artworkDefaults("settings").settingsLogoImage))
     readonly property int panelHoverDelay: Settings.hoverDelay(preference("panelHoverDelay", 400))
     readonly property int previewHoverDelay: Settings.hoverDelay(preference("previewHoverDelay", 400))
     readonly property bool popupAnimations: preference("popupAnimations", true) === true
@@ -177,6 +178,11 @@ BarWidget {
         else open();
     }
     function pressBarButton(code) {
+        if (opened && panelLoader.item && panelLoader.item.body.blockingModalOpen) {
+            barDoubleClick.stop(); barDoubleClick.closePending = false;
+            panelLoader.item.body.dismissModalOutside();
+            return;
+        }
         if (doubleClickExpand && code === Qt.LeftButton) {
             if (barDoubleClick.running) {
                 toggleBarExpansion();
@@ -240,7 +246,7 @@ BarWidget {
         if (!thumbnail.menuRetained) thumbnail.dismiss();
         return true;
     }
-    function moveWindow(address, destination) { return runtime.actions.move(address, destination); }
+    function moveWindow(address, destination, monitorName) { return runtime.actions.move(address, destination, monitorName); }
     function clearError() { runtime.actions.error = ""; }
     function persistSettings(values, done) {
         if (!settingsReady) { if (done) done(false); return false; }
@@ -346,7 +352,7 @@ BarWidget {
         }
     }
     Timer {
-        interval: 60000; repeat: true; running: root.settingsReady && root.autoUpdates && root.updatesAvailable
+        interval: 60000; repeat: true; running: root.settingsReady && root.updatesAvailable
         onTriggered: root.runtime.updates.check(root.peers())
     }
     Connections {
@@ -439,6 +445,7 @@ BarWidget {
             return widget.focusWindow(address);
         }
         function moveWindow(address: string, destination: string): bool { return root.moveWindow(address, destination); }
+        function moveWindowToMonitor(address: string, destination: string, monitor: string): bool { return root.moveWindow(address, destination, monitor); }
         function setLanguage(code: string): bool { return root.setLanguage(code); }
         function showSettings(screen: string): void {
             var widget = root.onScreen(screen); widget.open();
@@ -459,8 +466,8 @@ BarWidget {
                     hoverLogoCooldown: w.hoverLogoCooldown, settingsLogoCooldown: w.settingsLogoCooldown,
                     sharedLogoCooldownEnabled: w.sharedLogoCooldownEnabled, sharedLogoCooldown: w.sharedLogoCooldown,
                     customLogo: w.hoverLogoImage.indexOf("file:") === 0 || w.settingsLogoImage.indexOf("file:") === 0,
-                    hoverLogoAnimated: w.hoverLogoImage === "builtin:omarchy-pixel",
-                    settingsLogoAnimated: w.settingsLogoImage === "builtin:omarchy-pixel", wheelScrollSpeed: w.wheelScrollSpeed,
+                    hoverLogoAnimated: LogoCatalog.animated(w.hoverLogoImage),
+                    settingsLogoAnimated: LogoCatalog.animated(w.settingsLogoImage), wheelScrollSpeed: w.wheelScrollSpeed,
                     followBarStyle: w.followBarStyle, keepSearchFocus: w.keepSearchFocus,
                     actionBusy: w.actionBusy, actionError: w.actionError, hints: w.hints,
                     autoUpdates: w.autoUpdates, updatesAvailable: w.updatesAvailable,

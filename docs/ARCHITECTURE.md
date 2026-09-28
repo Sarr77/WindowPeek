@@ -37,7 +37,7 @@ Hyprland events → WindowState → WindowModel → Widget / PanelContent
 | `Preferences.qml`, `Settings.js` | Atomic durable preferences and revision handling |
 | `Appearance.js` and editors | Color rules, presets, preview, apply/cancel and scaling |
 | `Labels.js`, `LabelsEditor.qml`, `LabelButton.qml` | Text templates, grouped editing and bounded action labels |
-| `I18n.js` | Locale detection and 30 catalogs without changing Qt's global translator |
+| `I18n.js`, `translations/*.js` | Locale detection and 30 local catalogs without changing Qt's global translator |
 | `Updates.qml`, `update.py` | Shared six-hour schedule, verified immutable releases and atomic replacement |
 
 ## Inventory and identity
@@ -72,6 +72,17 @@ precedence over the default. The bar count uses the same
 filter. Normalization and search do not mutate their inputs.
 
 ## Selection and actions
+
+`WindowCommands` resolves existing destination monitors from the current snapshot.
+Only new numbered workspaces require a monitor choice; the UI resolves Shift to
+the invoking screen and automatically selects a sole connected monitor. Both
+move selectors pass that explicit choice to the shared action queue. Lua rechecks
+window, workspace and monitor identity before detaching a group member. Only a
+workspace created by that command, containing that single window, may be moved
+to the chosen monitor. Pre-existing workspaces never move. Verification checks
+both workspace and monitor; stale or disconnected destinations fail explicitly.
+The two-argument `moveWindow` IPC supports existing destinations and Scratchpad;
+`moveWindowToMonitor(address, destination, monitor)` also supports new workspaces.
 
 Keyboard selection is an address, not a row index. If the selected window
 closes, selection clears. Enter cannot silently operate on its replacement.
@@ -109,18 +120,18 @@ state changes or altering Wallpaper appearance values.
 
 `PanelLogo` replaces the expanded search/footer space and uses the same translucent
 accent in Settings. `hoverLogoImage` and `settingsLogoImage` hold separate choices:
-empty for the wordmark, `builtin:omarchy-pixel` for a stepped accent glint, or a
-validated local file URL. Missing values fall back to the legacy `logoImage`;
+empty for the wordmark, `builtin:omarchy-pixel` for a stepped accent glint,
+allowlisted `builtin:ttfx-*` animations, or a validated local file URL. Missing values fall back to the legacy `logoImage`;
 an explicit empty value resets only that slot. `hoverLogo` and `settingsLogo`
 remain separate visibility switches. Independent `hoverLogoLoop` and
 `settingsLogoLoop` default to true; their mini switches keep a constant label and
-appear only for a GIF or the pixel preset. `hoverLogoLoopDelay` and
+appear for animated sources or an enabled motion preset. `hoverLogoLoopDelay` and
 `settingsLogoLoopDelay` store seconds separately, defaulting to 4.2; normalize to
 milliseconds in the range 0–86400 seconds. The input accepts decimal dots or commas
 and commits on Enter or editingFinished. Pauses are canceled while hidden.
-Independent `hoverLogoCooldown` and `settingsLogoCooldown` default to zero seconds;
+Independent `hoverLogoCooldown` and `settingsLogoCooldown` default to 60 and zero seconds;
 the `...CooldownUnit` fields select seconds or minutes without changing duration.
-Reset buttons restore 4.2 seconds for loop delay and zero for cooldown.
+Timing reset buttons restore 4.2 seconds for loop delay and the corresponding cooldown default.
 `Runtime.logoAnimationHistory` records each slot's source and last animated
 appearance across monitors for this shell session. Hiding an animated logo starts
 the cooldown; a blocked reopening stays static and does not extend it. Changing
@@ -146,6 +157,13 @@ and shows an error. Both settings and chooser name the supported formats.
 Background instructions and logo help use separate
 `PanelHint` instances. Logo, controls and background help share the enabled state
 and automatic display budget; only the help toggle's explanation is exempt.
+Hint positioning and text scaling have separate reference items: artwork hints
+use the surrounding UI scale, excluding the artwork's size/proportion transform.
+
+The color editor budgets its live sample against the available viewport height.
+Only the sample's window-list viewport shrinks, down to a usable minimum; text,
+controls and spacing stay unchanged. Longer forms retain ordinary scrolling.
+Preferred height is calculated independently of that fit to avoid layout feedback.
 
 Opt-in `doubleClickExpand` pins compact geometry while keeping the regular open
 lifecycle, keyboard access and outside-click dismissal. The bar uses Qt's double
@@ -225,7 +243,7 @@ speed or acceleration is changed. Exclusive layers and focus grabs in Hyprland
 There is a confirmed [X11 resize exception](#x11-resize-requests-and-keyboard-focus)
 to this focus retention. `FocusRecovery` provides two opt-in native-window modes:
 a temporary grant for an attributed incident, and the default-off `keepSearchFocus`
-preference under Controls → Troubleshooting. The manual mode blocks outside wheel
+preference under Controls → Hints and Support → Troubleshooting. The manual mode blocks outside wheel
 and touchpad scrolling instead of yielding. It requires no source identity and
 holds only the eligible search view. `FocusInterruptions` separately counts three
 settled losses in two minutes to suggest the setting without changing input or
@@ -479,8 +497,10 @@ The main window search opts out of outside-press blur so background clicks leave
 it ready to type. Shortcuts still run before text input, and Settings, dialogs
 and explicit keyboard navigation can take focus normally.
 `ControlsHelp` renders the mouse and keyboard guide from the selected language
-catalog, independently of custom action labels. It uses the settings scroll view
-and does not write preferences. The documented system shortcut requires a user binding.
+catalog, independently of custom action labels. `HintsSupportPage` loads it only
+while visiting Settings → Controls → Hints and Support, alongside the footer hint
+instructions and the project Issues link. Back restores the Controls section and
+focus; pinning persists. It uses the settings scroll view and does not write preferences. The documented system shortcut requires a user binding.
 Color drafts contain only color rules
 and presets, so applying one cannot overwrite newer density or scaling choices.
 Stored preference names are unchanged.
@@ -792,12 +812,68 @@ API reference: [ScreencopyView](https://quickshell.org/docs/v0.3.1/types/Quicksh
 
 ## Installation and updates
 
+`ManualUpdates` in `update.py` reads public upstream metadata without fetching
+objects or installing code. `Updates.qml` caches its bounded state across all
+monitors, with a separate `checkUpdates` preference and six-hour schedule. An
+explicit `Check now` runs even with scheduled checking off. `UpdatesPage` shows
+the checked SHA and exact catalog coverage, with unknown distinct from unverified.
+Checking replaces the result inside its reserved height; the button label stays
+constant. A 700 ms minimum presentation interval prevents a fast local check from
+flashing, without delaying the worker. The changes link opens the checked commit
+comparison when available, otherwise a clearly labeled public version history.
+UpdatesPage uses one primary action: Check now, then Update… for valid available
+metadata. Known local/ahead copies show their explanation and history without an
+installation button. The native worker stays independent of discovery metadata. It rechecks checkout eligibility, holds the shared updater lock
+and delegates to `omarchy plugin update sarr.windowpeek` with inherited TTY input.
+It never passes `--yes`. The native command confirms its freshly fetched upstream
+diff, which need not match the earlier metadata check. The automatic release
+verifier below retains its independent, stricter installation policy.
+
 Installation and removal use Omarchy's standard `plugin add` and `plugin remove`
 commands. The public source and release archive contain no separate installer.
 WindowPeek stores preferences outside the plugin directory so they survive
 removal and reinstall.
 
 `Runtime.qml` owns one `Preferences` and `Updates` instance across monitors.
+
+The expanded list's update button reads the cached manual-check result and opens
+the shared Updates page. It adds no row, polling or process on panel opening.
+The footer track and label are one `ActionButton` notification checkbox backed by
+`checkUpdates`; version and author use a text-only `ActionButton` opening
+`ProjectSupport`. This in-panel modal uses the existing render surface, retains
+the current editor and prevents background navigation while open. Two star
+icons and a discussion icon are native vector paths in `ProjectLinkButton`.
+Its centered heading and thank-you frame a single random bundled Omarchy GIF.
+The existing `LogoArt` renderer plays it once at 50% opacity in the theme color,
+stops when hidden, and shows a still poster when animations are disabled. The
+choice changes only on opening; it does not touch the user's Settings/hover art
+or their shared cooldown. No new render window, worker or runtime download is used.
+BrowserLinks allows only the exact plugin listing, repository, Issues and
+existing history/compare targets; no star or issue is submitted automatically. The automatic-install
+setting remains only in UpdatesPage, backed by `autoUpdates`. Saved flags and
+schedules remain independent. The expanded notice respects notification opt-out.
+`UpdateConfirmation` restores the input's focus reason to its originating setting.
+Its footer variant offers Updates or notification opt-out; its Settings variant
+confirms only automatic-install opt-out. Both keep background controls disabled,
+suppress pending preview requests and allow keyboard handoff to other apps.
+Nested editor loaders are explicitly retained before navigating to Updates, so
+the mode change cannot briefly destroy an unsaved draft; Back releases retention
+after restoring the original view. Confirmation writes false, never toggles a
+possibly changed setting from another monitor.
+`SettingsRow` tracks pointer versus keyboard cues, including mouse activation of
+an already keyboard-focused row. Navigation itself never starts an update worker.
+The HintsSupportPage loader remains active during child Troubleshooting visits so
+expanded guides survive Back; warning links retain their existing return context.
+Manual discovery reports development links separately from other local copies;
+an older blocked cache without a reason is refreshed once while idle.
+
+Header pinning is presentation state in `PanelContent`, independent of compact
+bar-click pinning and saved typing protection. It extends outside-click retention
+through submenus and resets after dismissal. A pinned panel yields keyboard focus:
+`allowFocusHandoff` suppresses the SearchFocus lease and native protection hold,
+while focus-loss detection ignores those intentional handoffs. It preserves the
+native render surface and saved protection choice. Ctrl artwork editing keeps its
+explicit temporary hold. Unpin restores ordinary behavior without remapping.
 Panel edits and host settings both save to the durable preferences file before
 publishing the result to widget instances. The host's inline entry is a mirror;
 older revisions cannot overwrite a newer saved choice. Failed writes retain
@@ -933,7 +1009,7 @@ Transparency use their own transparency settings over the theme's RGB tint.
 
 New entries in `colorPresets` include a normalized `style` snapshot of the accent
 and all surface roles. Older color-only entries are still accepted. Applying a
-snapshot writes each role to the selected scope; resetting uses default rules
+snapshot writes each role to its saved scope; resetting uses default rules
 without deleting unrelated themes or the preset library. The existing shared
 preview owner and atomic preferences path handle Apply/Cancel and save failures.
 Background mode, per-theme Wallpaper transparency, the shared Transparency
@@ -1110,3 +1186,138 @@ The blur region covers the rounded cards, excluding the transparent bridge.
 Standalone hosts retain the previous popup/layer fallback. This changes neither
 compositor rules nor application window geometry. See the measured comparison in
 [Known Issues](KNOWN_ISSUES.md#choppy-resizing-with-a-visible-window-preview).
+
+## Artwork library
+
+`LogoCatalog` supplies stable allowlisted source IDs and bounded layout/recent-file
+preferences. The old empty Omarchy source, pixel glint and local file URLs remain
+valid. `LogoBrowser` edits a draft and commits through the existing asynchronous
+settings queue; failed saves keep it open. It uses a virtualized text list and
+one active `LogoArt` preview. Nested file selection returns to that draft.
+The library and its deepest dropdown retain separate input regions; closing a
+child never makes a click in the parent count as an outside-panel click. Native
+focus protection uses the same rectangles, without filling the space between them.
+
+The 37 ttfx animations and final-frame posters are prepared offline from pinned
+MIT sources in `vendor/ttfx`. No terminal effect engine or network request runs
+inside the panel. GIF decode has a bounded proportional source size, no all-frame
+cache, and pauses with the existing Settings visit/cooldown lifecycle. Theme
+colorization is one optional Qt Quick layer on the selected artwork; software
+rendering retains original colors. Original SVGs stay vector and local files are
+not rewritten. Native QML transforms supply five optional motion presets.
+
+`LogoReveal` adds a separate, allowlisted opening effect over the live artwork.
+The fragment shader uses one texture sample per pixel and a single uniform clock;
+no CPU image processing or per-fragment QML items run while opening. A capture
+layer exists only during the 1.2-second reveal and is released on completion.
+Submenu suspension preserves progress and the existing playback grant/cooldown
+owns the visit. GIF frames continue independently. Software rendering falls back
+to opacity; it never hides an image behind an unsupported ShaderEffect.
+Pending playback approval or image decoding conceals only the artwork, so its
+first visible frame belongs to the reveal. The panel opens immediately. A denied
+cooldown shows the ordinary static image, and no-effect artwork stays visible.
+`tools/build_logo_shader.py` bakes the shipped `.qsb` offline with Qt Shader Tools,
+using the Qt 6.4 serialization format and GLSL/HLSL/MSL targets. End users need no
+shader compiler. Uniform image dimensions are explicit scalar values from the
+artwork, independent of the layer effect item's implicit geometry.
+
+`LogoPlacement` uses a fixed decoration viewport, fits the natural aspect, and
+applies independent user transforms around a stable centre. Both opposing edges
+resize equally until an edge requires translation. Growth uses the full viewport,
+moving the centre only far enough to keep the new bounds inside it; it never
+shrinks the other axis. Pointer drags retain their original centre as an anchor,
+so reversing a gesture does not accumulate positional drift. Size fitting is independent of translation; movement
+uses the actual displayed footprint, even when the image is shorter than its
+default footprint. Left/right handles edit width, top/bottom handles edit height,
+and double-click centres the matching axis. Each corner has a round proportional
+resize handle with the corresponding diagonal cursor and outward direction.
+Double-clicking the artwork in Ctrl edit mode centres both axes with one save,
+preserving size and proportions. Dragging ignores click jitter and position
+changes caused by centering. A single click leaves the handle in place. The reset button is inset from the
+top-right corner so their pointer targets do not overlap.
+Controls never move with animation frames.
+Settings observes Ctrl through the passive asynchronous modifier reader, with
+local key events taking precedence over pending samples. It does not install
+window-list shortcut bindings. While Ctrl editing is active, the panel holds
+keyboard focus; pointer exit does not clear the controls. Releasing Ctrl, closing
+the panel or leaving the artwork view releases this hold. Polling is limited to
+the open, uncovered Settings artwork view; preview privacy remains independent.
+Drag changes are local until release; wheel saves are coalesced. Pictures and Gifs
+uses the visual editor rather than duplicate numeric layout controls. Size changes do not trigger
+image decoding or effect regeneration. The rendering bounds constrain artwork to
+the available panel decoration area.
+Stored layout factors use a finite 0.01–10000% range. The old
+250% ceiling stopped a single-axis drag at small overall zoom, despite free
+viewport space (250% width × 25% zoom yields only 62.5% of baseline width).
+Drag/wheel growth is still capped against the available viewport before saving;
+increasing one dimension does not refit and shrink the other. The former 25%
+minimum could also lock proportional handles when a wide image already filled
+the viewport: neither growth nor shrinkage was possible. Fitted layouts now use
+the shared lower bound. Gestures enforce a small geometric minimum (16 logical
+pixels, bounded by the viewport and starting size), avoiding subpixel collapse
+without enlarging existing smaller art. Edge/corner hit areas occupy separate
+thirds of the bounds and retain outer grab margins, so short art cannot make
+opposite handles intercept one another. Saved fractional precision is retained.
+
+`LogoCatalog.artworkDefaults` defines complete, independent artwork presets. The
+manifest and runtime fallbacks agree with them: pixel wordmark in hover, random
+Omarchy GIF in Settings, theme colors for both, 100% geometry,
+4.2-second loop pause, one-minute hover cooldown and zero Settings cooldown.
+The chooser arrow saves a complete preset in one settings transaction, including
+layout, colors, motion, reveal and playback. Existing saved choices take precedence;
+resetting one view does not change the other or delete custom files.
+
+Random selection uses the stable `builtin:omarchy-random` preference and cooldown
+identity. `PanelLogo` resolves one local GIF per new selection session, excluding
+the previous choice. A compact panel keeps this session across expansion; Settings
+keeps it across submenus. Looping never rerolls. Only the selected GIF is decoded;
+there is no directory scan, worker startup or extra timer to make the selection.
+The browser previews candidates independently and saves the mode, not its preview
+filename. Explicit saved artwork is preserved on upgrade.
+
+Appearance presets store `scope: all` or `scope: theme` with a validated theme ID.
+Older unscoped presets normalize to global; invalid theme assignments are rejected,
+never widened. The editor lists global and matching-theme presets and guards
+against applying a mismatched theme. Names are unique within their scope. Editing
+scope stays in the draft until Apply; Cancel and failed saves retain saved values.
+The built-in pink swatch is explicitly associated with Tokyo Night.
+
+Per-view LogoOpacity (0–100, or null for the source default) multiplies only the natural artwork
+item opacity. It preserves intrinsic transparency, motion/reveal opacity and
+editing-handle visibility. Browser slider changes stay local until Use this;
+opacity never triggers media decoding or an extra effect layer. Full artwork
+reset includes opacity; the slider reset restores the source default: opacity50
+for bundled/random/custom GIFs, 100 for still images and the existing pixel
+wordmark. Accepting an automatic default preserves null so switching to a GIF
+also gets its default. Explicit numeric values survive source changes and random
+draws. Missing settings behave like null; no migration overwrites manual values.
+
+Interface Size keeps live panel resizing during a drag. `ScaleControl` captures
+the track and press location in screen coordinates at press time, then computes
+value changes from pointer displacement in that fixed frame. Relayout cannot
+reinterpret the same pointer location as a smaller value. Keyboard input retains
+the native Slider behavior; Apply/Cancel semantics are unchanged.
+
+Animated panel width retains fractional precision through `WindowPanel` and row
+layout. Only the endpoint dimensions use `Style.space`; rounding each intermediate
+width while the Move gutter continued advancing made Active reverse by fractions
+of a pixel. Native input regions enclose the visual bounds separately.
+The list scrollbar requires more than 0.01 logical pixels of overflow. A floating
+point remainder (~5.7e-14 px) during header/footer interpolation used to toggle
+its 16 px gutter, visibly shifting Move, Active and the window title boundary.
+This tolerance does not hide any visible overflowing content.
+
+`BrowserLinks` sends only allowlisted WindowPeek Issues/history/commit URLs to
+`omarchy launch browser` as separate Process arguments. No shell or Qt desktop
+portal is involved. Its engine-lifetime process survives leaving a help page;
+launch failure leaves a visible error and a selectable URL. Support and update
+links share this path. The launcher runs only after an explicit activation.
+`PinButton` uses a native AbstractButton and visualFocus: mouse activation does
+not leave a keyboard focus ring after unpinning. Checked state still highlights
+the pin icon; keyboard navigation retains its own visible focus. Accessible names
+and hints use the translated Pin/Unpin labels.
+`ActionButton` applies the same distinction to update actions and the version
+link. Programmatic entry uses OtherFocusReason; a page's default action must not
+look hovered when focus returns to its window. The version link has text-only
+hover feedback and an underlined keyboard focus state. Pointer input is tested
+through the footer-to-Updates transition, not just by emitting clicked.

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Install an immutable, marketplace-verified release into a clean checkout.
+"""Check upstream updates or install a marketplace-verified immutable release.
 
-Started by the widget, with no persistent service. The worker survives a shell
-reload. GitHub identifies the release; Omarchy independently authorizes its SHA.
+Automatic installation independently checks GitHub releases and catalog approval.
+Manual discovery only reads metadata; installation uses Omarchy's TTY confirmation.
+No persistent service is needed. The detached installer survives a shell reload.
 """
 import ctypes
 import argparse
@@ -26,6 +27,7 @@ REPOSITORY = "https://github.com/Sarr77/WindowPeek"
 RELEASE_URL = "https://api.github.com/repos/Sarr77/WindowPeek/releases/latest"
 CATALOG_URL = "https://plugins.omarchy.org/catalog.json"
 CHECK_INTERVAL = 6 * 60 * 60
+UPSTREAM_URL = "https://api.github.com/repos/Sarr77/WindowPeek/commits/HEAD"
 
 
 def timestamp(value):
@@ -355,6 +357,7 @@ class Updater:
                 result["status"] = "failed"
             atomic_json(self.result, result)
             if result["status"] == "updated":
+                atomic_json(self.state / "manual-updates.json", {"status": "", "lastCheck": 0})
                 try:
                     self.reload()
                 except (OSError, subprocess.SubprocessError):
@@ -363,14 +366,155 @@ class Updater:
             return result["status"]
 
 
+class ManualUpdates(Updater):
+    """Read-only upstream discovery; installation belongs to Omarchy's TTY prompt."""
+
+    def __init__(self, home, state, source=None):
+        # The native command currently uses HOME/.config, not XDG_CONFIG_HOME.
+        super().__init__(home, state, Path(home) / ".config")
+        self.result = self.state / "manual-updates.json"
+        self.source = Path(source) if source is not None else self.plugin
+
+    def eligible(self):
+        # Do not update a different copy when this widget runs from a custom path.
+        return self.blocked_reason() is None
+
+    def blocked_reason(self):
+        if self.plugin.is_symlink() or self.source.resolve() != self.plugin.resolve():
+            return "development"
+        return None if super().eligible() else "local-copy"
+
+    def enabled(self):
+        try:
+            prefs = json.loads((self.state / "preferences.json").read_text())
+            return (type(prefs["version"]) is int and prefs["version"] == 1
+                    and isinstance(prefs["settings"], dict)
+                    and prefs["settings"].get("checkUpdates", True) is True)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            return False
+
+    def metadata(self, url, limit=256 * 1024):
+        return read_json(url, limit)
+
+    def inspect(self):
+        reason = self.blocked_reason()
+        if reason:
+            return {"status": "local-changes", "reason": reason}
+        original = self.git(self.plugin, "rev-parse", "HEAD")
+        upstream = self.metadata(UPSTREAM_URL)
+        target = upstream.get("sha") if isinstance(upstream, dict) else None
+        if not isinstance(target, str) or not re.fullmatch(r"[a-f0-9]{40}", target):
+            raise ValueError("invalid upstream commit")
+        result = {"status": "current", "installedCommit": original, "commit": target}
+        if original == target:
+            return result
+        comparison = self.metadata("https://api.github.com/repos/Sarr77/WindowPeek/compare/"
+                                   + original + "..." + target + "?per_page=1", 2 * 1024 * 1024)
+        relation = comparison.get("status") if isinstance(comparison, dict) else None
+        if relation == "behind":
+            return {**result, "status": "ahead"}
+        if relation != "ahead":
+            return {**result, "status": "local-changes", "reason": "different-history"}
+        manifest = self.metadata("https://raw.githubusercontent.com/Sarr77/WindowPeek/"
+                                 + target + "/manifest.json")
+        if not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID:
+            raise ValueError("wrong upstream plugin")
+        version(manifest.get("version"))
+        installed = json.loads((self.plugin / "manifest.json").read_text())
+        if version(manifest["version"]) < version(installed["version"]):
+            raise ValueError("upstream version would downgrade this installation")
+        result.update(status="available", version=manifest["version"], verification="unknown")
+        try:
+            catalog = self.metadata(CATALOG_URL, 32 * 1024 * 1024)
+            result["verification"] = "verified" if approved_commit(catalog) == target else "unverified"
+        except UnverifiedUpdate:
+            result["verification"] = "unverified"
+        except (OSError, ValueError, KeyError, TypeError):
+            pass  # Unreachable catalog is unknown, never an approval.
+        return result
+
+    def check(self, force=False, now=None):
+        if not force and not self.enabled():
+            return "disabled"
+        self.state.mkdir(parents=True, exist_ok=True, mode=0o700)
+        descriptor = os.open(self.state / "updates.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, "w") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return "busy"
+            now = int(time.time()) if now is None else now
+            try:
+                previous = json.loads(self.result.read_text())
+                legacy_block = isinstance(previous, dict) and previous.get("status") == "local-changes" and not previous.get("reason")
+                if not force and isinstance(previous, dict) and not legacy_block and not check_due(previous, now):
+                    return "not-due"
+            except (OSError, ValueError):
+                pass
+            result = {"lastCheck": now, "nextCheck": now + CHECK_INTERVAL}
+            try:
+                result.update(self.inspect())
+            except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                result["status"] = "failed"
+            atomic_json(self.result, result)
+            return result["status"]
+
+    def confirm_in_terminal(self):
+        # This is only invoked by an explicit UI action in a visible terminal.
+        # Hold the automatic updater's lock until the native confirmation ends.
+        if not os.isatty(0) or not os.isatty(1):
+            raise ValueError("manual update requires an interactive terminal")
+        self.state.mkdir(parents=True, exist_ok=True, mode=0o700)
+        descriptor = os.open(self.state / "updates.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, "w") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                print("WindowPeek: another update check is running. Try again shortly.")
+                return 1
+            if not self.eligible():
+                print("WindowPeek: this is not a clean standard installation. No changes made.")
+                return 1
+            original = self.git(self.plugin, "rev-parse", "HEAD")
+            # No remote text enters the command. No --yes, sudo or custom installer.
+            result = subprocess.run(["omarchy", "plugin", "update", PLUGIN_ID], check=False).returncode
+            if result == 0 and self.git(self.plugin, "rev-parse", "HEAD") != original:
+                atomic_json(self.result, {"status": "", "lastCheck": 0})
+                try:
+                    self.reload()  # A rescan alone can retain old QML components.
+                except (OSError, subprocess.SubprocessError):
+                    print("WindowPeek was updated. Restart the Omarchy shell to load it.")
+            return result
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--startup", action="store_true", help="Allow the first check of the local day at plugin startup")
+    manual = parser.add_mutually_exclusive_group()
+    manual.add_argument("--check-manual", action="store_true", help="Only check public upstream metadata")
+    manual.add_argument("--manual-update", action="store_true", help="Ask Omarchy to update in this terminal")
+    parser.add_argument("--force", action="store_true", help="Check now, ignoring the cached deadline")
     args = parser.parse_args()
     home = Path.home()
     state = os.environ.get("XDG_STATE_HOME") or str(home / ".local/state")
+    if args.manual_update:
+        worker = ManualUpdates(home, state, Path(__file__).parent)
+        result = 1
+        try:
+            result = worker.confirm_in_terminal()
+            worker.check(force=True)
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print("WindowPeek: could not start the manual update: " + str(error))
+        finally:
+            if os.isatty(0):
+                try:
+                    input("\nPress Enter to close.")
+                except (EOFError, KeyboardInterrupt):
+                    pass
+        raise SystemExit(result)
     try:
-        print(Updater(home, state).run(startup=args.startup))
+        print(ManualUpdates(home, state, Path(__file__).parent).check(force=args.force) if args.check_manual
+              else Updater(home, state).run(startup=args.startup))
     except (OSError, ValueError):
         # An unwritable state directory must not start an unrecorded update.
         raise SystemExit(1)

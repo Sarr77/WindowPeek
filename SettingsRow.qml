@@ -7,12 +7,21 @@ QQC.Control {
     id: root
     required property string text
     property string description: ""
+    property int labelFontSize: Style.font.body + Style.space(1)
+    property int descriptionFontSize: Style.font.body
+    property color descriptionColor: Qt.alpha(Color.popups.text, 0.78)
     property bool isSwitch: false
     property bool bordered: false
+    property bool externalLink: false
     property bool checked: false
     property color accent: Color.accent
     property var palette: null
-    readonly property bool hot: pointer.containsMouse || visualFocus
+    property bool pointerFocus: false
+    property bool keyboardReturnFocus: false
+    readonly property bool keyboardFocusVisible: activeFocus && (visualFocus || keyboardReturnFocus) && !pointerFocus
+    readonly property bool hot: hover.hovered || keyboardFocusVisible
+    onActiveFocusChanged: if (!activeFocus) { pointerFocus = false; keyboardReturnFocus = false; }
+    onVisualFocusChanged: if (visualFocus) pointerFocus = false
     property int activationFocusReason: Qt.MouseFocusReason
     signal clicked()
     implicitHeight: Math.max(Style.space(48), captions.implicitHeight + Style.space(20))
@@ -20,7 +29,12 @@ QQC.Control {
     opacity: enabled ? 1 : 0.5
 
     function activate() { if (enabled) clicked(); }
-    function activateFromKeyboard() { activationFocusReason = Qt.TabFocusReason; activate(); }
+    function activateFromKeyboard() { pointerFocus = false; activationFocusReason = Qt.TabFocusReason; activate(); }
+    function restoreFocus(reason) {
+        forceActiveFocus(reason);
+        pointerFocus = reason !== Qt.TabFocusReason && reason !== Qt.BacktabFocusReason;
+        keyboardReturnFocus = !pointerFocus;
+    }
     Keys.onReturnPressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
     Keys.onEnterPressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
     Keys.onSpacePressed: function(event) { if (!event.isAutoRepeat) activateFromKeyboard(); }
@@ -43,7 +57,7 @@ QQC.Control {
     Rectangle {
         anchors.fill: parent; radius: Style.space(5)
         color: "transparent"; border.width: 1; border.color: root.accent
-        opacity: root.visualFocus ? 1 : root.hot ? (root.bordered ? 0.8 : 0.45) : root.bordered ? 0.5 : 0
+        opacity: root.keyboardFocusVisible ? 1 : root.hot ? (root.bordered ? 0.8 : 0.45) : root.bordered ? 0.5 : 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
     }
     Column {
@@ -56,14 +70,14 @@ QQC.Control {
             width: parent.width; text: root.text; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
             textColor: Color.popups.text
-            font.family: Style.font.family; font.pixelSize: Style.font.body + Style.space(1)
+            font.family: Style.font.family; font.pixelSize: root.labelFontSize
         }
         ReadableText {
             visible: root.description !== ""
             width: parent.width; text: root.description; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            textColor: Qt.alpha(Color.popups.text, 0.78)
-            font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: root.descriptionColor
+            font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
         }
     }
     Item {
@@ -91,14 +105,16 @@ QQC.Control {
         }
         ReadableText {
             anchors.centerIn: parent; visible: !root.isSwitch
-            text: root.LayoutMirroring.enabled ? "‹" : "›"; textFormat: Text.PlainText
+            text: root.externalLink ? "↗" : root.LayoutMirroring.enabled ? "‹" : "›"; textFormat: Text.PlainText
             textColor: root.hot || root.bordered ? root.accent : Qt.alpha(Color.popups.text, 0.5)
             font.family: Style.font.family; font.pixelSize: Style.font.subtitle
         }
     }
+    // A dialog can take the pointer while its opening MouseArea still reports
+    // containsMouse. HoverHandler follows the current pointer after dismissal.
+    HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
     MouseArea {
         id: pointer; anchors.fill: parent
-        hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-        onClicked: { root.activationFocusReason = Qt.MouseFocusReason; root.forceActiveFocus(Qt.MouseFocusReason); root.activate(); }
+        onClicked: { root.activationFocusReason = Qt.MouseFocusReason; root.restoreFocus(Qt.MouseFocusReason); root.activate(); }
     }
 }

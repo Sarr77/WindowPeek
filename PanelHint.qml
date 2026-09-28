@@ -15,6 +15,8 @@ Item {
   property real maximumWidth: 400
   property bool belowAnchor: false
   property Item anchorItem: parent
+  // Position may follow transformed artwork; typography follows the UI only.
+  property Item scaleItem: parent
   property bool shownThisHover: false
   property bool dwellElapsed: false
   property alias contentItem: label
@@ -48,7 +50,7 @@ Item {
   }
   // Watch the whole ancestor transform for scaled text and pointer clearance.
   TransformWatcher { id: anchorTransform; a: root.anchorItem; b: root.windowRoot }
-  TransformWatcher { id: textTransform; a: root.parent; b: root.windowRoot }
+  TransformWatcher { id: textTransform; a: root.scaleItem; b: root.windowRoot }
   readonly property rect anchorRect: {
     anchorTransform.transform;
     var r = anchorItem && windowRoot ? anchorItem.mapToItem(windowRoot, 0, 0, anchorItem.width, anchorItem.height) : Qt.rect(0, 0, 0, 0);
@@ -56,8 +58,8 @@ Item {
   }
   readonly property real hintScale: {
     textTransform.transform;
-    if (!parent || !windowRoot) return 1;
-    var a = parent.mapToItem(windowRoot, 0, 0), b = parent.mapToItem(windowRoot, 1, 0);
+    if (!scaleItem || !windowRoot) return 1;
+    var a = scaleItem.mapToItem(windowRoot, 0, 0), b = scaleItem.mapToItem(windowRoot, 1, 0);
     return Math.hypot(b.x - a.x, b.y - a.y) || 1;
   }
   readonly property var tipBorder: Border.localOrSurfaceSpec("tooltip", "border", Color.tooltip.border, Color.tooltip.border, Math.max(1, Style.normalBorderWidth))

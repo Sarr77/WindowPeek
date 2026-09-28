@@ -9,6 +9,7 @@ Item {
     required property var hostWidget
     property string prefix: ""
     property real value: 0
+    property real defaultValue: 0
     property string unit: "s"
     readonly property real factor: unit === "min" ? 60 : 1
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
@@ -72,12 +73,12 @@ Item {
         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
         width: Style.space(24); height: Style.space(26)
         hostWidget: root.hostWidget; words: root.words
-        label: root.words.animationCooldown; valueText: "0 " + root.unit
-        modified: root.value !== 0
+        label: root.words.animationCooldown; valueText: String(root.defaultValue / root.factor) + " " + root.unit
+        modified: root.value !== root.defaultValue
         accent: root.hostWidget ? root.hostWidget.accent : Color.accent
         onResetRequested: {
-            cooldownInput.text = "0";
-            var values = {}; values[root.prefix + "LogoCooldown"] = 0;
+            cooldownInput.text = String(root.defaultValue / root.factor);
+            var values = {}; values[root.prefix + "LogoCooldown"] = root.defaultValue;
             root.hostWidget.persistSettings(values);
         }
     }

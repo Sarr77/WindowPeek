@@ -34,7 +34,7 @@ QtObject {
         return true;
     }
     function focus(address, beforeApply) { return start("focus", address, "", beforeApply); }
-    function move(address, destination) { return start("move", address, destination, null); }
+    function move(address, destination, monitorName) { return start("move", address, destination, null, monitorName); }
     function bring(address, monitorName, beforeApply) { return start("bring", address, "", beforeApply, monitorName); }
     function fail(key) {
         if (!job) return;
@@ -66,7 +66,7 @@ QtObject {
             var command;
             if (job.kind === "move" || job.kind === "bring") {
                 var plan = job.kind === "bring" ? Commands.bring(state.snapshot, job.address, job.monitorName)
-                    : Commands.move(state.snapshot, job.address, job.destination);
+                    : Commands.move(state.snapshot, job.address, job.destination, job.monitorName);
                 if (!plan) { fail("destinationChanged"); return; }
                 command = plan.command;
                 job.target = plan.target;
@@ -83,6 +83,8 @@ QtObject {
                 : win.workspace && win.workspace.name === job.target;
             if (job.kind === "bring")
                 done = done && win.monitor === job.targetMonitor && Model.address(state.snapshot.activeAddress) === job.address;
+            else if (job.kind === "move" && Number.isInteger(job.targetMonitor))
+                done = done && win.monitor === job.targetMonitor;
             if (done) {
                 var old = job;
                 job = null; deadline.stop(); poll.stop();

@@ -21,6 +21,7 @@ QtObject {
     property rect panelRect: Qt.rect(0, 0, 1, 1)
     property rect previewRect: Qt.rect(0, 0, 0, 0)
     property rect popupRect: Qt.rect(0, 0, 0, 0)
+    property rect popupContainerRect: Qt.rect(0, 0, 0, 0)
     property string owner: Date.now().toString(36) + ":" + Math.random().toString(36).slice(2)
     readonly property string title: "WindowPeek protection " + owner
     property bool ready: false
@@ -55,7 +56,7 @@ QtObject {
         // earlier installation must never cancel a newly approved one.
         owner = Date.now().toString(36) + ":" + Math.random().toString(36).slice(2);
         setup.command = ["hyprctl", "eval", Protect.install(owner, Quickshell.processId, monitor,
-            origin.x, origin.y, panelSize.width, panelSize.height, strict, hold, anchorRect, panelRect, previewRect, popupRect) + "return 'ok'"];
+            origin.x, origin.y, panelSize.width, panelSize.height, strict, hold, anchorRect, panelRect, previewRect, popupRect, popupContainerRect) + "return 'ok'"];
         setup.running = true;
         deadline.restart();
     }
@@ -69,6 +70,7 @@ QtObject {
     onPanelRectChanged: if (ready) updateBounds.start()
     onPreviewRectChanged: if (ready) updateBounds.start()
     onPopupRectChanged: if (ready) updateBounds.start()
+    onPopupContainerRectChanged: if (ready) updateBounds.start()
     onReadyChanged: if (ready) reposition.start()
     onHoldChanged: if (ready) Hyprland.dispatch(Bindings.dispatch(Protect.renew(owner, hold)))
     Component.onCompleted: if (enabled) start()
@@ -91,11 +93,11 @@ QtObject {
     property Timer lease: Timer {
         interval: 250; running: root.ready; repeat: true
         // Keep the lease and reconcile geometry after delayed configure replies.
-        onTriggered: Hyprland.dispatch(Bindings.dispatch(Protect.renew(root.owner, root.hold, root.globalOrigin.x, root.globalOrigin.y, root.panelSize.width, root.panelSize.height, root.anchorRect) + Protect.bounds(root.owner, root.panelRect, root.previewRect, root.popupRect)))
+        onTriggered: Hyprland.dispatch(Bindings.dispatch(Protect.renew(root.owner, root.hold, root.globalOrigin.x, root.globalOrigin.y, root.panelSize.width, root.panelSize.height, root.anchorRect) + Protect.bounds(root.owner, root.panelRect, root.previewRect, root.popupRect, root.popupContainerRect)))
     }
     property Timer updateBounds: Timer {
         interval: 0
-        onTriggered: if(root.ready) Hyprland.dispatch(Bindings.dispatch(Protect.bounds(root.owner, root.panelRect, root.previewRect, root.popupRect)))
+        onTriggered: if(root.ready) Hyprland.dispatch(Bindings.dispatch(Protect.bounds(root.owner, root.panelRect, root.previewRect, root.popupRect, root.popupContainerRect)))
     }
     property Timer reposition: Timer {
         // Coalesce layout changes, but do not restart this timer on each frame:

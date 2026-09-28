@@ -15,20 +15,25 @@ PanelWindow {
   property var owner: null
   property int margin: Style.gapsOut
   property int padding: Style.spacing.popupPadding
-  property int contentWidth: Style.space(280)
+  // Keep layout geometry continuous. Rounding this before row layout makes
+  // right-aligned labels reverse as the animated Move gutter keeps advancing.
+  // Native input regions already round their enclosing bounds separately.
+  property real contentWidth: Style.space(280)
   property int contentHeight: Style.space(200)
   property var borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
   property bool centerOnBar: false
   property bool hoverOpen: false
   property bool shortcutKeyboard: false
   property bool retainSearchFocus: false
+  property bool allowFocusHandoff: false
+  property bool retainArtworkFocus: false
   property bool pointerPreviewVisible: false
   property bool pointerOnPreview: false
   property bool transientOpen: false
   readonly property bool interactive: open || transientOpen
   property bool keyboardSuppressed: false
   readonly property bool keyboardActive: (interactive || (hoverOpen && shortcutKeyboard)) && !keyboardSuppressed
-  readonly property bool searchKeyboardActive: keyboardActive && ((shortcutKeyboard && retainSearchFocus)
+  readonly property bool searchKeyboardActive: keyboardActive && !allowFocusHandoff && ((shortcutKeyboard && retainSearchFocus)
     || (protectionRequested && !protectionStrict)) && backingWindowVisible
   readonly property bool nativeActive: contentHolder.Window.active
   property real cornerRadius: Style.space(8)
@@ -169,6 +174,13 @@ PanelWindow {
   readonly property bool barAnchorHovered: barInput.containsMouse && barInput.visible
 
   property Item popupInputItem: null
+  // A nested dropdown must not remove its parent dialog from the input region.
+  property Item popupContainerInputItem: null
+  readonly property rect popupContainerScreenRect: {
+    popupContainerTransform.transform
+    return popupContainerInputItem && panelScene ? popupContainerInputItem.mapToItem(panelScene, 0, 0, popupContainerInputItem.width, popupContainerInputItem.height) : Qt.rect(0, 0, 0, 0)
+  }
+  TransformWatcher { id: popupContainerTransform; a: root.panelScene; b: root.popupContainerInputItem }
   readonly property rect popupScreenRect: {
     popupTransform.transform
     return popupInputItem && panelScene ? popupInputItem.mapToItem(panelScene, 0, 0, popupInputItem.width, popupInputItem.height) : Qt.rect(0, 0, 0, 0)
@@ -232,7 +244,7 @@ PanelWindow {
   // Prime keyboard focus, then free pointer input. SearchFocus keeps typing
   // focused without an exclusive layer's implicit pointer capture.
   WlrLayershell.keyboardFocus: keyboardActive && !protectionRequested
-    ? (pointerOnPreview || focusPrimed
+    ? (!retainArtworkFocus && (pointerOnPreview || focusPrimed)
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     : WlrKeyboardFocus.None
   WindowPeek.SearchFocus {
@@ -244,9 +256,11 @@ PanelWindow {
   }
   WindowPeek.NativeProtection {
     id: protector
-    strict: root.protectionStrict
+    strict: root.protectionStrict || root.retainArtworkFocus
     requested: (root.protectionRequested && root.visible) || native.backingWindowVisible
-    hold: root.protectionRequested && root.keyboardActive && root.protectionHold && !root.keyboardSuppressed && !root.pointerOnPreview
+    hold: root.protectionRequested && root.keyboardActive
+      && ((root.protectionHold && !root.allowFocusHandoff) || root.retainArtworkFocus)
+      && !root.keyboardSuppressed && !root.pointerOnPreview
     monitor: root.screen ? root.screen.name : ""
     origin: Qt.point(0, 0)
     globalOrigin: root.nativeSurfaceOrigin
@@ -255,6 +269,8 @@ PanelWindow {
       root.nativeSurfaceOrigin.y + root.previewInputItem.y, root.previewInputItem.width, root.previewInputItem.height) : Qt.rect(0, 0, 0, 0)
     popupRect: Qt.rect(root.nativeSurfaceOrigin.x + root.popupScreenRect.x, root.nativeSurfaceOrigin.y + root.popupScreenRect.y,
       root.popupScreenRect.width, root.popupScreenRect.height)
+    popupContainerRect: Qt.rect(root.nativeSurfaceOrigin.x + root.popupContainerScreenRect.x, root.nativeSurfaceOrigin.y + root.popupContainerScreenRect.y,
+      root.popupContainerScreenRect.width, root.popupContainerScreenRect.height)
     anchorRect: Qt.rect((root.screen ? root.screen.x : 0) + barInput.x,
       (root.screen ? root.screen.y : 0) + barInput.y, root.anchorW, root.anchorH)
     onBarPressed: function(button) { root.barPressed(button) }
@@ -276,6 +292,7 @@ PanelWindow {
       item: root.usingNative ? card : null
       Region { item: root.usingNative ? root.previewInputItem : null }
       Region { item: root.usingNative ? root.popupInputItem : null }
+      Region { item: root.usingNative ? root.popupContainerInputItem : null }
     }
     property var overlayWindow: root
     property Item overlayScene: root.layerScene
@@ -349,6 +366,7 @@ PanelWindow {
     height: root.primeInput ? root.screenH : Math.ceil(root.hoverInputBounds.y + root.hoverInputBounds.height) - y
     Region { item: barInput }
     Region { item: root.popupInputItem }
+    Region { item: root.popupContainerInputItem }
     Region { item: root.previewInputItem }
   }
   Region { id: emptyMask; width: 0; height: 0; Region { item: root.usingNative ? null : root.previewInputItem } }
@@ -408,7 +426,7 @@ PanelWindow {
     var desired = Math.max(1, Number(width) || 1)
     var maxWidth = root.availableCardWidth > 0 ? root.availableCardWidth : desired
     if (cap !== undefined && Number(cap) > 0) maxWidth = Math.min(maxWidth, Number(cap))
-    return Math.round(Math.min(desired, maxWidth))
+    return Math.min(desired, maxWidth)
   }
 
   function fittedContentHeight(implicitHeight, cap) {

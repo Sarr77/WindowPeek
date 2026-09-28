@@ -13,6 +13,7 @@ Column {
   property int percent: 100
   property color accent: Color.accent
   readonly property bool valid: field.acceptableInput
+  readonly property bool dragging: drag.pressed
   signal changed(int percent)
   signal accepted()
   signal ensureVisible()
@@ -74,16 +75,52 @@ Column {
     width: parent.width
     height: Math.max(slider.implicitHeight, defaultCaption.implicitHeight)
     QQC.Slider {
-      id: slider
+      id: slider; objectName: "scaleSlider"
       anchors.left: parent.left; anchors.right: defaultCaption.left; anchors.rightMargin: Style.space(12)
       anchors.verticalCenter: parent.verticalCenter
       from: 80; to: 200; stepSize: 5
       snapMode: QQC.Slider.SnapAlways
       value: root.percent
+      pressed: drag.pressed
       Accessible.name: root.label
       onMoved: root.choose(value)
-      onActiveFocusChanged: if (activeFocus) root.ensureVisible()
+      onActiveFocusChanged: if (activeFocus && focusReason !== Qt.MouseFocusReason) root.ensureVisible()
       palette.highlight: root.accent
+      // Resizing the surrounding panel changes local pointer coordinates.
+      // Keep the screen-space track from the press for this entire gesture;
+      // keyboard/accessibility continue using the native Slider behavior.
+      MouseArea {
+        id: drag; objectName: "scalePointerInput"
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton; preventStealing: true
+        property real pressX: 0
+        property real pressValue: 100
+        property real trackPixels: 1
+        property int direction: 1
+        function snapped(value) {
+          return Math.max(slider.from,Math.min(slider.to,slider.from+Math.round((value-slider.from)/slider.stepSize)*slider.stepSize));
+        }
+        function moveAt(mouse) {
+          var delta = mapToGlobal(mouse.x,mouse.y).x - pressX;
+          root.choose(snapped(pressValue + direction * delta * (slider.to-slider.from) / trackPixels));
+        }
+        onPressed: function(mouse) {
+          var left = slider.mapToGlobal(slider.leftPadding + slider.handle.width/2, 0).x;
+          var right = slider.mapToGlobal(slider.width - slider.rightPadding - slider.handle.width/2, 0).x;
+          pressX = mapToGlobal(mouse.x,mouse.y).x;
+          trackPixels = Math.max(1,Math.abs(right-left));
+          direction = slider.mirrored ? -1 : 1;
+          var handle = slider.handle.mapToItem(drag,0,0);
+          var onHandle = mouse.x >= handle.x && mouse.x <= handle.x+slider.handle.width;
+          var position = Math.max(0,Math.min(1,(pressX-left)/trackPixels));
+          pressValue = onHandle ? root.percent : snapped(slider.from+(slider.mirrored ? 1-position : position)*(slider.to-slider.from));
+          slider.forceActiveFocus(Qt.MouseFocusReason);
+          root.choose(pressValue);
+        }
+        onPositionChanged: function(mouse) { if (pressed) moveAt(mouse); }
+        onReleased: function(mouse) { moveAt(mouse); }
+        onWheel: function(wheel) { wheel.accepted = false; }
+      }
     }
     ReadableText {
       id: defaultCaption

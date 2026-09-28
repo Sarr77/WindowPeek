@@ -40,7 +40,7 @@ QtObject {
     readonly property real menuOpacity: opacityFor("menu")
     // Popovers cover other controls: keep stronger coverage than the main panel
     // while giving non-solid modes a gentle tint from the current menu color.
-    readonly property color pickerBackground: panelStyle === "solid" ? Color.popups.background
+    readonly property color pickerBackground: panelStyle === "solid" ? panel
         : Qt.alpha(Qt.tint(panel, Qt.alpha(menu, 0.16)), 0.94)
     readonly property color grain: colorFor("grain")
     readonly property bool customGrain: !!rule("grain").color || rule("grain").brightness !== 0

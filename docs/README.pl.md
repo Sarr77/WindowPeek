@@ -70,6 +70,14 @@ się przy przewijaniu. W **Ustawienia → Lista okien** można wyrównać cyfry 
 wtedy oznaczenie aktywnego okna przesuwa się obok nich. **Sterowanie** w ustawieniach opisuje
 wszystkie gesty i skróty.
 
+Istniejący workspace zachowuje swój monitor. Przy wyborze nowego workspace’u
+wskaż ekran albo przytrzymaj **Shift** podczas kliknięcia lub Enter, żeby użyć
+monitora z WindowPeek. Działa to zarówno w menu **Ctrl + klik**, jak i formularzu
+**Przenieś**. Przy jednym monitorze dodatkowy wybór nie jest potrzebny.
+W menu **Wstecz**, Escape i prawy klik wracają z wyboru monitora do workspace’ów.
+Przenoszenie nie zmienia monitora innych okien; **Przenieś do Scratchpada** nadal
+działa bez dodatkowego pytania.
+
 WindowPeek można obsługiwać w pełni z klawiatury: **Super + Alt + P** otwiera listę
 na aktywnym monitorze i pokazuje numerki przez pięć sekund. W tym czasie wystarczy
 sama cyfra z górnego rzędu lub numpada. Pisanie od razu rozpoczyna wyszukiwanie
@@ -96,7 +104,10 @@ bardzo słabym kontraście. Reset przywraca początkowy poziom danego motywu.
 Tryb przezroczystości pokazuje rzeczywiste okna pod panelem i zaczyna od 8%.
 
 Kolory, jasność i przezroczystość pól można zapisywać w presetach dla jednego lub
-wszystkich motywów. Panel, wiersze okien, sekcje menu i ziarno mają osobne
+wszystkich motywów. Zakres wybierasz przy zapisie lub edycji presetu; widać go
+na przycisku. Lista pokazuje presety globalne i pasujące do bieżącego motywu.
+„WindowPeek pink” należy do Tokyo Night. Starsze presety bez przypisania pozostają
+globalne, dopóki nie zmienisz tego w edycji. Panel, wiersze okien, sekcje menu i ziarno mają osobne
 ustawienia. Więcej w [opisie wyglądu (EN)](GUIDE.md#panel-background).
 
 W edytorze kolorów możesz kliknąć tło panelu, wiersz okna, akcent lub sekcję menu
@@ -120,16 +131,28 @@ przełączać panel na Solid przy nieprzezroczystym pasku i przywracać Wallpape
 przy prześwitującym. Zapamiętane ustawienia Wallpaper pozostają bez zmian.
 
 Logo Omarchy w kolorze motywu zbliża wysokość kompaktowego panelu do rozwiniętego.
-W **Personalizacji → Obrazy i GIF-y** wybierasz każde logo osobno: zwykłe Omarchy, animację pixelową
+W **Personalizacji → Obrazy i GIF-y** wybierasz każde logo osobno: zwykłe Omarchy, 37 animacji z wygaszacza, animację pixelową
 w kolorze motywu lub własny obrazek (PNG, JPG, WebP, SVG; animacje w GIF).
+W Settings przytrzymaj **Ctrl**, żeby przesuwać grafikę, zmieniać jej rozmiar
+uchwytami lub kółkiem myszy i wyśrodkować ją dwuklikiem. Uchwyty narożne zachowują
+proporcje. Kolory, przezroczystość, ruch i efekt pojawiania wybierasz osobno.
 Każda animacja ma przełącznik **Zapętlaj animację** i pole **Przerwa pętli**
 w sekundach, także ułamkowych, np. `0.3`. Domyślne 4,2 sekundy zachowują przerwę
 oryginalnej animacji pixelowej. Wyłączenie pętli włącza odtwarzanie jednorazowe,
 które zaczyna się od nowa po ponownym pokazaniu logo;
 GIF zatrzymuje się na ostatniej klatce. Osobna **Przerwa między odtworzeniami**
 w sekundach lub minutach pozwala pominąć animację przy zbyt szybkim ponownym
-otwarciu panelu. Domyślnie wynosi 0. Obie wartości mają reset: do 4,2 s dla przerwy
-pętli i do 0 dla przerwy między otwarciami. Opcja **Wspólny cooldown** sprawia,
+otwarciu panelu. Domyślnie wynosi minutę w hoverze i 0 w Settings. Reset przywraca
+te wartości oraz 4,2 s dla przerwy pętli. W Settings domyślna opcja **Losowy GIF** wybiera
+jedną z 37 animacji Omarchy przy nowym otwarciu. Hover zachowuje animowany napis
+Omarchy. Oba widoki domyślnie używają koloru motywu. W bibliotece suwak
+**Przezroczystość** osłabia widoczność całej grafiki, z podglądem i resetem.
+GIF-y domyślnie mają 50% przezroczystości w obu panelach; zwykłe obrazy i pixelowy
+napis zachowują swój wygląd. Reset przywraca tę domyślną wartość dla wybranego typu.
+Ręczne ustawienie pozostaje także po zmianie pliku lub wylosowaniu kolejnego GIF-a.
+Ustawienie zapisuje **Zastosuj**; **Anuluj** zachowuje poprzednią wartość. Rozwijanie, zwijanie i powrót
+z podmenu zachowują ten sam GIF; kolory i efekty nie są losowane. Strzałka przy wyborze grafiki przywraca cały preset, również
+skalę, proporcje, położenie, kolory i efekty. Opcja **Wspólny cooldown** sprawia,
 że odtworzenie dowolnego logo wstrzymuje ponowne odtwarzanie obu animacji.
 Po jej wyłączeniu wracają osobne wartości. Każde logo możesz też wyłączyć.
 Animacje zatrzymują się, gdy logo jest ukryte. W obu trybach podpowiedź pod panelem
@@ -158,15 +181,22 @@ na pasku i zwinięciu dwuklikiem. Nazwa wewnątrz panelu nie ma osobnej akcji pr
 
 ## Aktualizacje
 
-Automatyczne aktualizacje są domyślnie włączone. Pierwsza kontrola następuje około
-minuty po uruchomieniu, jeśli danego dnia jeszcze jej nie było, a kolejne co
-6 godzin działania. Restarty zachowują termin. WindowPeek instaluje wyłącznie niezmienne wydania GitHub, których
-dokładny commit został zweryfikowany w katalogu Omarchy. Błąd pobierania lub
-weryfikacji pozostawia dotychczasową instalację bez zmian.
+W **Ustawienia → Sterowanie → Aktualizacje** sprawdzisz nowszy kod, przejrzysz
+zmiany i wybierzesz **Aktualizuj…**. Omarchy pokazuje zmiany w terminalu i pyta
+o zgodę przed instalacją, także przed weryfikacją katalogu. Kopie deweloperskie
+pozostają chronione; zarządzasz nimi przez Git.
 
-Mały przełącznik obok **?** pozwala je wyłączyć po potwierdzeniu. Kopie robocze
-podłączone linkiem, forki, instalacje bez Gita i lokalnie zmieniony kod nie są
-aktualizowane automatycznie. Więcej w [opisie aktualizacji (EN)](UPDATES.md).
+Mały przełącznik **Autoaktualizacje** obok **?** sprawdza nowe wersje
+i pokazuje informację w rozwiniętym panelu. Jego napis steruje tą samą opcją.
+Przy wyłączaniu wybierasz **Przejdź do Aktualizacji** lub **Wyłącz**. Włączenie działa od razu.
+Wersja i autor po prawej otwierają małe menu z linkami do Omarchy Plugins,
+gwiazdek na GitHubie oraz zgłaszania błędów i pomysłów.
+
+Opcja **Automatyczne aktualizacje** na stronie Aktualizacje instaluje tylko
+stabilne, niezmienne wydania zweryfikowane przez Omarchy. Weryfikacja może
+potrwać — nowsze aktualizacje pozostają dostępne po Twoim zatwierdzeniu.
+Obie opcje są domyślnie włączone i niezależne. Zapisane wybory pozostają zachowane.
+Więcej w [opisie aktualizacji (EN)](UPDATES.md).
 
 ## Usunięcie
 
@@ -188,7 +218,7 @@ i są zwalniane po zamknięciu. Tytuły okien i podglądy nie są zapisywane na 
 Wtyczka udostępnia Super + Alt + P, jeśli skrót jest wolny. Zachowuje istniejące
 przypisania i nie edytuje plików konfiguracji Hyprlanda.
 
-Automatyczne aktualizacje łączą się z GitHubem i katalogiem Omarchy. Terminy i
+Sprawdzanie aktualizacji łączy się z GitHubem i katalogiem Omarchy. Terminy i
 wyniki sprawdzeń są zapisywane obok preferencji. Nie ma telemetrii. WindowPeek
 działa wewnątrz powłoki Omarchy z uprawnieniami użytkownika, bez dostępu administratora.
 
@@ -208,7 +238,7 @@ osobnej aktualizacji animacji na każde odświeżenie monitora 240 Hz.
 
 ### Utrata fokusu podczas wyszukiwania
 
-W **Ustawienia → Sterowanie → Rozwiązywanie problemów** znajduje się domyślnie
+W **Ustawienia → Sterowanie → Wskazówki i pomoc → Rozwiązywanie problemów** znajduje się domyślnie
 wyłączona opcja **Utrzymuj fokus wyszukiwania**. Rozważ ją, jeśli przesunięcie kursora
 nad inne okno przerywa pisanie. Działa przy każdym otwarciu wyszukiwania i blokuje
 przewijanie poza panelem, również touchpadem. Przewijanie wewnątrz nadal działa.

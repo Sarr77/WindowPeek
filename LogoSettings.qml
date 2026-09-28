@@ -4,19 +4,23 @@ import qs.Commons
 import "vendor/omarchy" as Choice
 import "Settings.js" as Settings
 import "I18n.js" as I18n
+import "LogoCatalog.js" as Catalog
+import "LogoWords.js" as Copy
 
 Column {
     id: root
     required property var hostWidget
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
+    readonly property var copy: Copy.words(hostWidget ? hostWidget.language : "en")
     spacing: Style.space(12)
     property string error: ""
     readonly property bool sharedCooldown: !!hostWidget && hostWidget.sharedLogoCooldownEnabled
     property string target: "settings"
     property string candidateTarget: "settings"
-    readonly property bool picking: picker.visible
-    readonly property var activePopup: picker.visible ? picker : null
-    onVisibleChanged: if (!visible) picker.close()
+    readonly property bool picking: picker.visible || browser.visible
+    readonly property Item popupContainerInputItem: browser.visible ? browser.background : null
+    readonly property var activePopup: picker.visible ? picker : browser.visible ? (browser.activePopup || browser) : null
+    onVisibleChanged: if (!visible) { picker.close(); browser.close(); }
     function sourceFor(place) {
         return !hostWidget ? "" : place === "hover" ? hostWidget.hoverLogoImage : hostWidget.settingsLogoImage;
     }
@@ -47,6 +51,23 @@ Column {
         hostWidget: root.hostWidget; currentSource: root.sourceFor(root.target)
         onChosen: function(url) { root.choose(url, root.target); }
     }
+    LogoBrowser {
+        id: browser; hostWidget: root.hostWidget; artworkTarget: root.target
+        onChosen: function(source, tint, motion, reveal, opacity) {
+            var values = {};
+            values[root.target + "LogoImage"] = source;
+            values[root.target + "LogoThemeColors"] = tint;
+            values[root.target + "LogoOpacity"] = Catalog.opacitySetting(opacity);
+            values[root.target + "LogoMotion"] = motion;
+            values[root.target + "LogoReveal"] = Catalog.reveal(reveal);
+            if (source.indexOf("file:") === 0) values.logoRecentFiles = Catalog.remember(root.hostWidget.effectiveSettings.logoRecentFiles, source);
+            busy = true;
+            root.hostWidget.persistSettings(values, function(ok) {
+                browser.busy = false;
+                if (ok) browser.close(); else browser.error = root.copy.saveFailed;
+            });
+        }
+    }
     SettingsRow {
         objectName: "sharedLogoCooldownToggle"
         width: parent.width; text: root.words.sharedLogoCooldown
@@ -69,14 +90,29 @@ Column {
             id: group
             required property string modelData
             readonly property string selectedSource: root.sourceFor(modelData)
-            readonly property bool animated: selectedSource === "builtin:omarchy-pixel" || /\.gif$/i.test(selectedSource)
+            readonly property bool animated: Catalog.animated(selectedSource) || Catalog.motion(root.hostWidget.effectiveSettings[modelData + "LogoMotion"]) !== "none"
+            readonly property bool reveal: Catalog.reveal(root.hostWidget.effectiveSettings[modelData + "LogoReveal"]) !== "none"
+            readonly property var layout: Catalog.layout(root.hostWidget.effectiveSettings[modelData + "LogoLayout"])
+            readonly property var defaults: Catalog.artworkDefaults(modelData)
             readonly property real loopDelay: !root.hostWidget ? 4.2
                 : modelData === "hover" ? root.hostWidget.hoverLogoLoopDelay : root.hostWidget.settingsLogoLoopDelay
             readonly property real cooldown: !root.hostWidget ? 0
                 : modelData === "hover" ? root.hostWidget.hoverLogoCooldown : root.hostWidget.settingsLogoCooldown
             readonly property string cooldownUnit: root.hostWidget && root.hostWidget.effectiveSettings
-                && root.hostWidget.effectiveSettings[modelData + "LogoCooldownUnit"] === "min" ? "min" : "s"
+                && root.hostWidget.effectiveSettings[modelData + "LogoCooldownUnit"] === "s" ? "s" : "min"
             readonly property real cooldownFactor: cooldownUnit === "min" ? 60 : 1
+            readonly property var currentArtwork: {
+                var current = Catalog.artworkDefaults(modelData), values = root.hostWidget.effectiveSettings;
+                Object.keys(current).forEach(function(key) {
+                    if (values[key] !== undefined && values[key] !== null) current[key] = values[key];
+                });
+                current[modelData + "LogoImage"] = selectedSource;
+                current[modelData + "LogoLayout"] = layout;
+                current[modelData + "LogoCooldown"] = cooldown;
+                current[modelData + "LogoCooldownUnit"] = cooldownUnit;
+                current[modelData + "LogoLoopDelay"] = loopDelay;
+                return current;
+            }
             width: root.width; spacing: Style.space(4)
             SettingsRow {
                 objectName: group.modelData + "LogoToggle"
@@ -92,25 +128,38 @@ Column {
                     root.hostWidget.persistSettings(values);
                 }
             }
-            Choice.Dropdown {
-                id: choices
-                objectName: group.modelData + "LogoPicker"
-                anchors.right: parent.right; width: parent.width - Style.space(16)
-                hostWidget: root.hostWidget; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
-                accent: root.hostWidget ? root.hostWidget.accent : Color.accent
-                showLabel: false
-                value: group.selectedSource.indexOf("file:") === 0 ? "image" : group.selectedSource
-                options: [{value:"", label:"Omarchy"},
-                    {value:"builtin:omarchy-pixel", label:root.words.animatedOmarchy},
-                    {value:"image", label:group.selectedSource.indexOf("file:") === 0
-                        ? decodeURIComponent(group.selectedSource.split("/").pop()) : root.words.chooseLogoImage}]
-                onChanged: function(value) {
-                    root.error = "";
-                    if (value === "image") { root.target = group.modelData; picker.begin(choices); }
-                    else root.save(group.modelData, value);
-                    choices.value = Qt.binding(function() {
-                        return group.selectedSource.indexOf("file:") === 0 ? "image" : group.selectedSource;
-                    });
+            Row {
+                anchors.right: parent.right; width: parent.width - Style.space(16); spacing: Style.space(6)
+                LabelButton {
+                    id: choices
+                    objectName: group.modelData + "LogoPicker"
+                    width: parent.width - resetSource.width - parent.spacing
+                    label: Catalog.label(group.selectedSource, root.words, root.copy) + "  ›"
+                    bordered: true; leftAlign: true; focusable: true; accent: root.hostWidget.accent
+                    Accessible.description: root.copy.customize
+                    onClicked: {
+                        root.target = group.modelData;
+                        browser.begin(choices, group.selectedSource,
+                            typeof root.hostWidget.effectiveSettings[group.modelData + "LogoThemeColors"] === "boolean"
+                                ? root.hostWidget.effectiveSettings[group.modelData + "LogoThemeColors"] : group.selectedSource.indexOf("file:") !== 0,
+                            Catalog.motion(root.hostWidget.effectiveSettings[group.modelData + "LogoMotion"]),
+                            Catalog.reveal(root.hostWidget.effectiveSettings[group.modelData + "LogoReveal"]),
+                            root.hostWidget.effectiveSettings[group.modelData + "LogoOpacity"]);
+                    }
+                    signal changed(string value)
+                    onChanged: function(value) {
+                        if (value === "image") { root.target = group.modelData; picker.begin(choices); }
+                        else root.save(group.modelData, value);
+                    }
+                }
+                ResetButton {
+                    id: resetSource; objectName: group.modelData + "LogoSourceReset"
+                    hostWidget: root.hostWidget; words: root.words; label: root.copy.restore
+                    valueText: Catalog.label(group.defaults[group.modelData + "LogoImage"], root.words, root.copy)
+                    hintText: root.copy.resetArtwork
+                    Accessible.description: root.copy.resetArtwork
+                    modified: JSON.stringify(group.currentArtwork) !== JSON.stringify(group.defaults)
+                    onResetRequested: root.hostWidget.persistSettings(group.defaults)
                 }
             }
             Item {
@@ -195,16 +244,17 @@ Column {
                 }
             }
             LogoCooldownControl {
-                visible: group.animated && !root.sharedCooldown
+                visible: (group.animated || group.reveal) && !root.sharedCooldown
                 anchors.right: parent.right; width: parent.width - Style.space(16)
                 hostWidget: root.hostWidget; prefix: group.modelData
                 value: group.cooldown; unit: group.cooldownUnit
+                defaultValue: group.defaults[group.modelData + "LogoCooldown"]
             }
         }
     }
     ReadableText {
         anchors.right: parent.right; width: parent.width - Style.space(16)
-        text: root.words.logoFormats; textFormat: Text.PlainText; wrapMode: Text.Wrap
+        text: root.words.logoFormats + "\n" + root.copy.adjust; textFormat: Text.PlainText; wrapMode: Text.Wrap
         textColor: Qt.alpha(Color.popups.text, 0.7)
         font.family: Style.font.family; font.pixelSize: Style.font.caption
     }

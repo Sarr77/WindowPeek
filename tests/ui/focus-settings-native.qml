@@ -10,7 +10,10 @@ ShellRoot {
     id: test
     property int noticeWaits: 0
     readonly property bool testSuggestion: Quickshell.env("WP_CASE") === "suggestion"
+    readonly property bool testNotificationPopup: Quickshell.env("WP_CASE") === "notification-popup"
+    readonly property bool testProjectPopup: Quickshell.env("WP_CASE") === "project-popup" || testNotificationPopup
     property int lossRound: 0
+    property int popupRound: 0
     property int retryWaits: 0
     property int failuresInjected: 0
     property int step: 0
@@ -60,9 +63,12 @@ ShellRoot {
     }
     function outside(next) {move(wheelTarget.at[0]+wheelTarget.size[0]*0.75,wheelTarget.at[1]+wheelTarget.size[1]*0.75,next);}
     function over(item,next) {
-        var p=item.mapToGlobal(item.width/2,item.height/2);
+        at(item,item.width/2,item.height/2,next);
+    }
+    function at(item,x,y,next) {
+        var p=item.mapToGlobal(x,y);
         if (panel && panel.surface.usingNative && item !== widget) {
-            p=item.mapToItem(panel.surface.cardItem,item.width/2,item.height/2);
+            p=item.mapToItem(panel.surface.cardItem,x,y);
             p=Qt.point(p.x+panel.surface.nativeGlobalOrigin.x,p.y+panel.surface.nativeGlobalOrigin.y);
         }
         move(p.x,p.y,next);
@@ -140,7 +146,19 @@ ShellRoot {
             try {
                 switch(test.step++) {
                 case 0: inspectClients.running=true; break;
-                case 1: test.check(wheelTarget,"receiver mapped"); test.outside("click"); break;
+                case 1:
+                    test.check(wheelTarget,"receiver mapped");
+                    if (test.testProjectPopup) {
+                        test.check(widget.persistSettings({keepSearchFocus:true}),"manual setting saved");
+                        test.over(widget,"double");test.step=120;break;
+                    }
+                    test.outside("click");break;
+                case 120:
+                    test.check(panel.body.expanded && panel.surface.usingNative,"expanded panel opens protected");
+                    panel.showSettings();break;
+                case 121:
+                    test.check(panel.body.mode==="settings","Settings ready");
+                    test.over(test.find(panel.body,test.testNotificationPopup ? "updateSwitch" : "authorCredit"),"click");test.step=110;break;
                 case 2: pointer.write("scroll\n"); break;
                 case 3:
                     test.check(test.backgroundWheel===-expectedWheel,"baseline scroll delivered");
@@ -231,7 +249,53 @@ ShellRoot {
                 case 80:
                     console.log("SETTINGS_WHEEL:"+JSON.stringify({actual:test.backgroundWheel,expected:-2*expectedWheel,hold:panel.surface.protectionHold,native:panel.surface.usingNative,paused:panel.surface.protectionPaused,reason:panel.surface.protectionLastYieldReason,rect:[panel.surface.nativeGlobalOrigin.x,panel.surface.nativeGlobalOrigin.y,panel.surface.contentWidth,panel.surface.contentHeight],target:[test.wheelTarget.at[0]+test.wheelTarget.size[0]*.75,test.wheelTarget.at[1]+test.wheelTarget.size[1]*.75]}));
                     test.check(test.backgroundWheel===-2*expectedWheel,"Settings allows outside scrolling");
+                    test.find(panel.body,"authorCredit").clicked();test.step=110;break;
+                case 110:
+                    test.check(test.find(panel.body,test.testNotificationPopup ? "updateConfirmation" : "projectSupport").opened && panel.surface.allowFocusHandoff
+                        && !panel.surface.retainSearchFocus,"project popup yields keyboard like a pinned panel: "
+                        + JSON.stringify({opened:test.find(panel.body,test.testNotificationPopup ? "updateConfirmation" : "projectSupport").opened, handoff:panel.surface.allowFocusHandoff,
+                            retain:panel.surface.retainSearchFocus, mode:panel.body.mode, native:panel.surface.usingNative}));
+                    if (test.testProjectPopup && Quickshell.env("WINDOWPEEK_TEST_IMAGE"))
+                        panel.surface.cardItem.grabToImage(function(image){image.saveToFile(Quickshell.env("WINDOWPEEK_TEST_IMAGE"));});
+                    test.outside("click");break;
+                case 111:
+                    keys.write("key E\n");break;
+                case 112:
+                    test.check(panel.opened && !test.find(panel.body,test.testNotificationPopup ? "updateConfirmation" : "projectSupport").opened
+                        && test.backgroundText.endsWith("e"),"outside click closes only the popup and lets the other application receive typing: "
+                        + JSON.stringify({opened:panel.opened,popup:test.find(panel.body,test.testNotificationPopup ? "updateConfirmation" : "projectSupport").opened,
+                            background:test.backgroundText,native:panel.surface.nativeActive,paused:panel.surface.protectionPaused}));
+                    break;
+                case 113:
+                    test.check(!test.find(panel.body,test.testNotificationPopup ? "updateConfirmation" : "projectSupport").opened
+                        && panel.body.mode===(test.popupRound===0 ? "settings" : "windows"), "popup preserves its parent page");
+                    if (test.testProjectPopup) {
+                        if (++test.popupRound < 3) {
+                            test.backgroundText="";
+                            panel.close(); test.step=114; break;
+                        }
+                        test.over(test.find(panel.body,test.testNotificationPopup ? "updateSwitch" : "authorCredit"),"click");
+                        test.step=116;break;
+                    }
                     panel.body.showTroubleshooting();test.step=15;break;
+                case 114:
+                    if (test.popupRound===2) test.check(widget.persistSettings({keepSearchFocus:false}),"repeat without focus protection");
+                    test.over(widget,"double");break;
+                case 115:
+                    test.check(panel.opened && panel.body.mode==="windows" && panel.body.expanded,"repeat from window list");
+                    test.over(test.find(panel.body,test.testNotificationPopup ? "updateSwitch" : "authorCredit"),"click");test.step=110;break;
+                case 116:
+                    test.check(panel.body.blockingModalOpen,"reopened for bar click");
+                    test.over(widget,"click");break;
+                case 117:
+                    test.check(panel.opened && !panel.body.blockingModalOpen,"bar click closes only the popup");
+                    test.over(test.find(panel.body,test.testNotificationPopup ? "updateSwitch" : "authorCredit"),"click");break;
+                case 118:
+                    test.check(panel.body.blockingModalOpen,"reopened for outer padding click");
+                    test.at(panel.body,-8,-8,"click");break;
+                case 119:
+                    test.check(panel.opened && !panel.body.blockingModalOpen,"outer panel padding closes only the popup");
+                    console.log("WINDOWPEEK_TEST_PASS");stop();Qt.quit();break;
                 case 15:
                     test.check(panel.body.mode==="troubleshooting","nested troubleshooting");
                     panel.surface.cardItem.grabToImage(function(image){if(Quickshell.env("WINDOWPEEK_TEST_IMAGE"))image.saveToFile(Quickshell.env("WINDOWPEEK_TEST_IMAGE"));});

@@ -105,14 +105,21 @@ hover list and expanded view.
 Solid with an opaque bar and restores Wallpaper with a transparent bar.
 
 The compact panel's Omarchy logo keeps its height close to the expanded view.
-In **Personalization → Pictures and Gifs**, choose each logo separately: Omarchy, a theme-colored
+In **Personalization → Pictures and Gifs**, choose each logo separately: Omarchy, 37 screensaver animations, a theme-colored
 pixel animation, or your own image (PNG, JPG, WebP, SVG; GIF for animation).
+**Random GIF** is the default in Settings: a new Omarchy animation on each
+opening, kept while resizing or returning from submenus. Hover keeps the original
+pixel wordmark. Both default to theme colors; effects stay as configured.
+Choose original or theme colors, transparency, motion and an opening effect.
+GIFs start at 50% transparency. In Settings, hold **Ctrl** to drag the artwork,
+resize with its handles or mouse wheel, and double-click to center it. Corner
+handles preserve proportions. The reset arrow restores the whole artwork preset.
 Each animated logo has a **Loop animation** switch and a **Delay loop** field
 for the pause between repeats, in seconds (including fractions such as `0.3`).
 The default is 4.2 seconds, matching the original pixel animation. With looping
 off, playback runs once per appearance; a GIF holds its last frame until then.
 **Cooldown**, in seconds or minutes, can prevent another animation when reopening
-too soon (default: 0). Enable **Shared cooldown** to make either animation pause
+too soon (hover: one minute; Settings: zero). Enable **Shared cooldown** to make either animation pause
 both logos between appearances. Both numbers have their own reset arrow. Either logo can be disabled.
 Instructions appear over unused panel space;
 the logo has its own tooltip.
@@ -136,15 +143,22 @@ you switch them off. Settings survive restarts, updates and reinstalls.
 
 ## Updates
 
-Automatic updates are on by default. WindowPeek checks about a minute after
-startup if it has not checked that day, then every six hours while running.
-Restarts preserve the schedule. Only immutable GitHub releases whose exact commit is verified in the
-Omarchy catalog can be installed. Failed downloads or checks leave the existing
-installation in place.
+Open **Settings → Controls → Updates** to check for newer code, review changes
+and choose **Update…**. Omarchy shows the changes in a terminal and asks before
+installing, including updates that have not yet been verified by the catalog.
+Development copies are protected and managed with Git.
 
-The small switch beside **?** turns updates off after confirmation. Development
-links, forks, copied installations and locally modified code are not updated
-automatically. See [update details and limits](docs/UPDATES.md).
+The small **Auto updates** switch beside **?** checks for new versions
+and shows a notice in the expanded panel. Its label toggles the same setting;
+turning it off offers **Open Updates** or **Turn off**, while enabling is immediate.
+The version and author on the right open a small project menu with links to
+Omarchy Plugins, GitHub stars, and bugs or ideas.
+
+**Automatic updates**, on the Updates page, installs only stable immutable
+releases whose exact commit is verified by Omarchy. Verification may take time;
+newer repository code remains available with your confirmation. Both options
+are on by default and can be changed independently. Existing choices are kept.
+See [update details and limits](docs/UPDATES.md).
 
 ## Removal
 
@@ -166,7 +180,7 @@ and are released when dismissed; window titles and previews are not saved to dis
 It registers Super + Alt + P while enabled if the combination is free;
 existing bindings and Hyprland configuration files are left intact.
 
-Automatic updates contact GitHub and the Omarchy catalog. Check times and
+Update checks contact GitHub and the Omarchy catalog. Check times and
 results are stored beside your preferences. There is no telemetry. WindowPeek
 runs inside Omarchy’s shell with your user permissions, without administrator access.
 

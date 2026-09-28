@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <poll.h>
 #include <unistd.h>
 #include <string.h>
@@ -25,6 +26,14 @@ static const struct wl_registry_listener listener = {global, removed};
 int main(int argc, char **argv) {
     int listen = argc == 2 && !strcmp(argv[1], "--listen");
     if (argc > 1 && !listen) return 2;
+    int lifetime = 30;
+    const char *limit = getenv("WINDOWPEEK_TEST_POINTER_SECONDS");
+    if (limit) {
+        char *end = NULL;
+        long parsed = strtol(limit, &end, 10);
+        if (end == limit || *end || parsed < 1 || parsed > 120) return 2;
+        lifetime = (int)parsed;
+    }
     struct wl_display *display = wl_display_connect(NULL);
     if (!display) return 2;
     struct wl_registry *registry = wl_display_get_registry(display);
@@ -33,10 +42,10 @@ int main(int argc, char **argv) {
     struct zwlr_virtual_pointer_v1 *pointer = zwlr_virtual_pointer_manager_v1_create_virtual_pointer(manager, NULL);
     wl_display_roundtrip(display);
     if (listen) { puts("ready"); fflush(stdout); }
-    int result = 0;
-    time_t deadline = time(NULL) + 30;
+    int result = 0, held = 0;
+    time_t deadline = time(NULL) + lifetime;
     do {
-    int clicks = 0, scroll = 0, absolute = 0;
+    int clicks = 0, scroll = 0, absolute = 0, edge = -1;
     unsigned x = 0, y = 0, width = 0, height = 0;
     uint32_t button = 0x110;
     if (listen) {
@@ -47,6 +56,8 @@ int main(int argc, char **argv) {
         if (sscanf(command,"move %u %u %u %u", &x, &y, &width, &height)==4 && width && height && x<width && y<height) absolute=1;
         else if (!strcmp(command,"double\n")) clicks=2;
         else if (!strcmp(command,"click\n")) clicks=1;
+        else if (!strcmp(command,"press\n")) edge=1;
+        else if (!strcmp(command,"release\n")) edge=0;
         else if (!strcmp(command,"right\n")) { clicks=1; button=0x111; }
         else if (!strcmp(command,"scroll\n")) scroll=1;
         else if (!strcmp(command,"finger\n")) scroll=2;
@@ -78,6 +89,13 @@ int main(int argc, char **argv) {
             result = wl_display_roundtrip(display);
         }
     }
+    if (edge >= 0 && result >= 0) {
+        zwlr_virtual_pointer_v1_button(pointer,(uint32_t)(time.tv_sec*1000+time.tv_nsec/1000000),button,
+            edge ? WL_POINTER_BUTTON_STATE_PRESSED : WL_POINTER_BUTTON_STATE_RELEASED);
+        zwlr_virtual_pointer_v1_frame(pointer);
+        held=edge;
+        result=wl_display_roundtrip(display);
+    }
     for (int n=0;n<clicks && result>=0;n++) {
         for (int pressed=1;pressed>=0;pressed--) {
             clock_gettime(CLOCK_MONOTONIC, &time);
@@ -90,6 +108,13 @@ int main(int argc, char **argv) {
     }
     if (listen) { puts(scroll ? "scrolled" : clicks ? "clicked" : "framed"); fflush(stdout); }
     } while (listen && result>=0);
+    if (held && result >= 0) {
+        struct timespec time;
+        clock_gettime(CLOCK_MONOTONIC, &time);
+        zwlr_virtual_pointer_v1_button(pointer,(uint32_t)(time.tv_sec*1000+time.tv_nsec/1000000),0x110,WL_POINTER_BUTTON_STATE_RELEASED);
+        zwlr_virtual_pointer_v1_frame(pointer);
+        wl_display_roundtrip(display);
+    }
     zwlr_virtual_pointer_v1_destroy(pointer);
     zwlr_virtual_pointer_manager_v1_destroy(manager);
     wl_registry_destroy(registry);

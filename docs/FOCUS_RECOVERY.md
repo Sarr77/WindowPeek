@@ -35,7 +35,7 @@ or removes the trigger.
 
 ## Keep search focus
 
-**Settings → Controls → Troubleshooting → Keep search focus** is off by default.
+**Settings → Controls → Hints and Support → Troubleshooting → Keep search focus** is off by default.
 Consider enabling it when moving the pointer over another application repeatedly
 interrupts typing in search. Leave it off when search works normally. It applies
 to each opened search panel, including a pinned compact panel, until disabled in

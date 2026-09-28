@@ -33,9 +33,10 @@ Ui.BorderSurface {
         width: Math.max(0, root.width - root.borderLeft - root.borderRight) * root.uiScale
         height: Math.max(0, root.height - root.borderTop - root.borderBottom) * root.uiScale
         scale: 1 / root.uiScale; transformOrigin: Item.TopLeft
-        active: root.wallpaperMode && root.visible
+        active: root.visible && !!root.hostWidget && (root.wallpaperMode || (root.hostWidget.glassPanels && root.hostWidget.backgroundTexture))
         sourceComponent: WallpaperBackdrop {
             objectName: "dropdownWallpaper"
+            wallpaper: root.wallpaperMode
             palette: root.hostWidget.surfaces
             source: root.hostWidget.wallpaperSource
             blurred: root.hostWidget.backgroundBlur

@@ -47,7 +47,7 @@ Ui.Panel {
         && !(hostWidget && hostWidget.barLabelHovered)
         && !panel.hoverHandoffActive
         && !(hostWidget && hostWidget.barClickPending)
-        && !content.controlHeld && !content.interacting && !childPreviewVisible && !moveMenu.visible
+        && !content.allowFocusHandoff && !content.controlHeld && !content.interacting && !childPreviewVisible && !moveMenu.visible
     readonly property real expansion: expansionMotion.value
     Native.PopupMotion {
         id: expansionMotion
@@ -256,9 +256,12 @@ Ui.Panel {
                 return;
             }
             if (panel.hitCard(x, y) || root.hitItem(panel.popupInputItem, x, y)
+                || root.hitItem(panel.popupContainerInputItem, x, y)
                 || root.hitItem(root.anchorItem, x, y)
                 || (root.childPreviewVisible && root.hitItem(root.hostWidget.windowPreview.cardItem, x, y))) return;
             if (root.recovery) root.recovery.suspend();
+            if (content.blockingModalOpen) { content.dismissModalOutside(); return; }
+            if (content.keepOpenOutside) return;
             root.close();
         }
     }
@@ -326,7 +329,7 @@ Ui.Panel {
     BarAnchorHover {
         id: previewPointer
         active: root.opened && root.childPreviewVisible && panel.protectionRequested
-        anchor: root.hostWidget ? root.hostWidget.windowPreview.cardItem : null
+        anchor: root.hostWidget && root.hostWidget.windowPreview ? root.hostWidget.windowPreview.cardItem : null
         globalBounds: root.childPreviewVisible ? Qt.rect(root.hostWidget.windowPreview.globalOrigin.x,
             root.hostWidget.windowPreview.globalOrigin.y, root.hostWidget.windowPreview.width, root.hostWidget.windowPreview.height) : null
     }
@@ -378,7 +381,9 @@ Ui.Panel {
         hoverOpen: root.hoverRetained
         shortcutKeyboard: content.shortcutsAvailable
         // Browsing compact mode follows the pointer; visible Search retains typing.
-        retainSearchFocus: content.expanded
+        retainSearchFocus: content.expanded && !content.allowFocusHandoff
+        allowFocusHandoff: content.allowFocusHandoff
+        retainArtworkFocus: content.logoControlHeld
         pointerPreviewVisible: root.childPreviewVisible
         pointerOnPreview: root.childPreviewVisible && (panel.protectionRequested ? previewPointer.inside : root.hostWidget.windowPreview.containsPointer)
         transientOpen: moveMenu.visible
@@ -393,10 +398,13 @@ Ui.Panel {
         previewBlurItem: previewInputItem ? root.hostWidget.windowPreview.cardItem : null
         previewBlurRadius: Style.space(7) * root.uiScale
         popupInputItem: content.currentPopup ? (content.currentPopup.popupInputItem || content.currentPopup.background || null) : null
+        popupContainerInputItem: content.popupContainerInputItem
         focusTarget: content.mode === "windows" && (root.opened || root.hoverOpened) ? content.searchField : null
         padding: Style.space(16) * root.uiScale
-        contentWidth: fittedContentWidth(Style.space((content.compact ? 360 : 420)
-            + (500 - (content.compact ? 360 : 420)) * root.expansion) * root.uiScale)
+        // Scale the endpoints once; Style.space rounds to whole pixels, so
+        // applying it to every intermediate width makes row labels step back.
+        contentWidth: fittedContentWidth((Style.space(content.compact ? 360 : 420) * (1 - root.expansion)
+            + Style.space(500) * root.expansion) * root.uiScale)
         contentHeight: fittedContentHeight(Math.ceil(content.implicitHeight * root.uiScale))
         borderSpec: Border.flat(root.hostWidget ? root.hostWidget.accent : Color.accent, 1)
         cornerRadius: Style.space(8) * root.uiScale
@@ -412,7 +420,7 @@ Ui.Panel {
                 objectName: "windowPeekContent"
                 hostWidget: root.hostWidget
                 recovery: root.recovery
-                protectionPaused: panel.protectionPaused
+                protectionPaused: panel.protectionPaused || content.allowFocusHandoff
                 expanded: content.closingExpanded !== null ? content.closingExpanded : root.opened && !root.compactPinned
                 compactPinned: root.compactPinned
                 barLabelHovered: !!root.hostWidget && root.hostWidget.barLabelHovered === true
@@ -421,6 +429,7 @@ Ui.Panel {
                 pointerInsidePanel: pointer.hovered
                 previewBoundsItem: bounds
                 scrollbarGutter: (panel.padding + Border.right(panel.borderSpec)) / root.uiScale
+                modalDismissMargin: panel.padding / root.uiScale
                 maximumHeight: panel.availableCardHeight > 0
                     ? Math.max(0, panel.availableCardHeight - panel.verticalContentInset) / root.uiScale : Infinity
                 x: -bounds.x; y: -bounds.y

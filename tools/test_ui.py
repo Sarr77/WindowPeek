@@ -12,7 +12,7 @@ import tempfile
 from test_keys import build_keyboard, build_pointer_frame
 
 parser = argparse.ArgumentParser()
-parser.add_argument("case", choices=["readability-stability", "readability-opening", "window-state", "readability-worker", "bar-readability", "readability-coverage", "text-shadow-visual", "text-shadow", "focus-approval", "settings-visit", "focus-issues", "focus-settings", "input-focus", "logo-cooldown", "logo-playback", "logo-picker-native", "panel-hints-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "branding", "hover-footprint", "hover-navigation", "hover-navigation-native", "settings-panel-native", "settings-input-native", "settings-input", "wallpaper-contrast-native", "wallpaper-contrast", "shortcuts-native", "shortcuts-editor", "surfaces", "wallpaper-opening", "wallpaper-source", "glass-native", "glass", "preview-keys", "quick-selection", "window-shortcuts", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns-native", "dropdowns", "navigation", "move-menu", "click-modifiers", "gestures-native", "bar-dismiss", "motion", "background", "timing-native", "bar-return-native", "bar-bridge-native", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "screenshots", "native", "hints", "hints-native", "preview", "hover", "scrolling", "interaction", "interaction-native", "transition-native", "borders", "borders-native"])
+parser.add_argument("case", choices=["support", "row-motion-native", "move-monitors", "move-monitors-native", "appearance-fit", "logo-hints", "logo-effects", "scaling-drag-native", "logo-controls-native", "logo-placement", "logo-reveal", "logo-performance", "logo-random", "logo-library", "readability-stability", "readability-opening", "window-state", "readability-worker", "bar-readability", "readability-coverage", "text-shadow-visual", "text-shadow", "focus-approval", "settings-visit", "focus-issues", "focus-settings", "input-focus", "logo-cooldown", "logo-playback", "logo-picker-native", "panel-hints-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "branding", "hover-footprint", "hover-navigation", "hover-navigation-native", "settings-panel-native", "settings-input-native", "settings-input", "wallpaper-contrast-native", "wallpaper-contrast", "shortcuts-native", "shortcuts-editor", "surfaces", "wallpaper-opening", "wallpaper-source", "glass-native", "glass", "preview-keys", "quick-selection", "window-shortcuts", "list-height", "defaults", "row-navigation", "settings-sections", "dropdowns-native", "dropdowns", "navigation", "move-menu", "click-modifiers", "gestures-native", "bar-dismiss", "motion", "background", "timing-native", "bar-return-native", "bar-bridge-native", "panel", "move", "editor", "labels", "actions", "activation", "privacy", "preferences", "widget", "updates", "review", "screenshots", "native", "hints", "hints-native", "preview", "hover", "scrolling", "interaction", "interaction-native", "transition-native", "borders", "borders-native"])
 parser.add_argument("--scale", type=float, default=1)
 parser.add_argument("--bar-section", choices=["left", "center", "right"], default="center")
 parser.add_argument("--image")
@@ -28,7 +28,7 @@ parser.add_argument("--log", type=Path, help="Save complete fixture output for d
 parser.add_argument("--manual", action="store_true", help="Leave interaction-native open for a 75-second manual trace")
 parser.add_argument("--placeholder-preview", action="store_true", help="Use a fictional image while testing native preview input")
 args = parser.parse_args()
-if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native") and os.environ.get("WINDOWPEEK_ISOLATED") != "1":
+if args.case in ("row-motion-native", "move-monitors-native", "scaling-drag-native", "logo-controls-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native") and os.environ.get("WINDOWPEEK_ISOLATED") != "1":
     parser.error("This fixture requires a private compositor with fictional windows")
 if args.compile_only and args.case not in ("hover-navigation-native", "settings-panel-native", "wallpaper-contrast-native", "shortcuts-native", "wallpaper-opening", "glass-native", "gestures-native"):
     parser.error("--compile-only requires a supported native fixture")
@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
     profile = Path(directory)
     for name in ("Ui", "Commons"):
         (profile / name).symlink_to(Path("/usr/share/omarchy/shell") / name, target_is_directory=True)
-    if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "panel-hints-native", "logo-picker-native"):
+    if args.case in ("scaling-drag-native", "logo-controls-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "panel-hints-native", "logo-picker-native"):
         (profile / "HostBar").symlink_to(Path("/usr/share/omarchy/shell/plugins/bar"), target_is_directory=True)
     if args.placeholder_preview:
         if args.case not in ("focus-protection-cycle-native", "preview-keys", "readability-coverage"):
@@ -59,14 +59,14 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
     shutil.copyfile(root / "tests/ui/FakeHost.qml", profile / "FakeHost.qml")
     if args.case in ("pinned-search-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native"):
         shutil.copyfile(root / "tests/ui" / ("focus-recovery-receiver.qml" if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native") else "keyboard-receiver.qml"), profile / "receiver.qml")
-    if args.case in ("logo-picker-native", "branding", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "shortcuts-editor", "dropdowns", "dropdowns-native"):
+    if args.case in ("support", "logo-picker-native", "branding", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "shortcuts-editor", "dropdowns", "dropdowns-native"):
         (profile / "dropdown-wallpaper.svg").write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="520" height="600">
 <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#45215e"/><stop offset=".55" stop-color="#d55688"/><stop offset="1" stop-color="#f8c685"/></linearGradient></defs>
 <path fill="url(#sky)" d="M0 0h520v600H0z"/><path fill="#533263" d="M0 310L110 280 260 410 420 285 520 300v300H0z"/>
 <path fill="#2c1c40" d="M0 410l170-20 240 155 110-140v195H0z"/></svg>''')
-    if args.case in ("settings-visit", "branding", "logo-picker-native", "logo-playback", "logo-cooldown"):
+    if args.case in ("logo-reveal", "logo-random", "logo-library", "settings-visit", "branding", "logo-picker-native", "logo-playback", "logo-cooldown"):
         (profile / "animated-logo.gif").write_bytes(base64.b64decode("R0lGODlhEAAEAPAAANiY9QAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQACAAAACwAAAAAEAAEAAACB4SPqcvtXQAAIfkEAAgAAAAsAAAAABAABACActuqAAAAAgeEj6nL7V0AACH5BAAIAAAALAAAAAAQAAQAgOGwbQAAAAIHhI+py+1dAAA7"))
-    if args.case in ("settings-visit", "branding", "logo-picker-native", "logo-playback", "logo-cooldown"):
+    if args.case in ("logo-reveal", "logo-random", "logo-library", "settings-visit", "branding", "logo-picker-native", "logo-playback", "logo-cooldown"):
         shutil.copyfile(profile / "animated-logo.gif", profile / "logo #1.GIF")
         # Same three frames without the GIF's own loop extension.
         (profile / "single-play-logo.gif").write_bytes((profile / "animated-logo.gif").read_bytes()
@@ -83,11 +83,11 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         for name, color in (("wallpaper A.svg", "#ff0000"), ("wallpaper B.svg", "#0000ff")):
             (profile / name).write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><path fill="{color}" d="M0 0h8v8H0z"/></svg>')
         (profile / "wallpaper link").symlink_to(profile / "wallpaper A.svg")
-    if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "gestures-native", "bar-return-native"):
+    if args.case in ("scaling-drag-native", "logo-controls-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "gestures-native", "bar-return-native"):
         build_keyboard(root, profile)
-    if args.case in ("logo-picker-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native"):
+    if args.case in ("scaling-drag-native", "logo-controls-native", "logo-picker-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native"):
         build_pointer_frame(root, profile)
-    native = args.case in ("logo-picker-native", "panel-hints-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "settings-panel-native", "settings-input-native", "wallpaper-contrast-native", "shortcuts-native", "dropdowns-native","wallpaper-opening", "glass-native", "gestures-native", "timing-native", "bar-return-native", "bar-bridge-native", "transition-native", "native", "hover", "interaction-native", "hints-native", "borders-native")
+    native = (args.desktop and args.case in ("logo-effects", "logo-placement", "logo-reveal", "logo-random", "logo-library", "logo-performance", "settings-visit")) or args.case in ("row-motion-native", "move-monitors-native", "scaling-drag-native", "logo-controls-native", "logo-picker-native", "panel-hints-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "settings-panel-native", "settings-input-native", "wallpaper-contrast-native", "shortcuts-native", "dropdowns-native","wallpaper-opening", "glass-native", "gestures-native", "timing-native", "bar-return-native", "bar-bridge-native", "transition-native", "native", "hover", "interaction-native", "hints-native", "borders-native")
     env = dict(os.environ, QT_QPA_PLATFORM="wayland" if native else "offscreen", QT_QPA_PLATFORMTHEME="",
                QT_QUICK_BACKEND="software", QT_QUICK_CONTROLS_STYLE="Basic",
                WINDOWPEEK_TEST_SCALE=str(args.scale), WINDOWPEEK_TEST_IMAGE=args.image or "", WINDOWPEEK_TEST_STYLE=args.style,
@@ -96,6 +96,13 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
                WINDOWPEEK_TEST_COMPILE_ONLY="1" if args.compile_only else "")
     env["WINDOWPEEK_TEST_PROFILE"] = str(profile)
     env["WINDOWPEEK_TEST_BAR_SECTION"] = args.bar_section
+    if args.case == "support":
+        launch_bin = profile / "bin"
+        launch_bin.mkdir()
+        launcher = launch_bin / "omarchy"
+        launcher.write_text("#!/usr/bin/python3\nimport json, os, sys\nprint(json.dumps(sys.argv[1:]), flush=True)\nsys.exit(int(os.environ.get('WINDOWPEEK_TEST_BROWSER_EXIT', '0')))\n")
+        launcher.chmod(0o700)
+        env["PATH"] = str(launch_bin) + os.pathsep + env["PATH"]
     if args.case in ("wallpaper-contrast", "wallpaper-contrast-native"):
         env["HOME"] = str(profile / "home")
         theme = profile / "home/.local/state/omarchy/current/theme"
@@ -103,9 +110,9 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         (theme.parent / "theme.name").write_text("bright-theme")
         (theme / "colors.toml").write_text('background="#1f1f28"\nforeground="#dcd7ba"\n')
         (theme / "shell.toml").write_text("")
-    if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "gestures-native", "bar-return-native"):
+    if args.case in ("scaling-drag-native", "logo-controls-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "settings-panel-native", "hover-navigation-native", "shortcuts-native", "gestures-native", "bar-return-native"):
         env["WINDOWPEEK_TEST_KEYBOARD"] = str(profile / "control-key")
-    if args.case in ("logo-picker-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native"):
+    if args.case in ("scaling-drag-native", "logo-controls-native", "logo-picker-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native"):
         env["WINDOWPEEK_TEST_POINTER_FRAME"] = str(profile / "pointer-frame")
         env["WINDOWPEEK_TEST_PIXEL_PROBE"] = str(root / "tools/test_compositor_pixel.py")
         env["WINDOWPEEK_TEST_OVERLAY_MENU"] = "1" if args.overlay_menu else ""
@@ -113,8 +120,10 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         env["WINDOWPEEK_TEST_COMPILE_ONLY"] = "1" if args.compile_only else ""
     if args.manual and args.case != "interaction-native":
         parser.error("--manual requires interaction-native")
+    if args.case == "logo-picker-native":
+        env["WINDOWPEEK_TEST_POINTER_SECONDS"] = "75"
     if args.desktop:
-        if not native:
+        if not native and args.case != "support":
             parser.error("--desktop requires a native fixture")
         for key in ("QT_QPA_PLATFORMTHEME", "QT_QUICK_BACKEND", "QT_QUICK_CONTROLS_STYLE"):
             if key in os.environ:
@@ -134,7 +143,7 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         try:
             result = subprocess.run(["quickshell", "--no-color", "-p", str(profile)],
                                     env=dict(env, WINDOWPEEK_PREFERENCES_CASE=scenario),
-                                    capture_output=True, text=True, timeout=90 if args.manual else 30)
+                                    capture_output=True, text=True, timeout=90 if args.manual else 75 if args.case == "logo-picker-native" else 30)
         except subprocess.TimeoutExpired as error:
             output = (error.stdout or b'').decode(errors='replace') + (error.stderr or b'').decode(errors='replace')
             if args.log:
@@ -153,7 +162,7 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         print("PASS", args.case, scenario, "scale", args.scale)
 
     cursor = None
-    if args.case in ("focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native", "timing-native", "bar-return-native", "native", "interaction-native") and not args.manual and not args.compile_only:
+    if args.case in ("scaling-drag-native", "logo-controls-native", "focus-notice-native", "focus-close-native", "focus-protection-cycle-native", "focus-geometry-native", "focus-return-native", "focus-click-native", "focus-settings-native", "focus-recovery-native", "hover-stability-native", "pinned-search-native", "outside-wheel-native", "bar-compact-native", "hover-navigation-native", "gestures-native", "timing-native", "bar-return-native", "native", "interaction-native") and not args.manual and not args.compile_only:
         cursor = json.loads(subprocess.check_output(["hyprctl", "-j", "cursorpos"], text=True))
     try:
         check()

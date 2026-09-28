@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Open **Settings → Controls → Troubleshooting**, or choose **Review options**
+Open **Settings → Controls → Hints and Support → Troubleshooting**, or choose **Review options**
 when WindowPeek reports interrupted typing. Review options shows a short choice
 of solutions first; the full settings are optional.
 
@@ -35,7 +35,7 @@ while you use Settings.
 
 Use **Keep search focus** only if applications frequently interrupt typing.
 The confirmation explains its scrolling restriction and where to turn it off:
-**Settings → Controls → Troubleshooting**. Once enabled, it does not add a routine
+**Settings → Controls → Hints and Support → Troubleshooting**. Once enabled, it does not add a routine
 status banner. Temporary protection keeps its app name, options and Turn off button.
 Turning it off leaves Options available, including in compact search. For an
 identified source, this lasts while its window remains open; for an unknown

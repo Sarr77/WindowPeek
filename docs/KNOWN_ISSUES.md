@@ -58,7 +58,7 @@ Simply browsing a pinned compact panel does not trigger an interrupted-typing wa
   it, and touchpad or rapid wheel input outside can be lost. Closing an identified source
   window ends this permission automatically. If the source is unknown, protection
   lasts until you turn it off or restart the bar, including across panel reopenings.
-- For frequent interruptions, consider **Settings → Controls → Troubleshooting →
+- For frequent interruptions, consider **Settings → Controls → Hints and Support → Troubleshooting →
   Keep search focus**. It applies on each search opening and blocks scrolling
   outside the panel, including touchpads. Click outside or press Esc to close.
 
@@ -81,7 +81,7 @@ protection. An application ignore applies only when the detector can associate
 that interruption with the application; it does not hide unrelated or
 unidentified losses. Protection status and failure notices remain available.
 
-**Settings → Controls → Troubleshooting** lists applications associated with
+**Settings → Controls → Hints and Support → Troubleshooting** lists applications associated with
 observed incidents, their identity, last detection and recorded incident count.
 Each entry lets users ignore or restore warnings. Session and global switches
 are on the same page; they can still mute an individually restored app. Detection

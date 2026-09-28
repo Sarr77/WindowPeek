@@ -4,7 +4,7 @@ import Quickshell.Hyprland
 import "Shortcuts.js" as Shortcuts
 
 // Unfocused Wayland surfaces do not receive keyboard modifiers. Read only the
-// two Shift keys while a preview has an owner; no keybinds or input grabs.
+// configured modifier while a preview/editor has an owner; no keybinds or grabs.
 QtObject {
     id: root
     property bool active: false
@@ -34,6 +34,13 @@ QtObject {
     function reset() {
         deadline.stop(); pending = ""; known = false; shiftDown = false;
         refresh();
+    }
+    function key(event, pressed) {
+        if (!active) return;
+        // A delayed compositor sample must not undo a newer local key event.
+        deadline.stop(); pending = "";
+        shiftDown = Shortcuts.held(Shortcuts.eventMask(event, pressed), modifier);
+        known = true;
     }
     onActiveChanged: reset()
     onEnabledChanged: reset()

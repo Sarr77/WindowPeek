@@ -139,22 +139,40 @@ ShellRoot {
                     test.headerY = test.section("Controls").headerItem.mapToItem(window.contentItem, 0, 0).y;
                     test.click(test.section("Controls").headerItem); break;
                 case 19:
-                    test.check(test.section("Controls").expanded && test.named("controlsHelp").visible, "Controls opens its guide");
+                    test.check(test.section("Controls").expanded && test.named("hintsSupportEntry").visible && !test.named("controlsHelp"), "Controls offers a lazy-loaded help page");
                     test.check(panel.implicitHeight === test.settingsHeight
                         && Math.abs(test.section("Controls").headerItem.mapToItem(window.contentItem, 0, 0).y - test.headerY) < 1,
-                        "even a long guide expands below its stationary header: before=" + test.headerY
+                        "Controls expands below its stationary header: before=" + test.headerY
                         + " after=" + test.section("Controls").headerItem.mapToItem(window.contentItem, 0, 0).y
                         + " scroll=" + test.named("editorScroll").contentY + " focus=" + window.activeFocusItem.objectName);
                     test.savedSettings = JSON.stringify(host.settings);
                     test.previousScroll = test.named("editorScroll").contentY;
                     test.image("controls"); break;
                 case 20:
-                    events.mouseWheel(test.named("editorScroll"), 100, 200, Qt.NoButton, Qt.NoModifier, 0, -120, 0); break;
+                    panel.ensureVisible(test.named("hintsSupportEntry")); break;
                 case 21:
-                    test.check(test.named("editorScroll").contentY > test.previousScroll, "wheel scrolls the Controls guide");
+                    test.click(test.named("hintsSupportEntry")); break;
+                case 22:
+                    test.check(panel.mode === "support" && test.named("controlsHelp").visible, "help opens separately");
+                    test.check(test.named("hintsSupportIntro").text.indexOf("? at the bottom") >= 0, "help identifies the footer hints control");
+                    test.check(test.named("hintsSupportPage").issuesUrl === "https://github.com/Sarr77/WindowPeek/issues", "support links to WindowPeek issues");
+                    test.named("pinPanelButton").clicked();
+                    test.check(panel.panelPinned, "help can be pinned");
+                    test.previousScroll = test.named("editorScroll").contentY;
+                    test.image("support"); break;
+                case 23:
+                    for (var n=0; n<4; n++) {
+                        test.check(test.named("supportSection"+n).title.length > 0, "every support section has a title");
+                        test.named("supportSection"+n).expanded = true;
+                    }
+                    break;
+                case 24:
+                    events.mouseWheel(test.named("editorScroll"), 100, 200, Qt.NoButton, Qt.NoModifier, 0, -120, 0); break;
+                case 25:
+                    test.check(test.named("editorScroll").contentY > test.previousScroll, "wheel scrolls the separate guide");
                     var entries = test.textItems(test.named("controlsHelp"));
                     panel.ensureVisible(entries[entries.length - 1]); break;
-                case 22:
+                case 26:
                     var entries = test.textItems(test.named("controlsHelp"));
                     var last = entries[entries.length - 1];
                     var viewport = test.named("editorScroll");
@@ -162,20 +180,30 @@ ShellRoot {
                     test.check(position.y >= -1 && position.y + last.height <= viewport.height + 1, "last keyboard instruction is reachable");
                     test.check(JSON.stringify(host.settings) === test.savedSettings, "guide browsing does not write preferences");
                     test.image("controls-end"); break;
-                case 23:
-                    host.setLanguage(I18n.languages[test.localeIndex].code); break;
-                case 24:
-                    test.check(test.textItems(test.named("controlsHelp")).every(function(item) {
-                        return item.text.length && item.height > 0 && item.contentWidth <= item.width + 1 && item.contentHeight <= item.height + 1;
-                    }), "all guide instructions wrap without clipping in " + host.language);
-                    if (++test.localeIndex < I18n.languages.length) test.step = 23;
-                    else { host.setLanguage("pl"); panel.ensureVisible(test.section("Controls").headerItem); }
+                case 27:
+                    host.setLanguage(I18n.languages[test.localeIndex].code);
+                    for (var n=0; n<4; n++) test.named("supportSection"+n).expanded = true;
                     break;
-                case 25: test.image("controls-pl"); break;
-                case 26:
-                    host.setLanguage("ar"); panel.ensureVisible(test.section("Controls").headerItem); break;
-                case 27: test.image("controls-ar"); break;
                 case 28:
+                    for (var n=0; n<4; n++) test.check(test.named("supportSection"+n).title.length > 0,
+                        "no blank support section in " + host.language);
+                    test.check(test.textItems(test.named("controlsHelp")).concat([test.named("hintsSupportIntro")]).every(function(item) {
+                        return item.text.length && item.height > 0 && item.contentWidth <= item.width + 1 && item.contentHeight <= item.height + 1;
+                    }), "guide and intro wrap without clipping in " + host.language);
+                    if (++test.localeIndex < I18n.languages.length) test.step = 27;
+                    else { host.setLanguage("pl"); test.named("editorScroll").contentY = 0; }
+                    break;
+                case 29: test.image("support-pl"); break;
+                case 30:
+                    host.setLanguage("ar"); test.named("editorScroll").contentY = 0; break;
+                case 31: test.image("support-ar"); break;
+                case 32:
+                    panel.navigateBack(); break;
+                case 33:
+                    test.check(panel.mode === "settings" && test.section("Controls").expanded
+                        && test.named("hintsSupportEntry").activeFocus && panel.panelPinned,
+                        "Back restores Controls, focus and pin");
+                    test.check(!test.named("controlsHelp"), "leaving help releases its content");
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL at " + (test.step - 1) + ": " + error); stop(); Qt.quit(); }
