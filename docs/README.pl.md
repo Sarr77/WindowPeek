@@ -1,15 +1,12 @@
 # WindowPeek
 
-Znajdź okno i od razu do niego przejdź.
+Znajdź okno i przejdź wprost do niego.
 
-WindowPeek zbiera otwarte okna na jednej liście dostępnej z paska Omarchy.
-Możesz szukać na wszystkich workspace’ach i monitorach, podejrzeć okno przed
-przełączeniem albo przenieść je w inne miejsce. Już nigdy nie zgubisz zakładki
-w grupach okien Hyprlanda.
+Zachowaj workflow Omarchy, a WindowPeek zastąpi ci Docka i Menu Start. Wtyczka zbiera otwarte okna na jednej liście dostępnej z górnego paska Omarchy. Wybieraj lub szukaj na wszystkich workspace’ach i monitorach, podejrzyj okno przed przełączeniem albo przenieś je w inne miejsce. Już nigdy nie zgubisz zakładki Hyprlanda.
 
-[English](../README.md) · [Instrukcja (EN)](GUIDE.md) · [Rozwiązywanie problemów (EN)](TROUBLESHOOTING.md) · [Znane problemy (EN)](KNOWN_ISSUES.md) · [Historia zmian (EN)](../CHANGELOG.md)
+[Katalog Omarchy](https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek) · [Instrukcja (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md) · [Ustawienia (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md) · [Historia zmian (EN)](https://github.com/Sarr77/WindowPeek/blob/main/CHANGELOG.md)
 
-![WindowPeek w stylu Wallpaper, z listą po najechaniu i podglądem Instagramu w Chromium](../preview.png)
+ ![WindowPeek w stylu Wallpaper, z listą po najechaniu i podglądem Instagramu w Chromium](https://raw.githubusercontent.com/Sarr77/WindowPeek/main/preview.png)
 
 ## Instalacja
 
@@ -17,186 +14,63 @@ w grupach okien Hyprlanda.
 omarchy plugin add https://github.com/Sarr77/WindowPeek --enable
 ```
 
-Wtyczka pojawi się po lewej stronie paska. Możesz ją przenieść w edytorze paska Omarchy.
-**Super + Alt + P** otwiera ją na aktywnym monitorze. Skrót włącza się automatycznie,
-jeśli ta kombinacja nie jest już zajęta. Jeśli jest, wybierz inną w **Ustawienia →
-Sterowanie → Skróty klawiatury i myszy**.
+WindowPeek znajdziesz na pasku Omarchy. Otworzysz go również przez **Super + Alt + P**.
 
-Wymagane jest Omarchy Quattro z paskiem Quickshell oraz API okien Hyprlanda w Lua.
-Testowano na Omarchy 4.0.4, Hyprlandzie 0.56.2, Quickshell 0.3.1 i Qt 6.11.2.
-Instalacja i automatyczne aktualizacje używają Pythona 3 i Gita, dostępnych w Omarchy.
-Pierwsza kontrola kontrastu tapety używa ImageMagick, również dostępnego w Omarchy.
-Pracę nad kodem i testy opisuje [dokumentacja deweloperska (EN)](DEVELOPMENT.md).
+## Co możesz zrobić
 
-## Obsługa
+* Szukaj okien na wszystkich workspace’ach, monitorach i w grupach Hyprlanda.
+* Podejrzyj okno, zanim do niego przejdziesz.
+* Przenoś okna między workspace’ami, monitorami i Scratchpadem.
+* Ukryj podglądy przez **Shift** podczas udostępniania ekranu.
+* Korzystaj ze skrótów klawiatury, by pracować szybciej.
+* Dostosuj wszystko do siebie. I więcej…
 
-Akcje klawiatury i modyfikatory myszy można zmieniać w **Ustawienia → Sterowanie →
-Skróty klawiatury i myszy**. Edytor sprawdza konflikty, pozwala resetować pojedyncze
-skróty i zapisuje zmiany dopiero po Zastosuj. Poniżej opisane są skróty domyślne.
+## Skróty klawiatury
 
-Najedź na **WindowPeek**, żeby zobaczyć listę okien. Kliknij jego nazwę, żeby
-rozwinąć ten sam panel i szukać po nazwie aplikacji lub tytule okna. Rozpoczęcie
-pisania w hoverze również rozwija panel i od razu wyszukuje wpisany tekst.
-Bez dodatkowej ochrony kompaktowy panel respektuje fokus za kursorem: można wrócić
-samym najechaniem, bez klikania. Otwarta wyszukiwarka odbiera klawiaturę także z
-kursorem poza panelem, również przy pustym polu, z opisanym
-niżej [ograniczeniem dotyczącym X11](#znane-ograniczenia). Listę możesz
-przewijać. Kolejne kliknięcie nazwy na pasku zamyka panel.
-
-| W obu widokach listy | Działanie |
-| --- | --- |
-| Kliknięcie okna lub jego podglądu | Przejdź do okna lub zakładki na dotychczasowym monitorze |
-| **Ctrl + klik** | Otwórz małe menu wyboru workspace’u |
-| **Ctrl + Shift + klik** | Przenieś okno na bieżący workspace tego monitora i aktywuj je |
-| Przytrzymanie **Shift** | Ukryj podglądy zawartości podczas przeglądania listy |
-| Przytrzymanie **Ctrl** | Pokaż cyfry skrótów przy widocznych oknach i tabach |
-| **Ctrl + 1–9 / 0** | Przejdź do okna lub tabu z tą cyfrą; 0 wybiera dziesiąty element |
-| **Super + Alt + P**, potem **1–9 / 0** | Otwórz WindowPeek i przez pięć sekund wybierz widoczne okno bez Ctrl; działa też numpad |
+| Skrót | Działanie |
+|----|----|
+| **Super + Alt + P** | Otwórz WindowPeek |
+| Pisanie | Szukaj okien |
+| **↑ / ↓** | Wybierz okno |
+| **← / →**, potem **Enter** | Wybierz okno lub akcję Przenieś |
+| **Shift + Enter** | Otwórz Przenieś dla wybranego okna |
+| **Ctrl + 1–9 / 0** | Przejdź do okna lub zakładki grupy z daną cyfrą |
 | **Page Up / Page Down** | Przewiń listę o stronę |
-| **Home / End** | Przejdź do pierwszego lub ostatniego okna; przy wpisanym zapytaniu przesuń kursor tekstowy |
-| Prawy klik w głównym panelu | Zamknij WindowPeek wraz z podglądem |
+| **Esc** | Wróć lub zamknij |
 
-Przytrzymaj **Shift**, żeby przeglądać listę bez pokazywania podglądów zawartości —
-przydatne podczas streamowania lub udostępniania ekranu. Tytuły okien nadal są
-widoczne.
+Po otwarciu przez **Super + Alt + P** cyfry działają bez Ctrl przez pięć sekund. **0** wybiera dziesiąte okno. Przypisania zmienisz w **Ustawienia → Sterowanie → Skróty klawiatury i myszy**.
 
-Rozwinięty panel ma też przyciski **Przenieś** i obsługę klawiatury. Strzałki ↑ / ↓
-wybierają okno, ← / → przechodzą między oknem a przyciskiem Przenieś, a Enter
-wykonuje wybraną akcję. Przytrzymaj **Ctrl**, żeby zobaczyć cyfry przy widocznych
-oknach i tabach, i naciśnij **1–9 / 0**, żeby przejść do wybranego elementu.
-Działa to również w hoverze i z Ctrl trzymanym przed otwarciem, także na klawiaturze
-numerycznej z włączonym lub wyłączonym Num Lock. Numeracja zmienia
-się przy przewijaniu. W **Ustawienia → Lista okien** można wyrównać cyfry do prawej;
-wtedy oznaczenie aktywnego okna przesuwa się obok nich. **Sterowanie** w ustawieniach opisuje
-wszystkie gesty i skróty.
+[Pełna obsługa klawiatury (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md#keyboard-controls)
 
-Istniejący workspace zachowuje swój monitor. Przy wyborze nowego workspace’u
-wskaż ekran albo przytrzymaj **Shift** podczas kliknięcia lub Enter, żeby użyć
-monitora z WindowPeek. Działa to zarówno w menu **Ctrl + klik**, jak i formularzu
-**Przenieś**. Przy jednym monitorze dodatkowy wybór nie jest potrzebny.
-W menu **Wstecz**, Escape i prawy klik wracają z wyboru monitora do workspace’ów.
-Przenoszenie nie zmienia monitora innych okien; **Przenieś do Scratchpada** nadal
-działa bez dodatkowego pytania.
+## Dopasuj do siebie
 
-WindowPeek można obsługiwać w pełni z klawiatury: **Super + Alt + P** otwiera listę
-na aktywnym monitorze i pokazuje numerki przez pięć sekund. W tym czasie wystarczy
-sama cyfra z górnego rzędu lub numpada. Pisanie od razu rozpoczyna wyszukiwanie
-i kończy ten tryb; po pięciu sekundach nadal działa **Ctrl + 1–9 / 0**.
-Skrót otwierania jest dostępny automatycznie po włączeniu wtyczki, jeśli nie jest
-już zajęty. Wtyczka zachowuje istniejące przypisania i nie edytuje konfiguracji
-Hyprlanda. Więcej w [instrukcji klawiatury (EN)](GUIDE.md#keyboard-controls).
+Ustawienia oferują 30 języków i podgląd na żywo podczas dostosowywania.
 
-Scratchpad i inne specjalne workspace’y są domyślnie uwzględnione. Karty
-przeglądarki i dokumenty wewnątrz aplikacji nie są osobnymi pozycjami na liście.
-Ukryta aplikacja, która przestała odświeżać obraz, może pokazywać ostatnią dostępną klatkę.
+| Element | Możliwości |
+|----|----|
+| Panel | Tryb tapety, jednolite lub przezroczyste tło; panel może reagować na aktualny styl paska. Dodaj ziarno lub rozmycie, by poprawić czytelność |
+| Kolory | Ustaw kolory motywu lub wybierz własne, z zapisywaniem presetów wyglądu |
+| Układ | Zmień rozmiar panelu lub paska, wybierz przestronne lub zwarte wiersze i własne etykiety |
+| Obrazy i GIFy | Wybierz grafikę do wyświetlania w Ustawieniach i panelu. Użyj dowolnej z 37 animacji Omarchy lub własnych plików; łatwo zmieniaj rozmiar i położenie |
+| Zachowanie | Dostosuj podglądy, opóźnienia, przewijanie, skróty i podpowiedzi |
 
-## Ustawienia
-
-Do wyboru jest 30 języków, kolory, rozmiar panelu i tekstu na pasku oraz własne
-napisy. Zmiany kolorów, rozmiaru i tekstów widać podczas edycji. **Zastosuj** je
-zapisuje, a **Anuluj** przywraca poprzednie ustawienia. Ikona **↺** przywraca wartość domyślną.
-
-**Personalizacja** oferuje tło jednolite, tapetę i przezroczystość. Domyślny jest
-tryb tapety z włączonym delikatnym ziarnem i wyłączonym rozmyciem. Pokazuje obraz
-pulpitu. Przezroczystość zapisuje
-osobno dla każdego motywu: zwykle zaczyna od 70%, obniżając tę wartość tylko przy
-bardzo słabym kontraście. Reset przywraca początkowy poziom danego motywu.
-Tryb przezroczystości pokazuje rzeczywiste okna pod panelem i zaczyna od 8%.
-
-Kolory, jasność i przezroczystość pól można zapisywać w presetach dla jednego lub
-wszystkich motywów. Zakres wybierasz przy zapisie lub edycji presetu; widać go
-na przycisku. Lista pokazuje presety globalne i pasujące do bieżącego motywu.
-„WindowPeek pink” należy do Tokyo Night. Starsze presety bez przypisania pozostają
-globalne, dopóki nie zmienisz tego w edycji. Panel, wiersze okien, sekcje menu i ziarno mają osobne
-ustawienia. Więcej w [opisie wyglądu (EN)](GUIDE.md#panel-background).
-
-W edytorze kolorów możesz kliknąć tło panelu, wiersz okna, akcent lub sekcję menu
-w podglądzie, aby wybrać ten element do edycji. Podgląd jest na górze,
-przed kontrolkami; kliknięcie nie przewija widoku. Dotychczasowe zmiany pozostają
-w wersji roboczej do użycia **Zastosuj**.
-
-**Przywróć domyślne kolory** resetuje kolory, jasność i przezroczystość pól
-w wybranym zakresie motywów. Zachowuje zapisane presety; nie wczytuje żadnego z nich.
-
-Możesz wyłączyć otwieranie panelu po najechaniu, podglądy okien lub sprężystość
-przewijania, a także wybrać zwartą listę. W **Ustawienia → Lista okien** ustawisz
-też szybkość kółka myszy (50–300%, co 1%, domyślnie 102%). Pasek i podglądy okien mają osobne
-opóźnienia. Ustaw oba na **0** i wyłącz **Animacje okienek**, żeby otwierały się od razu.
-Ramka podglądu może dopasować się do proporcji okna, a ciemne wypełnienie pod
-obrazem można wyłączyć. Środkowy klik w wolnym miejscu panelu przełącza między
-listą po najechaniu a widokiem rozwiniętym.
-
-Przełącznik **Styl zgodny z paskiem**, obok domyślnego tła Wallpaper, pozwala
-przełączać panel na Solid przy nieprzezroczystym pasku i przywracać Wallpaper
-przy prześwitującym. Zapamiętane ustawienia Wallpaper pozostają bez zmian.
-
-Logo Omarchy w kolorze motywu zbliża wysokość kompaktowego panelu do rozwiniętego.
-W **Personalizacji → Obrazy i GIF-y** wybierasz każde logo osobno: zwykłe Omarchy, 37 animacji z wygaszacza, animację pixelową
-w kolorze motywu lub własny obrazek (PNG, JPG, WebP, SVG; animacje w GIF).
-W Settings przytrzymaj **Ctrl**, żeby przesuwać grafikę, zmieniać jej rozmiar
-uchwytami lub kółkiem myszy i wyśrodkować ją dwuklikiem. Uchwyty narożne zachowują
-proporcje. Kolory, przezroczystość, ruch i efekt pojawiania wybierasz osobno.
-Każda animacja ma przełącznik **Zapętlaj animację** i pole **Przerwa pętli**
-w sekundach, także ułamkowych, np. `0.3`. Domyślne 4,2 sekundy zachowują przerwę
-oryginalnej animacji pixelowej. Wyłączenie pętli włącza odtwarzanie jednorazowe,
-które zaczyna się od nowa po ponownym pokazaniu logo;
-GIF zatrzymuje się na ostatniej klatce. Osobna **Przerwa między odtworzeniami**
-w sekundach lub minutach pozwala pominąć animację przy zbyt szybkim ponownym
-otwarciu panelu. Domyślnie wynosi minutę w hoverze i 0 w Settings. Reset przywraca
-te wartości oraz 4,2 s dla przerwy pętli. W Settings domyślna opcja **Losowy GIF** wybiera
-jedną z 37 animacji Omarchy przy nowym otwarciu. Hover zachowuje animowany napis
-Omarchy. Oba widoki domyślnie używają koloru motywu. W bibliotece suwak
-**Przezroczystość** osłabia widoczność całej grafiki, z podglądem i resetem.
-GIF-y domyślnie mają 50% przezroczystości w obu panelach; zwykłe obrazy i pixelowy
-napis zachowują swój wygląd. Reset przywraca tę domyślną wartość dla wybranego typu.
-Ręczne ustawienie pozostaje także po zmianie pliku lub wylosowaniu kolejnego GIF-a.
-Ustawienie zapisuje **Zastosuj**; **Anuluj** zachowuje poprzednią wartość. Rozwijanie, zwijanie i powrót
-z podmenu zachowują ten sam GIF; kolory i efekty nie są losowane. Strzałka przy wyborze grafiki przywraca cały preset, również
-skalę, proporcje, położenie, kolory i efekty. Opcja **Wspólny cooldown** sprawia,
-że odtworzenie dowolnego logo wstrzymuje ponowne odtwarzanie obu animacji.
-Po jej wyłączeniu wracają osobne wartości. Każde logo możesz też wyłączyć.
-Animacje zatrzymują się, gdy logo jest ukryte. W obu trybach podpowiedź pod panelem
-dotyczy wyłącznie elementu pod kursorem. Puste miejsce opisuje tylko rozwijanie
-lub zwijanie panelu; logo i wiersze okien mają własne podpowiedzi.
-
-Opcja **Rozwijaj dwuklikiem** w sekcji **Panel i podglądy** pozwala przypiąć
-kompaktowy panel kliknięciem **WindowPeek na pasku**. Dwuklik napisu na pasku
-lub pustego miejsca w panelu rozwija go albo zwija. Kliknięcie poza
-panelem lub Esc zamyka go. Home, End, Page Up/Down, strzałki i Enter działają
-również w widoku kompaktowym; Tab rozwija panel i udostępnia pozostałe kontrolki.
-
-Przycisk **?** steruje podpowiedziami po najechaniu kursorem. Początkowo są
-włączone i wyłączają się po 100 wyświetleniach łącznie na wszystkich monitorach.
-Pokazują liczbę pozostałych wyświetleń i wskazują, gdzie można je wyłączyć.
-W obu widokach opisują element pod kursorem. Podpowiedzi akcji okien, logo,
-pustego miejsca i kontrolek stopki pojawiają się pojedynczo na dole panelu.
-Podpowiedzi kontrolek w ustawieniach pojawiają się przy kursorze.
-Po ręcznym włączeniu działają do ręcznego wyłączenia. Ustawienia pozostają
-zapisane po restarcie, aktualizacji i ponownej instalacji.
-
-Nazwa WindowPeek na pasku ma podpowiedź aktualnej akcji pod otwartym panelem.
-Wyłączenie opcji **Panel i podglądy → Pozwól przypinać panel kompaktowy** sprawia,
-że kompaktowy widok znika po odsunięciu kursora — również po kliknięciu nazwy
-na pasku i zwinięciu dwuklikiem. Nazwa wewnątrz panelu nie ma osobnej akcji przypinania.
+[Poznaj ustawienia (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md) · [Ustawienia domyślne (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md#defaults)
 
 ## Aktualizacje
 
-W **Ustawienia → Sterowanie → Aktualizacje** sprawdzisz nowszy kod, przejrzysz
-zmiany i wybierzesz **Aktualizuj…**. Omarchy pokazuje zmiany w terminalu i pyta
-o zgodę przed instalacją, także przed weryfikacją katalogu. Kopie deweloperskie
-pozostają chronione; zarządzasz nimi przez Git.
+W **Ustawienia → Sterowanie → Aktualizacje** sprawdzisz nowe wersje, przejrzysz zmiany i uruchomisz instalację z potwierdzeniem w terminalu Omarchy.
 
-Mały przełącznik **Autoaktualizacje** obok **?** sprawdza nowe wersje
-i pokazuje informację w rozwiniętym panelu. Jego napis steruje tą samą opcją.
-Przy wyłączaniu wybierasz **Przejdź do Aktualizacji** lub **Wyłącz**. Włączenie działa od razu.
-Wersja i autor po prawej otwierają małe menu z linkami do Omarchy Plugins,
-gwiazdek na GitHubie oraz zgłaszania błędów i pomysłów.
+**Autoaktualizacje** w stopce włączają powiadomienia. Osobna opcja **Automatyczne aktualizacje** automatycznie instaluje zweryfikowane wydania. Obie są początkowo włączone; sterujesz nimi niezależnie.
 
-Opcja **Automatyczne aktualizacje** na stronie Aktualizacje instaluje tylko
-stabilne, niezmienne wydania zweryfikowane przez Omarchy. Weryfikacja może
-potrwać — nowsze aktualizacje pozostają dostępne po Twoim zatwierdzeniu.
-Obie opcje są domyślnie włączone i niezależne. Zapisane wybory pozostają zachowane.
-Więcej w [opisie aktualizacji (EN)](UPDATES.md).
+[Jak działają aktualizacje (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/UPDATES.md)
+
+## Pomoc
+
+Użyj **ikony ?**, by włączyć podpowiedzi, a **Ustawienia → Sterowanie → Wskazówki i pomoc**, by uzyskać pomoc.
+
+[Zgłoś błąd lub pomysł](https://github.com/Sarr77/WindowPeek/issues) · [Rozwiązywanie problemów (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/TROUBLESHOOTING.md) · [Znane problemy (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/KNOWN_ISSUES.md)
+
+WindowPeek nie ma telemetrii. Tytuły okien i podglądy nie są zapisywane na dysku; sprawdzanie aktualizacji łączy się z GitHubem i katalogiem Omarchy.
 
 ## Usunięcie
 
@@ -204,57 +78,12 @@ Więcej w [opisie aktualizacji (EN)](UPDATES.md).
 omarchy plugin remove sarr.windowpeek
 ```
 
-Okna pozostają na swoich miejscach. Preferencje zostają w
-`~/.local/state/windowpeek/preferences.json` lub pod `$XDG_STATE_HOME/windowpeek`,
-jeśli ta zmienna jest ustawiona. Usuń plik preferencji po odinstalowaniu, jeśli
-chcesz je również zresetować. Automatyczny skrót jest zwalniany po wyłączeniu
-lub usunięciu wtyczki. Jeśli dodałeś własny skrót, usuń też jego wpis.
+Okna i zapisane preferencje pozostają na swoich miejscach.
 
-## Dane i uprawnienia
+## Rozwój i autorstwo
 
-WindowPeek odczytuje lokalny stan okien i monitorów, motyw oraz ikony aplikacji.
-Używa `hyprctl` do przełączania i przenoszenia okien. Podglądy pozostają w pamięci
-i są zwalniane po zamknięciu. Tytuły okien i podglądy nie są zapisywane na dysku.
-Wtyczka udostępnia Super + Alt + P, jeśli skrót jest wolny. Zachowuje istniejące
-przypisania i nie edytuje plików konfiguracji Hyprlanda.
+[Wymagania i praca nad kodem (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/DEVELOPMENT.md) · [Testy (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/TESTING.md) · [Historia zmian (EN)](https://github.com/Sarr77/WindowPeek/blob/main/CHANGELOG.md)
 
-Sprawdzanie aktualizacji łączy się z GitHubem i katalogiem Omarchy. Terminy i
-wyniki sprawdzeń są zapisywane obok preferencji. Nie ma telemetrii. WindowPeek
-działa wewnątrz powłoki Omarchy z uprawnieniami użytkownika, bez dostępu administratora.
+MIT · © 2026 [Sarr](https://github.com/Sarr77). Wybrane komponenty pochodzą ze [ScratchPeek](https://github.com/Sarr77/ScratchPeek); dostosowane kontrolki i logo Omarchy zachowują [swoją licencję MIT](https://github.com/Sarr77/WindowPeek/blob/main/vendor/omarchy/LICENSE). [Informacje o pochodzeniu kodu (EN)](https://github.com/Sarr77/WindowPeek/blob/main/docs/SCRATCHPEEK_REFERENCE.md).
 
-## Znane ograniczenia
-
-Niektóre kafelkowane aplikacje X11 wielokrotnie żądają innego rozmiaru okna.
-W dotkniętych problemem wersjach Hyprlanda może to przekierować pisanie
-z wyszukiwarki do okna pod kursorem. Więcej miejsca dla tej aplikacji lub tryb
-pływający mogą pomóc. **Zobacz możliwości** oferuje opcjonalną ochronę pisania
-i wyjaśnia jej ograniczenia dotyczące przewijania.
-[Rozwiązywanie problemów (EN)](TROUBLESHOOTING.md).
-
-Wersja 0.7.2 naprawia odtworzoną niepłynność rozwijania panelu przy niższym
-odświeżaniu, także z podglądem na żywo i ochroną pisania. Nie gwarantuje jednak
-osobnej aktualizacji animacji na każde odświeżenie monitora 240 Hz.
-[Znane problemy i zakres sprawdzenia (EN)](KNOWN_ISSUES.md).
-
-### Utrata fokusu podczas wyszukiwania
-
-W **Ustawienia → Sterowanie → Wskazówki i pomoc → Rozwiązywanie problemów** znajduje się domyślnie
-wyłączona opcja **Utrzymuj fokus wyszukiwania**. Rozważ ją, jeśli przesunięcie kursora
-nad inne okno przerywa pisanie. Działa przy każdym otwarciu wyszukiwania i blokuje
-przewijanie poza panelem, również touchpadem. Przewijanie wewnątrz nadal działa.
-Kliknięcie poza panelem lub Esc go zamyka. Ustawienia nie blokują fokusu.
-
-Opis wyjaśnia znany problem z żądaniami rozmiaru okien X11/Wine w niektórych
-wersjach Hyprlanda, możliwy wpływ reguł aktywacji oraz dostępne alternatywy.
-Sama utrata fokusu nie wystarcza do rozpoznania przyczyny. Powtarzające się
-przerwania mogą wyświetlić sugestię; nie włączają ochrony automatycznie.
-
-## Pomoc i rozwój
-
-[Zgłoś błąd](https://github.com/Sarr77/WindowPeek/issues) ·
-[Praca nad kodem (EN)](DEVELOPMENT.md) · [Testy i ograniczenia (EN)](TESTING.md)
-
-MIT · © 2026 [Sarr](https://github.com/Sarr77).
-Wybrane komponenty pochodzą ze [ScratchPeek](https://github.com/Sarr77/ScratchPeek). Dostosowane kontrolki i logo Omarchy
-zachowują [swoją licencję MIT](../vendor/omarchy/LICENSE).
-[Informacje o pochodzeniu kodu (EN)](SCRATCHPEEK_REFERENCE.md).
+[English](https://github.com/Sarr77/WindowPeek/blob/main/README.md) · Polski

@@ -69,7 +69,7 @@ ShellRoot {
         property var config: {
             var layout={left:[],center:[],right:[]};
             layout[Quickshell.env("WINDOWPEEK_TEST_BAR_SECTION") || "center"]=[{id:"sarr.windowpeek",autoUpdates:false,
-                windowPreviews:false,openOnHover:false,doubleClickExpand:true,uiScale:test.scale}];
+                windowPreviews:false,openOnHover:false,uiScale:test.scale}];
             return {bar:{position:"top",transparent:false,layout:layout}};
         }
         function updateEntryInline(id,entry) { return true; }
@@ -149,7 +149,7 @@ ShellRoot {
                     if(test.wait(!widget.opened,"later single click closes panel"))break;
                     test.changeSettings({doubleClickExpand:false},test.click);break;
                 case 11:
-                    test.check(widget.opened && test.panel.body.expanded,"default single-click behavior is preserved");
+                    test.check(widget.opened && test.panel.body.expanded,"explicit single-click preference is preserved");
                     widget.close();test.changeSettings({doubleClickExpand:true},test.click);break;
                 case 12:
                     test.check(test.panel.compactPinned,"compact opens for outside-click dismissal");

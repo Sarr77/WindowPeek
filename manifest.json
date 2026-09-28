@@ -21,7 +21,7 @@
       "previewBackdrop": true,
       "previewFit": true,
       "openOnHover": true,
-      "doubleClickExpand": false,
+      "doubleClickExpand": true,
       "pinByTitleClick": true,
       "hoverLogo": true,
       "settingsLogo": true,

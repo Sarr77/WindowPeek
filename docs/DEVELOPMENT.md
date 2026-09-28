@@ -3,6 +3,14 @@
 WindowPeek is a QML plugin for Omarchy’s Quickshell bar. Its ID is
 `sarr.windowpeek`; the source lives at [Sarr77/WindowPeek](https://github.com/Sarr77/WindowPeek).
 
+## Requirements
+
+WindowPeek requires Omarchy Quattro with its Quickshell bar and Hyprland’s Lua
+window API. Tested on Omarchy 4.0.4, Hyprland 0.56.2, Quickshell 0.3.1 and Qt 6.11.2.
+
+Installation and updates use Python 3 and Git. The first-use Wallpaper contrast
+check uses ImageMagick. These tools are already included in Omarchy.
+
 ## Installation and development
 
 Install through Omarchy:
@@ -59,7 +67,7 @@ This creates `dist/WindowPeek-<version>.zip` with source, documentation, license
 and tests. It excludes Git state, development notes, local Python helpers and
 caches. No commit or upload is made. The ZIP is a source archive for inspection
 and offline checks; use Omarchy’s Git installation above to install the plugin
-with automatic updates.
+with manual updates and optional verified automatic updates.
 
 The root `preview.png` is used by README and the marketplace. Its original
 PNG is [preview-wallpaper.png](preview-wallpaper.png), a promotional illustration

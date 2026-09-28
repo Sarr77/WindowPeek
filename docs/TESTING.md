@@ -1433,22 +1433,7 @@ Footer notification opt-out covers Open Updates, explicit Turn off, immediate
 enabling, Escape/close/outside dismissal, pointer/keyboard focus restoration,
 concurrent preference changes, failed saves and preserving nested editor drafts.
 
-`support` covers the version/author popup's three exact browser arguments,
-launcher failure and retry, mouse close, keyboard Escape and retained parent page.
-At 100% and 200% it also checks background hover/preview blocking, another GIF
-on reopening, stopped hidden playback, disabled-animation posters and a bounded
-layout without scrolling in all 30 languages. Preview requests and browser
-launches use probes; pointer and keyboard events are real Qt events.
-The same test checks hidden background scrollbars without changes to row width
-or scroll position, original GIF colors, custom solid colors, Wallpaper blur and
-grain, and Glass popover tint. For offscreen OpenGL captures at either scale:
-
-```sh
-QT_QPA_PLATFORMTHEME= QT_QUICK_CONTROLS_STYLE=Basic QT_QUICK_BACKEND=rhi QSG_RHI_BACKEND=opengl python3 tools/test_ui.py support --desktop --image /tmp/windowpeek-support
-```
-
-In a private compositor, `focus-settings-native` with `WP_CASE=project-popup`
-or `WP_CASE=notification-popup` checks outside dismissal from Settings and the
+In a private compositor, `focus-settings-native` with `WP_CASE=notification-popup` checks outside dismissal from Settings and the
 window list, with and without protection. Only the popup closes; another app
 receives typing. It also checks the bar label and outer panel padding.
 It also visits Troubleshooting from Hints and Support and preserves guide sections.

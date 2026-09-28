@@ -54,6 +54,11 @@ ShellRoot {
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit(); return;
                 }
                 test.check(a.language === "pl" && b.language === "pl", "startup restores both monitors");
+                test.check(a.doubleClickExpand && b.doubleClickExpand, "missing setting defaults to double-click on both monitors");
+                test.check(test.saved(a,"persistSettings",{doubleClickExpand:false}) && !a.doubleClickExpand && !b.doubleClickExpand,
+                    "saved single-click choice overrides the new default on both monitors");
+                test.check(test.saved(b,"persistSettings",{doubleClickExpand:true}) && a.doubleClickExpand && b.doubleClickExpand,
+                    "double-click can be restored explicitly");
                 test.check(a.includeSpecial && b.includeSpecial, "special workspaces are included by default");
                 test.check(a.panelStyle === "wallpaper" && b.panelStyle === "wallpaper"
                     && a.backgroundTexture && b.backgroundTexture && !a.backgroundBlur,

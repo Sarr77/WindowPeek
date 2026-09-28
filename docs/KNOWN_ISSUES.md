@@ -173,7 +173,7 @@ Qt 6.11.2 and NVIDIA 610.57.04. Results do not guarantee perfect motion under
 every workload or on every driver. No screenshot mode, paused preview or
 compositor patch is required by the fix.
 
-If stutter remains in 0.7.2, include your versions, GPU/driver, each monitor's
+If stutter remains in 0.7.2 or later, include your versions, GPU/driver, each monitor's
 resolution/refresh/scale, protection mode and whether preview is visible. Compare
 several rapid expansions and collapses within one open panel, immediately after
 hiding preview. Distinguish panel resizing from a shake on initial preview

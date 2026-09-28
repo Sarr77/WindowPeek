@@ -59,7 +59,7 @@ BarWidget {
     readonly property bool previewFit: preference("previewFit", true) === true
     readonly property bool windowPreviews: preference("windowPreviews", true) === true
     readonly property bool openOnHover: preference("openOnHover", true) === true
-    readonly property bool doubleClickExpand: preference("doubleClickExpand", false) === true
+    readonly property bool doubleClickExpand: preference("doubleClickExpand", true) === true
     // Legacy key retained so the broader pinning option preserves saved choices.
     readonly property bool pinByTitleClick: preference("pinByTitleClick", true) === true
     readonly property string textShadowMode: Readability.mode(preference("textShadowMode", "auto"))

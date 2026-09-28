@@ -22,7 +22,6 @@
 - Choose a monitor when moving a window to a new workspace; Shift uses the screen
   containing WindowPeek. Existing workspaces retain their monitor in both move menus.
 - Bring hints, troubleshooting and bug reports together in Hints and Support.
-  Open project links from the version and author, with a random Omarchy animation.
 - Match popup backgrounds to panel styles and hide background scrollbars without
   shifting content. Block hover previews behind popups, clear stale mouse-focus
   highlights and keep row labels stable during expansion and collapse.

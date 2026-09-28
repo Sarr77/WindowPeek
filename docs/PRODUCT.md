@@ -114,8 +114,8 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   when the pointer is outside. Closing returns the keyboard to the application.
   This remains the intended behavior; Hyprland 0.56.2 has a documented
   [X11 resize exception](GUIDE.md#x11-applications-interrupting-search).
-- Allow disabling the hover panel. Keep single-click expansion as the default.
-  Opt-in double-click expansion opens the compact panel by clicking its bar label, including
+- Allow disabling the hover panel. Double-click expansion is the default.
+  Preserve saved single-click choices. Double-click mode opens the compact panel by clicking its bar label, including
   when hover is disabled. Outside click/Esc closes it; double-click on the label
   or unused panel space expands or collapses it. A single click on unused panel
   space does not pin it. Its hint describes the action for the current view.
@@ -212,8 +212,9 @@ icons and titles, grouped by workspace with monitor names. Put the active
 window and its workspace first. Include every window and workspace allowed by
 the current preferences. Keep the panel height bounded and scroll the list
 with the mouse wheel or scrollbar. Clicking a row closes the hover and switches
-to that exact window or group tab; clicking the bar expands it into search by
-default (or pins it when double-click expansion is enabled).
+to that exact window or group tab. By default, a bar click opens/pins the compact
+view and a double-click expands it into Search. Turning off double-click expansion
+restores single-click expansion.
 Keep the opening active window first for that session, without rearranging rows
 when focus changes.
 Ctrl+Shift+click has the same bring-and-focus behavior as the search panel.
@@ -286,16 +287,14 @@ Carry over these established design decisions where they fit WindowPeek:
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
 - The installed version beside `by Sarr` at the other end of the expanded footer.
-- A subtle Update notifications control beside help, enabled by default. Its
-  track and label toggle the same setting. The version/author opens a small
-  project support popup with two star actions (Omarchy Plugins and GitHub) and
-  a bugs/ideas action. Star actions open the pages; the user stars on the site.
-  Preserve the current editor, draft, scroll and panel while browsing these links.
+- A subtle **Auto updates** notification control beside help, enabled by default. Its
+  track and label toggle the same setting.
   Notifications check newer repository code every six hours and announce it in
   the expanded panel; opting out hides the notice and stops scheduled metadata
   checks. Manual checks still work. The Updates page has one primary action:
-  Check now, becoming Update… when newer code is found, plus a changes/history
-  link. Development copies show a short Git explanation and history.
+  Check now, becoming Update… when newer code is found, plus a matching bordered changes/history
+  button. Development copies retain Check now and Version history, with a short
+  Git explanation; manual installation stays blocked.
 - Keep a separate default-on Automatic updates option on the Updates page only.
   Install only immutable stable releases whose exact commits are verified by
   Omarchy. Explain that verification may take time and newer code remains

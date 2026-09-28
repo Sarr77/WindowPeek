@@ -33,8 +33,7 @@ a smaller **Turn off** action. Opening Updates changes no preference; closing
 the popup or pressing Escape also keeps notifications enabled. Back restores the
 previous view, including any unsaved editor draft.
 Clicking outside a confirmation closes only the popup; the underlying panel stays open.
-The version and author on the right open the project support popup, not Updates. The same notification
-setting is available on the Updates page and is enabled by default. It checks
+The same notification setting is available on the Updates page and is enabled by default. It checks
 metadata every six hours while panels are idle; it does not install anything.
 An available update appears beside Settings in the expanded window list and opens
 Updates. Back restores the search and list position. Turning notifications off
@@ -62,6 +61,11 @@ Unreadable settings are never silently overwritten.
 
 ## Schedule and storage
 
+Automatic installation and notification checks keep separate timestamps.
+Notification checks become due six hours after their previous attempt and run
+when the minute timer finds all panels idle; they have no once-per-day shortcut.
+The startup/day rule below applies to automatic installation checks.
+
 About a minute after startup, WindowPeek checks if no attempt has been recorded
 on the current local calendar day. Later checks are due six hours after the
 previous attempt. Restarts on the same day keep that deadline; they do not add
@@ -76,9 +80,9 @@ Preferences, the schedule and the process lock live separately from code in
 restarting the shell preserves the deadline. No worker starts without valid,
 saved preferences. There is no background service between checks.
 
-## Release approval
+## Automatic release approval
 
-Only a newer stable `vX.Y.Z` release from `Sarr77/WindowPeek`, marked immutable
+Automatic installation accepts only a newer stable `vX.Y.Z` release from `Sarr77/WindowPeek`, marked immutable
 by GitHub, can be installed. Its tag must resolve to the exact commit approved
 by the official [Omarchy catalog](https://plugins.omarchy.org/catalog.json).
 Schema 2 must contain exactly one entry with:
@@ -99,7 +103,7 @@ There is no fallback to `main`, another tag or cached approval. A CI result,
 issue label or bot comment is not catalog approval. See the marketplace's
 [verification contract](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/VERIFICATION.md).
 
-## Installation checks
+## Automatic installation checks
 
 The installed copy must be a clean Git checkout from the original repository.
 Development symlinks, forks, non-Git copies, untracked or ignored files and

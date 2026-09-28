@@ -165,10 +165,11 @@ Only the sample's window-list viewport shrinks, down to a usable minimum; text,
 controls and spacing stay unchanged. Longer forms retain ordinary scrolling.
 Preferred height is calculated independently of that fit to avoid layout feedback.
 
-Opt-in `doubleClickExpand` pins compact geometry while keeping the regular open
+Default-on `doubleClickExpand` pins compact geometry while keeping the regular open
 lifecycle, keyboard access and outside-click dismissal. The bar uses Qt's double
-click interval; only a later single click closes an already open panel. Default
-single-click behavior and the keyboard opening shortcut remain unchanged.
+click interval; only a later single click closes an already open panel. Explicit
+saved `false` retains single-click expansion; the keyboard opening shortcut
+still opens Search directly. Both manifest and missing-setting fallback use `true`.
 Both bar double-click input paths share `toggleBarExpansion`, cancel the pending
 single-click close and use the panel's existing expand/collapse transition.
 The layer input region covers the panel, open popup and its own bar label; other
@@ -839,17 +840,7 @@ removal and reinstall.
 The expanded list's update button reads the cached manual-check result and opens
 the shared Updates page. It adds no row, polling or process on panel opening.
 The footer track and label are one `ActionButton` notification checkbox backed by
-`checkUpdates`; version and author use a text-only `ActionButton` opening
-`ProjectSupport`. This in-panel modal uses the existing render surface, retains
-the current editor and prevents background navigation while open. Two star
-icons and a discussion icon are native vector paths in `ProjectLinkButton`.
-Its centered heading and thank-you frame a single random bundled Omarchy GIF.
-The existing `LogoArt` renderer plays it once at 50% opacity in the theme color,
-stops when hidden, and shows a still poster when animations are disabled. The
-choice changes only on opening; it does not touch the user's Settings/hover art
-or their shared cooldown. No new render window, worker or runtime download is used.
-BrowserLinks allows only the exact plugin listing, repository, Issues and
-existing history/compare targets; no star or issue is submitted automatically. The automatic-install
+`checkUpdates`. The automatic-install
 setting remains only in UpdatesPage, backed by `autoUpdates`. Saved flags and
 schedules remain independent. The expanded notice respects notification opt-out.
 `UpdateConfirmation` restores the input's focus reason to its originating setting.
@@ -882,7 +873,8 @@ saving and updating until repaired and reloaded.
 
 `Updates.qml` defers starting a worker while a panel, hover popup or window
 operation is active. Each widget's minute timer shares the runtime scheduler.
-The first eligible tick can request the day's first check via `--startup`;
+For automatic installation, the first eligible tick can request the day's first
+check via `--startup`;
 later ticks follow six hours from `lastCheck`. The worker rechecks the same
 local-calendar condition under its lock, preventing duplicate requests across
 restarts or monitors. Valid `lastCheck` migrates old 24-hour deadlines to six hours.

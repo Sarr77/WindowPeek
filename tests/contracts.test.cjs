@@ -98,6 +98,7 @@ test('scroll speed and hover delays validate saved numeric preferences', () => {
     assert.equal(manifest.barWidget.defaults.panelHoverDelay, 400);
     assert.equal(manifest.barWidget.defaults.previewHoverDelay, 400);
     assert.equal(manifest.barWidget.defaults.popupAnimations, true);
+    assert.equal(manifest.barWidget.defaults.doubleClickExpand, true);
 });
 
 test('preview keeps every window and workspace, with the active window first', () => {
