@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 # Local development installer; not distributed.
 /install.py
+# Local source bundle for sharing with ChatGPT.
+/package_for_chatgpt.py
+/PAKOWANIE_CHATGPT.txt

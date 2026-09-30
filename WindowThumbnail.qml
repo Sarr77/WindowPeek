@@ -15,6 +15,7 @@ Scope {
     property Item anchorItem: null
     property Item boundsItem: null
     property bool rowHovered: false
+    property bool immediateRequested: false
     property string address: ""
     property bool ready: false
     property bool menuRetained: false
@@ -98,13 +99,14 @@ Scope {
             return;
         }
         if (rowHovered && !ready) {
-            if (hoverDelay === 0) ready = true;
+            if (immediateRequested || hoverDelay === 0) { dwell.stop(); ready = true; }
             else if (!dwell.running) dwell.start();
         }
     }
-    function showFor(item, value, bounds) {
+    function showFor(item, value, bounds, immediate) {
         if (hostWidget.moveMenuOpen) return;
         hideDelay.stop(); rowHovered = true;
+        immediateRequested = immediate === true;
         if (anchorItem === item && address === value) { schedulePreview(); return; }
         dwell.stop();
         ready = false;
@@ -113,13 +115,14 @@ Scope {
     }
     function hideFor(item) {
         if (anchorItem !== item) return;
+        if (immediateRequested) { dismiss(); return; }
         rowHovered = false;
         if (!ready) dismiss();
         else if (!held) hideDelay.restart();
     }
     function dismiss() {
         menuRetained = false;
-        dwell.stop(); hideDelay.stop(); ready = false; rowHovered = false;
+        dwell.stop(); hideDelay.stop(); ready = false; rowHovered = false; immediateRequested = false;
         address = ""; anchorItem = null; boundsItem = null;
     }
     function menuPosition(position) {

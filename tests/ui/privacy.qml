@@ -206,6 +206,10 @@ ShellRoot {
                     host.moveMenuOpen = false;
                     host.destinationRequested = "";
                     thumbnail.dismiss(); host.persistSettings({windowPreviews:true, previewHoverDelay:400});
+                    // The next surface is in the same screen position. Leave the
+                    // old row before swapping so the next hover is a new event.
+                    events.mouseMove(window.contentItem, 900 * test.scale, 650 * test.scale,
+                        0, Qt.NoButton, Qt.NoModifier);
                     if (test.surface++ === 0) { test.step = 0; break; }
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit();
                 }

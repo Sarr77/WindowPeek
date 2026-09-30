@@ -59,10 +59,12 @@ ShellRoot {
                     host.snapshot = next;
                     break;
                 case 3:
-                    test.check(panel.selectedAddress === "", "closing selected window clears selection");
+                    test.check(panel.selectedAddress === "0x1", "closing a selected search result selects the first remaining match");
                     events.keyClick(Qt.Key_Return, Qt.NoModifier, 0);
-                    test.check(host.focused === "", "Enter cannot silently target a replacement");
+                    test.check(host.focused === "0x1", "Enter opens the visible replacement result");
+                    host.focused = "";
                     panel.searchField.text = "";
+                    panel.selectedAddress = "0x5";
                     panel.moveSelection(1);
                     events.keyClick(Qt.Key_Return, Qt.ShiftModifier, 0);
                     break;

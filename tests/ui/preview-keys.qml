@@ -15,7 +15,7 @@ ShellRoot {
         return null;
     }
     TestEvent { id: events }
-    FakeHost { id: host; windowPreview: thumbnail; settings: ({previewHoverDelay:0}) }
+    FakeHost { id: host; windowPreview: thumbnail; settings: ({previewHoverDelay:700}) }
     FloatingWindow {
         id: window; visible: true; implicitWidth: 1000; implicitHeight: 700
         Plugin.PanelContent { id: panel; width: 500; height: 650; hostWidget: host }
@@ -28,14 +28,18 @@ ShellRoot {
                 switch (test.step++) {
                 case 0: thumbnail.modifierState.enabled = false; panel.begin(); break;
                 case 1:
-                    thumbnail.showFor(test.find(panel, "windowFocusPointer"), "0x1", panel);
+                    thumbnail.showFor(test.find(panel, "windowFocus"), "0x1", panel);
                     thumbnail.modifierState.pending = "fixture";
                     thumbnail.modifierState.receive("custom", "windowpeek-preview-shift,fixture,0"); break;
                 case 2:
+                    test.check(!thumbnail.ready, "ordinary pointer preview keeps its configured delay");
+                    thumbnail.showFor(test.find(panel, "windowFocus"), "0x1", panel, true);
+                    test.check(thumbnail.ready, "keyboard selection bypasses pointer hover delay"); break;
+                case 3:
                     test.check(thumbnail.visible && thumbnail.backingWindowVisible, "preview is mapped");
                     thumbnail.contentItem.Window.window.requestActivate();
                     thumbnail.contentItem.forceActiveFocus(); break;
-                case 3:
+                case 4:
                     test.check(thumbnail.contentItem.activeFocus, "preview receives keyboard events");
                     events.keyClick(Qt.Key_2, Qt.ControlModifier, 0);
                     test.check(host.focused === "0x2", "preview forwards Ctrl+digit to the source list");
@@ -46,7 +50,7 @@ ShellRoot {
                     events.keyClick(Qt.Key_A, Qt.NoModifier, 0);
                     test.check(panel.searchField.text.toLowerCase() === "a", "preview preserves typing into the focused search field: " + panel.searchField.text);
                     panel.searchField.text = ""; panel.selectedAddress = "0x1"; break;
-                case 4:
+                case 5:
                     events.keyClick(Qt.Key_Right, Qt.NoModifier, 0);
                     test.check(thumbnail.shortcutTarget.objectName === "windowMove", "Right changes the source action to Move: " + JSON.stringify({
                         target:thumbnail.shortcutTarget.objectName, active:window.activeFocusItem ? window.activeFocusItem.objectName : null,

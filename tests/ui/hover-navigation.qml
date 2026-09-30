@@ -12,8 +12,36 @@ ShellRoot {
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     function check(ok, message) { if (!ok) throw new Error(message); }
     function key(code, mods) { events.keyClick(code, mods || Qt.NoModifier, 0); }
+    function find(item, name) {
+        if (item.objectName === name) return item;
+        for (var child of item.children || []) { var result = find(child, name); if (result) return result; }
+        return null;
+    }
+    function row(address) {
+        var list = find(panel, "windowList");
+        for (var i = 0; i < list.rows.length; i++) {
+            var item = list.itemAtIndex(i);
+            if (item && item.model.kind === "window" && item.model.address === address) return item.item;
+        }
+        return null;
+    }
+    QtObject {
+        id: previewProbe
+        property Item anchorItem: null
+        property string address: ""
+        property bool visible: false
+        property bool containsPointer: false
+        property bool menuRetained: false
+        property bool immediate: false
+        function showFor(item, value, bounds, now) {
+            anchorItem=item; address=value; visible=true; immediate=now === true;
+        }
+        function hideFor(item) { if (anchorItem === item) dismiss(); }
+        function dismiss() { anchorItem=null; address=""; visible=false; }
+    }
     FakeHost {
         id: host
+        windowPreview: previewProbe
         Component.onCompleted: {
             persistSettings({hintsMode:"off"});
             var data=JSON.parse(JSON.stringify(snapshot));
@@ -40,7 +68,37 @@ ShellRoot {
                 case 1: test.fullHeight=panel.height; panel.expanded=false; panel.demote(); break;
                 case 2:
                     test.check(Math.abs(test.fullHeight-panel.height)<1,"logo keeps hover and expanded heights equal");
-                    test.logoHeight=panel.height; panel.forceActiveFocus(); test.key(Qt.Key_End); break;
+                    test.logoHeight=panel.height; panel.forceActiveFocus();
+                    test.check(panel.selectedAddress===panel.matches[0].address && !panel.keyboardSelectionVisible
+                        && !previewProbe.visible,"hover opens with active window remembered but not outlined");
+                    test.key(Qt.Key_Up);
+                    test.check(panel.selectedAddress===panel.matches[panel.matches.length-1].address
+                        && panel.keyboardSelectionVisible && previewProbe.immediate
+                        && previewProbe.address===panel.selectedAddress,"first hover Up wraps and previews the last window");
+                    test.key(Qt.Key_Down);
+                    test.check(panel.selectedAddress===panel.matches[0].address,"hover Down wraps to first window");
+                    var hovered = test.find(test.row(panel.matches[1].address), "windowFocus");
+                    events.mouseMove(hovered, hovered.width / 2, hovered.height / 2,
+                        0, Qt.NoButton, Qt.NoModifier);
+                    test.check(panel.selectedAddress === panel.matches[1].address && !panel.keyboardSelectionVisible
+                        && previewProbe.address === panel.matches[1].address && !previewProbe.immediate,
+                        "moving the pointer takes ordinary hover preview back from keyboard selection");
+                    test.key(Qt.Key_Down);
+                    test.check(panel.selectedAddress === panel.matches[2].address && panel.keyboardSelectionVisible
+                        && previewProbe.address === panel.matches[2].address && previewProbe.immediate,
+                        "compact arrow navigation continues from the pointer-selected window");
+                    test.check(!hovered.hovered
+                        && test.find(test.row(panel.matches[2].address), "windowFocus").emphasized,
+                        "stationary mouse hover does not compete with the keyboard outline");
+                    for (var i = 3; i < 15; i++) {
+                        test.key(Qt.Key_Down);
+                        test.check(panel.selectedAddress === panel.matches[i].address && panel.keyboardSelectionVisible,
+                            "scrolling beneath a stationary pointer does not reclaim keyboard selection at row " + i);
+                    }
+                    test.check(panel.contentY > 0, "repeated Down keys actually scroll the compact list");
+                    test.check(!test.find(panel, "windowList").rowHovered,
+                        "scrolling under a stationary pointer does not restore hover styling");
+                    test.key(Qt.Key_End); break;
                 case 3:
                     test.check(panel.selectedAddress===panel.matches[panel.matches.length-1].address && panel.contentY>0,"hover End reaches last window");
                     test.key(Qt.Key_Home); test.check(panel.selectedAddress===panel.matches[0].address && panel.contentY===0,"hover Home");

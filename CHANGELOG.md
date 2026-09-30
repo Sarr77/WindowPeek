@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.7
+
+- Use Up and Down to select windows in the compact and expanded panels, with an
+  immediate preview. Live search selects its first result; Enter opens it.
+- Let mouse movement take over the selection and preview, then continue arrow
+  navigation from that window. Keep one highlight while the list scrolls beneath
+  a stationary pointer.
+
 ## 0.7.6
 
 - Work around a Quickshell crash when hovering over WindowPeek by changing how

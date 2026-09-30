@@ -13,6 +13,9 @@ Item {
     property bool busy: false
     property bool hintsAllowed: true
     property bool previewAllowed: hintsAllowed
+    property bool keyboardSelectionActive: false
+    property bool keyboardPreview: false
+    property bool pointerSelectionActive: false
     property bool expanded: true
     property bool focusTabStop: true
     property bool moveTabStop: true
@@ -30,6 +33,7 @@ Item {
     signal moveRequested(string address)
     signal actionFocused(string address, bool moveAction)
     signal navigateRequested(string address, int delta, bool moveAction)
+    signal pointerMoved(string address, point scenePosition)
     function focusAction(moveAction) {
         if (root.expanded) (moveAction ? move : main).forceActiveFocus(Qt.OtherFocusReason);
     }
@@ -75,7 +79,9 @@ Item {
         width: parent.width - (move.width + Style.space(6)) * root.expansion
         height: parent.height
         accent: root.accent
-        hovered: !root.busy && (pointer.containsMouse || previewTarget.extendedHover)
+        showFocusCue: !root.pointerSelectionActive
+        hovered: !root.busy && !root.keyboardSelectionActive
+            && (pointer.containsMouse || previewTarget.extendedHover)
         pressed: pointer.pressed
         selected: root.selected && !move.activeFocus
         currentWindow: root.window.active
@@ -162,6 +168,9 @@ Item {
             anchors.fill: parent; hoverEnabled: true; enabled: !root.busy
             cursorShape: Qt.PointingHandCursor
             address: root.window.address
+            onPositionChanged: function(mouse) {
+                root.pointerMoved(root.window.address, pointer.mapToItem(null, mouse.x, mouse.y));
+            }
             onActivated: function(address, modifiers, position) {
                 var action = Shortcuts.mouseAction(root.hostWidget.shortcuts, modifiers);
                 if (action === "bring") root.bringRequested(address);
@@ -178,7 +187,9 @@ Item {
             id: previewTarget
             hostWidget: root.hostWidget; address: root.window.address
             boundsItem: root.previewBoundsItem
-            requested: root.previewAllowed && !root.busy && pointer.containsMouse
+            requested: root.previewAllowed && !root.busy
+                && (root.keyboardPreview || (!root.keyboardSelectionActive && pointer.containsMouse))
+            immediate: root.keyboardPreview
         }
         PanelHint {
             objectName: "windowFocusHint"
@@ -201,7 +212,8 @@ Item {
         enabled: root.expanded
         width: Math.min(parent.width * 0.35, Math.max(Style.space(62), moveLabel.implicitWidth + Style.space(16)))
         accent: root.accent
-        hovered: !root.busy && movePointer.containsMouse
+        showFocusCue: !root.pointerSelectionActive
+        hovered: !root.busy && !root.keyboardSelectionActive && movePointer.containsMouse
         pressed: movePointer.pressed
         activeFocusOnTab: root.expanded && (root.moveTabStop || move.activeFocus)
         onActiveFocusChanged: if (activeFocus) root.actionFocused(root.window.address, true)
@@ -221,6 +233,9 @@ Item {
         MouseArea {
             id: movePointer; objectName: "windowMovePointer"; anchors.fill: parent; hoverEnabled: true; enabled: !root.busy
             cursorShape: Qt.PointingHandCursor
+            onPositionChanged: function(mouse) {
+                root.pointerMoved(root.window.address, movePointer.mapToItem(null, mouse.x, mouse.y));
+            }
             property string pressedAddress: ""
             onPressed: pressedAddress = root.window.address
             onClicked: root.moveRequested(pressedAddress)

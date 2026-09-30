@@ -8,12 +8,13 @@ Rectangle {
     property bool hovered: false
     property bool pressed: false
     property bool selected: false
+    property bool showFocusCue: true
     property bool currentWindow: false
     property bool glass: false
     property color fillColor: Color.popups.background
     property real fillOpacity: glass ? 0.52 : 0
     readonly property color readabilityBackground: Qt.alpha(fillColor, fillOpacity)
-    readonly property bool emphasized: selected || activeFocus || pressed
+    readonly property bool emphasized: selected || (showFocusCue && activeFocus) || pressed
 
     radius: Style.space(5)
     color: Qt.alpha(fillColor, fillOpacity)
@@ -22,7 +23,7 @@ Rectangle {
         radius: root.radius
         color: root.pressed ? Qt.alpha(root.accent, 0.22)
             : root.hovered ? Qt.alpha(root.accent, 0.12)
-            : root.selected || root.activeFocus ? Qt.alpha(root.accent, 0.08)
+            : root.selected || (root.showFocusCue && root.activeFocus) ? Qt.alpha(root.accent, 0.08)
             : root.currentWindow ? Qt.alpha(root.accent, 0.045) : Qt.alpha(Color.popups.text, 0.025)
         Behavior on color { ColorAnimation { duration: 120 } }
     }

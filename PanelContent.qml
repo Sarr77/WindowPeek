@@ -175,6 +175,26 @@ FocusScope {
     property alias contentY: list.contentY
     function resetScroll() { list.cancelFlick(); list.contentY = 0; }
     property string selectedAddress: ""
+    // Opening remembers the active window without presenting it as a keyboard
+    // choice. An arrow or a query makes the current result explicit.
+    property bool keyboardSelectionEngaged: false
+    property bool pointerSelectionActive: false
+    property point lastPointerPosition: Qt.point(-1, -1)
+    property bool previewKeyboardFocused: false
+    Connections {
+        id: previewFocusConnection
+        target: root.hostWidget && root.hostWidget.windowPreview
+            && root.hostWidget.windowPreview.contentItem
+                ? root.hostWidget.windowPreview.contentItem : null
+        function onActiveFocusChanged() {
+            root.previewKeyboardFocused = !!previewFocusConnection.target
+                && previewFocusConnection.target.activeFocus;
+        }
+    }
+    readonly property bool previewOwnsKeyboard: previewKeyboardFocused
+    readonly property bool keyboardSelectionVisible: keyboardSelectionEngaged
+        && (expanded ? search.focus || list.activeActionFocused || previewOwnsKeyboard
+            : root.activeFocus || previewOwnsKeyboard)
     property string moveAddress: ""
     property string destination: ""
     property string destinationMonitor: ""
@@ -268,7 +288,9 @@ FocusScope {
     }
 
     onMatchesChanged: {
-        if (selectedAddress && !matches.some(function(window) { return window.address === root.selectedAddress; })) selectedAddress = "";
+        if (selectedAddress && !matches.some(function(window) { return window.address === root.selectedAddress; }))
+            selectedAddress = matches.length && search.text ? matches[0].address : "";
+        if (!matches.length) keyboardSelectionEngaged = false;
     }
     onDestinationsChanged: {
         if (destination && !destinations.some(function(item) { return item.value === root.destination; })) destination = "";
@@ -280,15 +302,17 @@ FocusScope {
         opened = true;
         shortcutModifiers.reset();
         if (!takeFocus) { search.focus = false; focus = false; }
-        mode = "windows"; search.text = ""; selectedAddress = "";
+        mode = "windows"; search.text = ""; selectedAddress = ""; keyboardSelectionEngaged = false;
+        pointerSelectionActive = false;
+        lastPointerPosition = Qt.point(-1, -1);
         list.tabMoveAction = false;
         closingFocusNotice = null;
         var first = inventory.windows.find(function(window) { return window.active; });
         orderAddress = first ? first.address : "";
+        var active = matches.find(function(window) { return window.active; });
+        selectedAddress = active ? active.address : matches.length ? matches[0].address : "";
         list.cancelFlick(); list.positionViewAtBeginning();
         Qt.callLater(function() {
-            var active = root.matches.find(function(window) { return window.active; });
-            root.selectedAddress = active ? active.address : root.matches.length ? root.matches[0].address : "";
             list.positionViewAtBeginning();
             if (takeFocus && root.mode === "windows") search.forceActiveFocus();
         });
@@ -458,8 +482,11 @@ FocusScope {
     function moveSelection(delta) {
         if (!matches.length) { selectedAddress = ""; return; }
         var index = matches.findIndex(function(window) { return window.address === root.selectedAddress; });
-        index = index < 0 ? (delta > 0 ? 0 : matches.length - 1) : Math.max(0, Math.min(matches.length - 1, index + delta));
+        index = index < 0 ? (delta > 0 ? 0 : matches.length - 1)
+            : (index + delta + matches.length) % matches.length;
         selectedAddress = matches[index].address;
+        keyboardSelectionEngaged = true;
+        pointerSelectionActive = false;
         var row = rows.findIndex(function(item) { return item.kind === "window" && item.address === root.selectedAddress; });
         list.ensureRowVisible(row);
     }
@@ -533,6 +560,8 @@ FocusScope {
         var address = list.pageAddress([Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Home, Qt.Key_End][index]);
         if (address) {
             selectedAddress = address;
+            keyboardSelectionEngaged = true;
+            pointerSelectionActive = false;
             if (action) list.focusAction(address, action.objectName === "windowMove");
         }
         event.accepted = true;
@@ -544,7 +573,7 @@ FocusScope {
         else if (["pageup","pagedown","first","last"].indexOf(action) >= 0) {
             var key = {pageup:Qt.Key_PageUp,pagedown:Qt.Key_PageDown,first:Qt.Key_Home,last:Qt.Key_End}[action];
             var address = list.pageAddress(key);
-            if (address) selectedAddress = address;
+            if (address) { selectedAddress = address; keyboardSelectionEngaged = true; pointerSelectionActive = false; }
         } else if (action === "activate") activateWindow(selectedAddress, false);
         else if (action === "dismiss") closeRequested();
         else if (action === "move") openMove(selectedAddress);
@@ -811,8 +840,9 @@ FocusScope {
                     // Use the real text input while compact, preserving the first
                     // character, keyboard layout and fast typing through expansion.
                     if (!root.expanded && root.shortcutsAvailable) root.expandRequested();
-                    if (!root.matches.some(function(window) { return window.address === root.selectedAddress; }))
-                        root.selectedAddress = root.matches.length ? root.matches[0].address : "";
+                    root.selectedAddress = root.matches.length ? root.matches[0].address : "";
+                    root.keyboardSelectionEngaged = !!search.text && !!root.selectedAddress;
+                    root.pointerSelectionActive = false;
                     list.cancelFlick(); list.positionViewAtBeginning();
                 }
                 Keys.onPressed: function(event) { root.handleSearchKey(event); }
@@ -830,7 +860,8 @@ FocusScope {
         rows: root.rows
         expanded: root.expanded; expansion: root.expansion
         opened: root.opened && !root.blockingModalOpen; selectedAddress: root.selectedAddress
-        highlightSelection: false
+        highlightSelection: root.keyboardSelectionVisible
+        pointerSelectionActive: root.pointerSelectionActive
         showShortcuts: (root.controlHeld || root.quickSelection) && root.shortcutsAvailable
         previewBoundsItem: root.previewBoundsItem
         scrollbarGutter: root.scrollbarGutter
@@ -840,9 +871,20 @@ FocusScope {
         onFocusRequested: function(address) { root.activateWindow(address, false); }
         onBringRequested: function(address) { root.activateWindow(address, true); }
         onMoveRequested: function(address) { root.openMove(address); }
-        onActionFocused: function(address) { root.selectedAddress = address; }
-        onNavigateRequested: function(address, delta, moveAction) {
+        onActionFocused: function(address) { root.selectedAddress = address; root.pointerSelectionActive = false; }
+        onPointerMoved: function(address, scenePosition) {
+            if (!root.opened || root.mode !== "windows" || root.blockingModalOpen) return;
+            // Qt can deliver a hover position update when a row scrolls beneath
+            // a stationary cursor. Only physical movement changes input owner.
+            if (Math.abs(scenePosition.x - root.lastPointerPosition.x) < 0.5
+                    && Math.abs(scenePosition.y - root.lastPointerPosition.y) < 0.5) return;
+            root.lastPointerPosition = scenePosition;
+            root.keyboardSelectionEngaged = false;
+            root.pointerSelectionActive = true;
             root.selectedAddress = address;
+        }
+        onNavigateRequested: function(address, delta, moveAction) {
+            if (!root.pointerSelectionActive) root.selectedAddress = address;
             root.moveSelection(delta);
             list.focusAction(root.selectedAddress, moveAction);
         }

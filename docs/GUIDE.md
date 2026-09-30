@@ -69,9 +69,10 @@ Search matches application names and window titles. It includes each tab in a
 Hyprland window group, even inactive tabs. It does not list browser tabs or
 documents inside an application separately.
 
-Hover a row to see a content preview. You can move onto the preview and click
-it to switch to that window. The gaps between the bar, list and preview keep
-them open while you cross. A long preview title wraps to two lines.
+Point at a row or select it with the keyboard to see a content preview. You can
+move onto the preview and click it to switch to that window. The gaps between
+the bar, list and preview keep them open while you cross. A long preview title
+wraps to two lines.
 
 Hold **Shift** to hide previews while browsing. A preview under your pointer
 stays visible, as does one whose move menu is open. Releasing Shift starts the
@@ -136,8 +137,14 @@ In the expanded panel, Tab moves through the header controls, search, the window
 list and the footer. Shift+Tab goes backwards. The list is one stop: entering it
 restores the selected window and action, or starts at the first window. Use
 ↑/↓ for windows and ←/→ for the window or Move action; the next Tab leaves the
-list. Only the focused row action has a keyboard outline; moving to search or
-other controls removes it, and returning to the list restores it.
+list. On opening, the active window is remembered without an outline. The first
+Down selects the next window; the first Up selects the last. Arrows wrap around
+the window results and show their preview immediately. Typing in Search selects
+the first matching result as you type, ready for Enter. A keyboard selection has
+one outline, including while Search has focus. Tab to other controls removes it;
+returning to the list restores it. Moving the mouse over a row takes over its
+highlight and normal preview; the next arrow continues from that row. A row
+scrolling beneath a stationary pointer does not take over the selection.
 On header and footer buttons, arrows move between the surrounding buttons only,
 skipping the list and search. Down/right moves forward and up/left moves back
 (horizontal directions reverse in right-to-left layouts). Search keeps its normal
@@ -161,7 +168,7 @@ compact browsing; closing WindowPeek returns the keyboard to the application.
 See the [known X11 exception](#x11-applications-interrupting-search) if typing
 stops when the pointer moves over another window.
 
-Arrows within search text edit the text normally. At the text’s edge, the arrow
+Left and Right within search text edit the text normally. At the text’s edge, the arrow
 toward Move enters that column. Window and Move sides are mirrored in Arabic.
 **Controls → Keyboard & mouse shortcuts** lets you change WindowPeek’s actions:
 opening the panel, the modifier for visible-window numbers, holding a key to hide

@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls as QQC
 import qs.Commons
 import "WindowListModel.js" as ListData
@@ -17,6 +18,7 @@ Flickable {
     property bool hideScrollbar: false
     property string selectedAddress: ""
     property bool highlightSelection: true
+    property bool pointerSelectionActive: false
     property bool tabMoveAction: false
     // Only the selected action participates in Tab order; arrows own the grid.
     readonly property string tabAddress: {
@@ -38,6 +40,16 @@ Flickable {
         }
         return null;
     }
+    readonly property bool activeActionFocused: {
+        var activeItem = list.Window.window ? list.Window.window.activeFocusItem : null;
+        if (!activeItem) return false;
+        for (var i = 0; i < windowRepeater.count; i++) {
+            var loader = itemAtIndex(i);
+            if (loader && loader.item && loader.model.kind === "window"
+                    && loader.item.focusedAction === activeItem) return true;
+        }
+        return false;
+    }
     readonly property bool compact: !!hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     readonly property bool rtl: !!hostWidget && hostWidget.language === "ar"
     readonly property bool busy: !!hostWidget && hostWidget.actionBusy
@@ -58,6 +70,7 @@ Flickable {
     signal backgroundClicked()
     signal actionFocused(string address)
     signal navigateRequested(string address, int delta, bool moveAction)
+    signal pointerMoved(string address, point scenePosition)
     ListModel { id: windowRows }
     function syncRows() { if (windowRows) ListData.syncRows(windowRows, rows); }
     onRowsChanged: syncRows()
@@ -207,12 +220,15 @@ Flickable {
                         focusTabStop: list.tabAddress === window.address && !list.tabMoveAction
                         moveTabStop: list.tabAddress === window.address && list.tabMoveAction
                         expansion: list.expansion
-                        selected: list.expanded && list.highlightSelection && list.selectedAddress === window.address
+                        selected: list.highlightSelection && list.selectedAddress === window.address
                         shortcutIndex: list.shortcutAddresses.indexOf(window.address)
                         showShortcut: list.showShortcuts
                         enabled: list.opened
                         busy: list.busy
                         previewAllowed: list.opened && list.visible && !list.busy
+                        keyboardSelectionActive: list.highlightSelection
+                        keyboardPreview: list.highlightSelection && list.selectedAddress === window.address
+                        pointerSelectionActive: list.pointerSelectionActive
                         hintsAllowed: list.opened && list.visible && !list.busy && !list.interacting
                             && !list.hostWidget.moveMenuOpen
                         onFocusRequested: function(address) { list.focusRequested(address); }
@@ -223,6 +239,7 @@ Flickable {
                             list.actionFocused(address);
                         }
                         onNavigateRequested: function(address, delta, moveAction) { list.navigateRequested(address, delta, moveAction); }
+                        onPointerMoved: function(address, scenePosition) { list.pointerMoved(address, scenePosition); }
                     }
                 }
             }

@@ -32,10 +32,10 @@ translations instead. Custom labels remain exactly as you wrote them.
 | Bar hover delay | Wait before showing the compact panel; 0 means instant | 400 ms |
 | Expand on double-click | Single click opens compact; double-click expands or collapses. Turn off for single-click expansion | On |
 | Allow pinning compact panel | Keep compact open after a bar click or collapse; otherwise it closes on pointer exit | On |
-| Window previews | Show a live preview of the hovered window | On |
+| Window previews | Show a live preview of the pointed-at or keyboard-selected window | On |
 | Dark backing behind preview image | Add dark fill behind captured content | On |
 | Fit preview frame to window proportions | Follow the captured window's aspect ratio | On |
-| Window preview delay | Wait before showing a preview; 0 means instant | 400 ms |
+| Window preview delay | Wait before showing a mouse-hover preview; keyboard selection is immediate | 400 ms |
 | Popup animations | Animate opening, closing and expansion | On |
 
 Both delays accept 0–2000 ms. Turning an option off keeps its saved values.

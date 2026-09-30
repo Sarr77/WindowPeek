@@ -136,6 +136,7 @@ Rectangle {
             hostWidget: root.hostWidget; rows: ListData.rows(root.preview)
             enabled: root.interactive
             expanded: false; expansion: 0; opened: root.interactive && root.visible
+            highlightSelection: false
             previewBoundsItem: root
             scrollbarGutter: root.inset
             scrollbarParent: root
