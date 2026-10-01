@@ -52,12 +52,12 @@ QtObject {
             root.file.path = root.path;
         }
     }
-    property FileView file: FileView {
-        path: ""; atomicWrites: true; blockWrites: false; printErrors: false
-        onLoaded: root.load(text())
+    property SafeFile file: SafeFile {
+        path: ""; maxBytes: 524288
+        onLoaded: function(content) { root.load(content); }
         onLoadFailed: function(error) {
             if (!path || root.ready) return;
-            if (error !== FileViewError.FileNotFound) { root.failed = true; root.readBlocked = true; }
+            if (error !== "missing") { root.failed = true; root.readBlocked = true; }
             root.ready = true;
         }
     }

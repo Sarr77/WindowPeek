@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.8
+
+- Bound reads of preferences, update state, focus history and the current theme
+  before their contents reach the shell. Reject special, linked and oversized
+  files; keep preference writes atomic and update notifications responsive.
+- Apply the same local-file checks in the update and wallpaper workers.
+
 ## 0.7.7
 
 - Use Up and Down to select windows in the compact and expanded panels, with an

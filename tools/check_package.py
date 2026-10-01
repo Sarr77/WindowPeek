@@ -27,7 +27,7 @@ def main():
         "manifest.json", "qmldir", "LICENSE", "README.md", "CHANGELOG.md",
         "vendor/omarchy/LICENSE", "vendor/omarchy/OmarchyLogo.qml",
         "vendor/omarchy/PopupMotion.qml", "vendor/omarchy/WindowPanel.qml",
-        "update.py", "wallpaper_contrast.py", "tools/focus_observer.py",
+        "update.py", "wallpaper_contrast.py", "bounded_io.py", "SafeFile.qml", "tools/focus_observer.py",
         "FocusIncident.js", "FocusWatch.js", "NativeProtection.js", "SearchFocus.js",
         "FocusRecoveryText.js", "FocusIssues.js", "TextReadability.js",
         "Shortcuts.js", "ShortcutBindings.js", "assets/grain.svg", "assets/grain-tint.svg",
@@ -52,7 +52,7 @@ def main():
             source = root.joinpath(*path.parts[1:])
             assert source.is_file() and source.read_bytes() == archive.read(info), "Stale archive: " + info.filename
         assert {p.name for p in map(PurePosixPath, names) if len(p.parts) == 2 and p.suffix == ".py"} == {
-            "update.py", "wallpaper_contrast.py"}, "Unexpected root Python worker"
+            "update.py", "wallpaper_contrast.py", "bounded_io.py"}, "Unexpected root Python worker"
         assert json.loads(archive.read("windowpeek/manifest.json")) == manifest
         for relative in re.findall(r'^\.import "(translations/[^"\n]+\.js)" as ', archive.read("windowpeek/I18n.js").decode(), re.M):
             required.add(relative)

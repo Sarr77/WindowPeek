@@ -6,7 +6,7 @@ import "Appearance.js" as Appearance
 
 QtObject {
     id: root
-    readonly property string version: "0.7.7"
+    readonly property string version: "0.7.8"
     property WindowState state: WindowState { }
     property FocusRecovery recovery: FocusRecovery {
         state: root.state
@@ -51,12 +51,11 @@ QtObject {
     function previewLabels(owner, value) { labelsPreview = value; labelsPreviewOwner = owner; }
     function cancelLabels(owner) { if (labelsPreviewOwner === owner) { labelsPreviewOwner = null; labelsPreview = {}; } }
 
-    property FileView theme: FileView {
+    property SafeFile theme: SafeFile {
         path: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/omarchy/current/theme.name"
         watchChanges: true
-        printErrors: false
-        onLoaded: root.themeId = Appearance.themeId(text())
-        onFileChanged: reload()
+        maxBytes: 256
+        onLoaded: function(content) { root.themeId = Appearance.themeId(content); }
         onLoadFailed: root.themeId = ""
     }
 }

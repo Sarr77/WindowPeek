@@ -27,6 +27,7 @@ WindowState 1.0 WindowState.qml
 WindowActions 1.0 WindowActions.qml
 Preferences 1.0 Preferences.qml
 WriteQueue 1.0 WriteQueue.qml
+SafeFile 1.0 SafeFile.qml
 Updates 1.0 Updates.qml
 AppearanceEditor 1.0 AppearanceEditor.qml
 ScalingEditor 1.0 ScalingEditor.qml

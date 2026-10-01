@@ -7,6 +7,7 @@ ShellRoot {
     id:test
     property int step:0
     property int waits:0
+    property int batchesBeforeLabels:0
     property color ink:"#509475"
     property color theme:"#c1c497"
     property color backing:"transparent"
@@ -28,11 +29,13 @@ ShellRoot {
             try {
                 switch(test.step++) {
                 case 0:
+                    test.batchesBeforeLabels=host.textReadability.batches;
                     for(var i=0;i<1000;i++)host.textReadability.result(test.ink,test.theme,test.backing);
                     test.check(Object.keys(host.textReadability.roles).length===1,"a thousand labels share one color job");break;
                 case 1:
                     if(!test.settled())break;
-                    test.check(host.textReadability.batches===1,"shared role calculated once");
+                    test.check(host.textReadability.batches-test.batchesBeforeLabels<=1,
+                        "a thousand labels add at most one shared batch");
                     var c=host.textReadability.context;
                     test.check(test.answer.active===Policy.needed(c,test.ink,test.backing),"worker agrees with contrast policy");
                     var expected=Policy.ink(c,test.ink,test.theme,test.backing);

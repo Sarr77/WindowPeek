@@ -1,8 +1,10 @@
 """Choose a conservative first-use Wallpaper default from its local panel crop."""
 import json
 import math
+import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 import time
@@ -15,13 +17,32 @@ def rgb(value):
     return tuple(bytes.fromhex(value[1:]))
 
 
+def read_local_text(path, limit):
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
+            raise ValueError("theme file is not a bounded regular file")
+        raw = bytearray()
+        while len(raw) <= limit:
+            block = os.read(descriptor, min(65536, limit + 1 - len(raw)))
+            if not block:
+                break
+            raw.extend(block)
+        if len(raw) > limit:
+            raise ValueError("theme file too large")
+        return raw.decode("utf-8")
+    finally:
+        os.close(descriptor)
+
+
 def palette_matches(state):
     """Reject the gap between theme.name changing and the shell applying colors."""
     directory = Path(state["directory"])
-    if (directory.parent / "theme.name").read_text().strip() != state["theme"]:
+    if read_local_text(directory.parent / "theme.name", 256).strip() != state["theme"]:
         return False
     colors = dict(re.findall(r'^\s*([\w-]+)\s*=\s*[\"\']?(#[0-9A-Fa-f]{6})',
-                             (directory / "colors.toml").read_text(), re.MULTILINE))
+                             read_local_text(directory / "colors.toml", 65536), re.MULTILINE))
     for role, fallback in (("foreground", "color7"), ("background", "color0")):
         expected = colors.get(role, colors.get(fallback))
         if not expected or rgb(expected) != rgb(state[role]):
@@ -31,7 +52,7 @@ def palette_matches(state):
     shell = {}
     section = ""
     shell_path = directory / "shell.toml"
-    for line in shell_path.read_text().splitlines() if shell_path.exists() else []:
+    for line in read_local_text(shell_path, 65536).splitlines() if shell_path.exists() else []:
         heading = re.fullmatch(r'\s*\[([\w-]+)\]\s*(?:#.*)?', line)
         if heading:
             section = heading[1]

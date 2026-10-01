@@ -34,7 +34,7 @@ Hyprland events → WindowState → WindowModel → Widget / PanelContent
 | `PreviewModifiers.qml` | Bounded Shift-state observation for preview privacy without keyboard focus |
 | `ShortcutModifiers.qml` | Ctrl state on opening and while the window list is visible |
 | `OpenShortcut.qml`, `OpenShortcut.js` | Register an unused Super+Alt+P chord for the enabled plugin |
-| `Preferences.qml`, `Settings.js` | Atomic durable preferences and revision handling |
+| `Preferences.qml`, `SafeFile.qml`, `bounded_io.py`, `Settings.js` | Bounded state reads, atomic durable preferences and revision handling |
 | `Appearance.js` and editors | Color rules, presets, preview, apply/cancel and scaling |
 | `Labels.js`, `LabelsEditor.qml`, `LabelButton.qml` | Text templates, grouped editing and bounded action labels |
 | `I18n.js`, `translations/*.js` | Locale detection and 30 local catalogs without changing Qt's global translator |
@@ -1171,7 +1171,13 @@ fresh raw snapshots/revisions for focus diagnostics; the normalized list changes
 only when list data changes. Window geometry polling therefore does not rebuild
 unchanged rows. Desktop-entry lookups are shared per class within each snapshot.
 
-`WriteQueue` serializes asynchronous atomic `FileView` saves. Settings and incident
+`SafeFile` reads mutable state in an isolated Python process. It opens each path
+once with `O_NOFOLLOW`, `O_CLOEXEC` and `O_NONBLOCK`, checks that the descriptor
+is a regular file, and reads at most the per-file byte limit plus one. The QML
+`FileView` is only a watcher with preloading disabled; it never reads content.
+Special files, links, invalid UTF-8 and oversized files cannot enter the shell.
+The same helper writes preferences and incident history through a temporary
+file and atomic rename. `WriteQueue` serializes those asynchronous saves. Settings and incident
 history publish only after `saved`, including editor completion, host updates and
 ignore choices. Pending settings merge subsequent edits from either monitor;
 hint reservations and wallpaper defaults use that pending state too. A failed

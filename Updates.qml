@@ -45,16 +45,18 @@ QtObject {
   property Process terminal: Process {
     onExited: function(code) { root.manualLaunchFailed = code !== 0; }
   }
-  property FileView manualState: FileView {
+  property SafeFile manualState: SafeFile {
     path: preferences.directory + "/manual-updates.json"
-    watchChanges: true; printErrors: false
-    onLoaded: {
-      try { var value = JSON.parse(text()); root.manualResult = value && typeof value === "object" ? value : {}; }
+    maxBytes: 65536; watchChanges: true
+    onLoaded: function(content) {
+      try { var value = JSON.parse(content); root.manualResult = value && typeof value === "object" ? value : {}; }
       catch (error) { root.manualResult = {}; }
       root.manualReady = true;
     }
-    onLoadFailed: root.manualReady = true
-    onFileChanged: reload()
+    onLoadFailed: function(reason) {
+      if (reason !== "missing") root.manualResult = {};
+      root.manualReady = true;
+    }
   }
   function checkManual(widgets, now) {
     if (!checksEnabled || !manualReady || !runtimeAvailable || manualBusy) return;
@@ -92,28 +94,30 @@ QtObject {
   }
   readonly property bool available: !!source.repository && !!source.latestRelease
   property var source: ({})
-  property FileView releaseSource: FileView {
-    path: Qt.resolvedUrl("release.json")
-    printErrors: false
-    onLoaded: { try { root.source = JSON.parse(text()); } catch (error) { root.source = {}; } }
+  property SafeFile releaseSource: SafeFile {
+    path: decodeURIComponent(Qt.resolvedUrl("release.json").toString().replace(/^file:\/\//, ""))
+    maxBytes: 16384
+    onLoaded: function(content) { try { root.source = JSON.parse(content); } catch (error) { root.source = {}; } }
+    onLoadFailed: root.source = {}
   }
   readonly property bool enabled: available && preferences.ready && preferences.hasSavedValues && !preferences.failed && !preferences.readBlocked
     && (preferences.values.autoUpdates === undefined || preferences.values.autoUpdates === true)
-  property FileView state: FileView {
+  property SafeFile state: SafeFile {
     path: root.path
-    watchChanges: true
-    printErrors: false
-    onLoaded: {
+    maxBytes: 65536; watchChanges: true
+    onLoaded: function(content) {
       try {
-        var value = JSON.parse(text());
+        var value = JSON.parse(content);
         root.nextCheck = root.timestamp(value.nextCheck);
         root.lastCheck = root.timestamp(value.lastCheck);
         root.status = value.status || "";
       } catch (error) { root.nextCheck = 0; root.lastCheck = 0; root.status = ""; }
       root.ready = true;
     }
-    onLoadFailed: root.ready = true
-    onFileChanged: reload()
+    onLoadFailed: function(reason) {
+      if (reason !== "missing") { root.nextCheck = 0; root.lastCheck = 0; root.status = ""; }
+      root.ready = true;
+    }
   }
   function timestamp(value) {
     return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;

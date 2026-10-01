@@ -73,6 +73,26 @@ def read_json(url, limit):
     return json.loads(raw)
 
 
+def read_local_json(path, limit):
+    """Never consume an unbounded or special local state file in a worker."""
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
+            raise ValueError("local metadata is not a bounded regular file")
+        raw = bytearray()
+        while len(raw) <= limit:
+            block = os.read(descriptor, min(65536, limit + 1 - len(raw)))
+            if not block:
+                break
+            raw.extend(block)
+        if len(raw) > limit:
+            raise ValueError("local metadata too large")
+        return json.loads(raw)
+    finally:
+        os.close(descriptor)
+
+
 def release_identity(release):
     if (not isinstance(release, dict) or release.get("draft") is not False
             or release.get("prerelease") is not False
@@ -154,7 +174,7 @@ class Updater:
 
     def enabled(self):
         try:
-            prefs = json.loads((self.state / "preferences.json").read_text())
+            prefs = read_local_json(self.state / "preferences.json", 262144)
             return (type(prefs["version"]) is int and prefs["version"] == 1
                     and isinstance(prefs["settings"], dict)
                     and prefs["settings"].get("autoUpdates", True) is True)
@@ -273,7 +293,7 @@ class Updater:
     def install(self, release):
         release_id, tag = release_identity(release)
         target_version = version(tag[1:])
-        current = json.loads((self.plugin / "manifest.json").read_text())
+        current = read_local_json(self.plugin / "manifest.json", 16384)
         if not isinstance(current, dict) or current.get("id") != PLUGIN_ID:
             raise ValueError("wrong installed plugin")
         if target_version <= version(current["version"]):
@@ -302,7 +322,7 @@ class Updater:
             if not modes or any(mode not in ("100644", "100755") for mode in modes):
                 raise ValueError("release contains a symlink or submodule")
             self.git(stage, "checkout", "--quiet", "-B", "main", target)
-            manifest = json.loads((stage / "manifest.json").read_text())
+            manifest = read_local_json(stage / "manifest.json", 16384)
             if not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID or manifest.get("version") != tag[1:]:
                 raise ValueError("release manifest mismatch")
             self.validate(stage)
@@ -342,7 +362,7 @@ class Updater:
                 return "disabled"
             now = int(time.time()) if now is None else now
             try:
-                previous = json.loads(self.result.read_text())
+                previous = read_local_json(self.result, 65536)
                 if isinstance(previous, dict) and not check_due(previous, now, startup):
                     return "not-due"
             except (OSError, ValueError, KeyError, TypeError):
@@ -386,7 +406,7 @@ class ManualUpdates(Updater):
 
     def enabled(self):
         try:
-            prefs = json.loads((self.state / "preferences.json").read_text())
+            prefs = read_local_json(self.state / "preferences.json", 262144)
             return (type(prefs["version"]) is int and prefs["version"] == 1
                     and isinstance(prefs["settings"], dict)
                     and prefs["settings"].get("checkUpdates", True) is True)
@@ -420,7 +440,7 @@ class ManualUpdates(Updater):
         if not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID:
             raise ValueError("wrong upstream plugin")
         version(manifest.get("version"))
-        installed = json.loads((self.plugin / "manifest.json").read_text())
+        installed = read_local_json(self.plugin / "manifest.json", 16384)
         if version(manifest["version"]) < version(installed["version"]):
             raise ValueError("upstream version would downgrade this installation")
         result.update(status="available", version=manifest["version"], verification="unknown")
@@ -445,7 +465,7 @@ class ManualUpdates(Updater):
                 return "busy"
             now = int(time.time()) if now is None else now
             try:
-                previous = json.loads(self.result.read_text())
+                previous = read_local_json(self.result, 65536)
                 legacy_block = isinstance(previous, dict) and previous.get("status") == "local-changes" and not previous.get("reason")
                 if not force and isinstance(previous, dict) and not legacy_block and not check_due(previous, now):
                     return "not-due"

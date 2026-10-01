@@ -105,7 +105,7 @@ FocusScope {
                         id: catalog; objectName: "starWindowPeekCatalog"
                         KeyNavigation.priority: KeyNavigation.BeforeItem
                         KeyNavigation.backtab: linkError.visible ? linkError : issues
-                        width: parent.width; text: root.words.starWindowPeekCatalog; accent: root.accent
+                        width: parent.width; text: root.words.starWindowPeekCatalog; accent: root.accent; heart: true
                         enabled: !BrowserLinks.busy
                         onClicked: root.openLink("https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek")
                     }

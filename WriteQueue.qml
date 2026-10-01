@@ -1,6 +1,6 @@
 import QtQuick
 
-// Serial atomic FileView writes. A successful enqueue is not a durable save:
+// Serial atomic SafeFile writes. A successful enqueue is not a durable save:
 // callers publish settings only from the completion callback.
 QtObject {
     id: root
