@@ -4,6 +4,7 @@ import importlib.util
 import os
 from pathlib import Path
 import select
+import shutil
 import subprocess
 import tempfile
 import time
@@ -12,6 +13,11 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "bounded_io.py"
+OMARCHY_SHELL = Path("/usr/share/omarchy/shell")
+NATIVE_QML_AVAILABLE = (
+    shutil.which("quickshell") is not None
+    and all((OMARCHY_SHELL / name).is_dir() for name in ("Ui", "Commons"))
+)
 
 
 def call(action, path, limit=64, value=None):
@@ -73,12 +79,16 @@ class BoundedIoTests(unittest.TestCase):
             self.assertLess(time.monotonic() - start, 1)
             self.assertEqual(call("write", fifo, value="ok")["status"], "error")
 
-    def test_invalid_utf8_and_bounded_qml_watcher(self):
+    def test_invalid_utf8_is_rejected(self):
         with tempfile.TemporaryDirectory() as folder:
-            base = Path(folder)
-            bad = base / "bad"
+            bad = Path(folder) / "bad"
             bad.write_bytes(b"\xff")
             self.assertEqual(call("read", bad)["status"], "error")
+
+    @unittest.skipUnless(NATIVE_QML_AVAILABLE, "Quickshell and Omarchy UI are needed for the QML watcher")
+    def test_bounded_qml_watcher(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
             fifo = base / "fifo"
             os.mkfifo(fifo)
             for name in ("Ui", "Commons"):
@@ -113,6 +123,7 @@ ShellRoot {
             self.assertNotIn("UNEXPECTED_LOAD", output)
             self.assertNotIn("SAFE_FILE_TIMEOUT", output)
 
+    @unittest.skipUnless(NATIVE_QML_AVAILABLE, "Quickshell and Omarchy UI are needed for the QML watcher")
     def test_watcher_reloads_after_atomic_replacement(self):
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)

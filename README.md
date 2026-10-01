@@ -1,4 +1,4 @@
-# WindowPeek
+# WindowPeek for Omarchy
 
 **Find any window in seconds.**
 

@@ -1,4 +1,4 @@
-# WindowPeek
+# WindowPeek dla Omarchy
 
 **Znajdź każde okno w kilka sekund.**
 
@@ -10,7 +10,7 @@ Dock, launcher, menu Start, Launchpad i Mission Control próbują rozwiązywać 
 
 [Omarchy Plugins](https://plugins.omarchy.org/plugin.html?id=sarr.windowpeek) · [Instrukcja](https://github.com/Sarr77/WindowPeek/blob/main/docs/GUIDE.md) · [Ustawienia](https://github.com/Sarr77/WindowPeek/blob/main/docs/SETTINGS.md) · [Changelog](https://github.com/Sarr77/WindowPeek/blob/main/CHANGELOG.md)
 
-![WindowPeek](https://raw.githubusercontent.com/Sarr77/WindowPeek/main/preview.png)
+ ![WindowPeek](https://raw.githubusercontent.com/Sarr77/WindowPeek/main/preview.png)
 
 ## Instalacja
 
@@ -20,20 +20,20 @@ omarchy plugin add https://github.com/Sarr77/WindowPeek --enable
 
 WindowPeek pojawi się na barze Omarchy. Najedź na nazwę, aby przeglądać okna, albo naciśnij **Super + Alt + P**, aby pozostać przy klawiaturze czy filtrować tekstowo.
 
-## Już je otworzyłeś. Nie szukaj drugi raz
+## Sam je otworzyłeś. Nie szukaj drugi raz
 
 Jeśli masz otwartych tylko kilka okien, natywna nawigacja Hyprlanda jest wystarczająca. WindowPeek zaczyna być przydatny, gdy pulpit staje się przestrzenią roboczą: przeglądarki, terminale, edytory, agenci, pliki i multimedia rozłożone na wielu workspace'ach i monitorach.
 
 Z WindowPeek możesz:
 
-- **Najechać i przeglądać** otwarte okna bezpośrednio z bara.
-- **Szukać po tytule lub aplikacji**, zamiast pamiętać, gdzie znajduje się okno.
-- **Podejrzeć okno przed przełączeniem**, również na innym workspace.
-- **Przejść bezpośrednio** do okna lub taba w grupie Hyprlanda.
-- **Przenosić okna** między workspace'ami, monitorami i scratchpadem.
-- **Zostać przy klawiaturze** dzięki konfigurowalnym skrótom i numerowanemu wyborowi.
-- **Natychmiast ukryć podglądy** klawiszem Shift podczas prezentacji lub udostępniania ekranu.
-- **Zachować wygląd Omarchy** - WindowPeek automatycznie dopasowuje się do motywu, a jeśli chcesz, możesz zmienić praktycznie wszystko.
+* **Najechać i przeglądać** otwarte okna bezpośrednio z bara.
+* **Szukać po tytule lub aplikacji**, zamiast pamiętać, gdzie znajduje się okno.
+* **Podejrzeć okno przed przełączeniem**, również na innym workspace.
+* **Przejść bezpośrednio** do okna lub taba w grupie Hyprlanda.
+* **Przenosić okna** między workspace'ami, monitorami i scratchpadem.
+* **Zostać przy klawiaturze** dzięki konfigurowalnym skrótom i numerowanemu wyborowi.
+* **Natychmiast ukryć podglądy** klawiszem Shift podczas prezentacji lub udostępniania ekranu.
+* **Zachować wygląd Omarchy** - WindowPeek automatycznie dopasowuje się do motywu, a jeśli chcesz, możesz zmienić praktycznie wszystko.
 
 ## Skróty klawiszowe
 
