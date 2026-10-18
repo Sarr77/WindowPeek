@@ -838,7 +838,8 @@ Timers are simulated because config verification has no event loop.
 
 `logo-cooldown` checks first playback, static rapid reopening, independent logo
 slots, shared history across monitor instances, GIF and pixel playback, zero
-cooldown, expiry and hidden-window lifecycle. `outside-wheel-native` uses a real
+cooldown, expiry counted from playback start rather than hiding, and hidden-window
+lifecycle. `outside-wheel-native` uses a real
 Wayland scroll receiver behind the production Bar/panel to check that the first
 outside wheel event reaches it in compact, expanded and Settings/dropdown modes;
 outside button presses still dismiss the panel. It covers right-click section

@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtQuick.Controls as QQC
 import "LogoCatalog.js" as Catalog
 import qs.Commons
+import qs.Commons as Commons
 
 FocusScope {
     id: root
@@ -76,7 +77,7 @@ FocusScope {
                         text: root.words.projectSupportIntro; textFormat: Text.PlainText; wrapMode: Text.Wrap
                         horizontalAlignment: Text.AlignHCenter
                         font.family: Style.font.family; font.pixelSize: Style.font.heading; font.bold: true
-                        textColor: Color.popups.text
+                        textColor: Commons.Color.popups.text
                     }
                     LogoArt {
                         objectName: "projectSupportArtwork"
@@ -96,7 +97,7 @@ FocusScope {
                         text: root.words.projectSupportMission; textFormat: Text.PlainText; wrapMode: Text.Wrap
                         horizontalAlignment: Text.AlignHCenter
                         font.family: Style.font.family; font.pixelSize: Style.font.title
-                        textColor: Color.popups.text
+                        textColor: Commons.Color.popups.text
                     }
                 }
                 Column {
@@ -128,7 +129,7 @@ FocusScope {
                     width: parent.width; text: root.words.projectSupportThanks
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
                     horizontalAlignment: Text.AlignHCenter
-                    textColor: Color.popups.text
+                    textColor: Commons.Color.popups.text
                     font.family: Style.font.family; font.pixelSize: Style.font.title
                 }
                 EditField {
@@ -143,7 +144,7 @@ FocusScope {
                     visible: BrowserLinks.failed && BrowserLinks.lastUrl === root.requestedUrl
                     width: parent.width; text: root.words.browserOpenFailed
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.title
+                    textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.title
                 }
             }
         }

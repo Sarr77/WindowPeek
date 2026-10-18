@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -51,7 +52,7 @@ ShellRoot {
     Window {
         id: window
         visible: true; width: 540 * test.scale; height: 1300 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Plugin.PanelContent { id: panel; width: 500; height: 1260; scale: test.scale; transformOrigin: Item.TopLeft; hostWidget: host }
     }
     Timer {
@@ -65,8 +66,8 @@ ShellRoot {
                 switch (test.step++) {
                 case 0:
                     if (Quickshell.env("WINDOWPEEK_TEST_IMAGE")) {
-                        Color.shellValues = ({}); Color.background = "#1b1b26";
-                        Color.foreground = "#b7bedb"; Color.accent = host.accent;
+                        Commons.Color.shellValues = ({}); Commons.Color.background = "#1b1b26";
+                        Commons.Color.foreground = "#b7bedb"; Commons.Color.accent = host.accent;
                     }
                     test.originalSnapshot = host.snapshot;
                     var snapshot = JSON.parse(JSON.stringify(host.snapshot));

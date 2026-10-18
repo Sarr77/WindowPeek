@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 // Sample painted border pixels while the content moves. A property-only check
@@ -21,12 +22,12 @@ ShellRoot {
         id: window
         title: "WindowPeek fictional border test"
         visible: true; width: 300 * test.scale; height: 190 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Rectangle {
             id: canvas
             width: 300; height: 190
             scale: test.scale; transformOrigin: Item.TopLeft
-            color: Color.popups.background
+            color: Commons.Color.popups.background
             Flickable {
                 id: scroll; anchors.fill: parent; contentHeight: 400
                 clip: true; pixelAligned: true; boundsBehavior: Flickable.StopAtBounds

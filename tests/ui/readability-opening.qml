@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 // Exercise two independent cold panel owners, using the real deferred sampler.
@@ -59,17 +60,17 @@ ShellRoot {
             scale:test.scale;transformOrigin:Item.TopLeft;x:20;y:20;spacing:30
             Plugin.ReadableText {
                 id:firstText;visible:test.firstShown;shadowHost:first
-                text:"First monitor · window details";textColor:Qt.alpha(Color.popups.text,.7);font.pixelSize:14
+                text:"First monitor · window details";textColor:Qt.alpha(Commons.Color.popups.text,.7);font.pixelSize:14
             }
             Plugin.ReadableText {
                 id:secondText;visible:test.secondShown;shadowHost:second
-                text:"Second monitor · window details";textColor:Qt.alpha(Color.popups.text,.7);font.pixelSize:14
+                text:"Second monitor · window details";textColor:Qt.alpha(Commons.Color.popups.text,.7);font.pixelSize:14
             }
         }
     }
     Component.onCompleted: {
-        Color.colorsFile.path=""; Color.shellFile.path=""; Color.userShellFile.path="";
-        Color.shellValues={};Color.background="#1a1b26";Color.foreground="#a9b1d6"; }
+        Commons.Color.colorsFile.path=""; Commons.Color.shellFile.path=""; Commons.Color.userShellFile.path="";
+        Commons.Color.shellValues={};Commons.Color.background="#1a1b26";Commons.Color.foreground="#a9b1d6"; }
     Timer { interval:30;running:true;repeat:true;onTriggered:test.frame() }
     Timer {
         interval:80;running:true;repeat:true

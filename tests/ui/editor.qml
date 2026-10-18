@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 import "WindowPeek/I18n.js" as I18n
@@ -23,7 +24,7 @@ ShellRoot {
     id: window
     visible: true
     width: 420; height: 1080
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     Plugin.AppearanceEditor { id: editor; x: 16; y: 16; width: parent.width-32; hostWidget: host }
   }
   Timer {

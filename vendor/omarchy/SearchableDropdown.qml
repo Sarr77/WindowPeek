@@ -8,6 +8,7 @@ import "../.." as WindowPeek
 import qs.Ui
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 
 // Searchable single-select dropdown. Same trigger shape as Dropdown, but
 // the popup leads with an embedded TextField that filters the option
@@ -64,13 +65,13 @@ Item {
   readonly property bool triggerHovered: triggerHover.hovered
   signal controlClicked()
 
-  property color foreground: Color.popups.text
+  property color foreground: Commons.Color.popups.text
   property var hostWidget: null
   property var palette: hostWidget ? hostWidget.surfaces : null
-  property color background: palette ? palette.pickerBackground : Color.popups.background
-  property color accent: Color.accent
+  property color background: palette ? palette.pickerBackground : Commons.Color.popups.background
+  property color accent: Commons.Color.accent
   property color popupBorder: accent
-  readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Color.popups.border, Style.normalBorderWidth)
+  readonly property var popupBorderSpec: Border.localOrSurfaceSpec("popups", "border", popupBorder, Commons.Color.popups.border, Style.normalBorderWidth)
   property string fontFamily: Style.font.family
   property real labelFontSize: Style.font.caption
   property int rowHeight: Style.spacing.controlHeight

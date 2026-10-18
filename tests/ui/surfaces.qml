@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 
@@ -46,8 +47,8 @@ ShellRoot {
             try {
                 switch (test.step++) {
                 case 0:
-                    var originalShell = Color.shellValues;
-                    Color.shellValues = {"popups.background":"#112233", "popups.background-alpha":"0.4"};
+                    var originalShell = Commons.Color.shellValues;
+                    Commons.Color.shellValues = {"popups.background":"#112233", "popups.background-alpha":"0.4"};
                     test.check(host.surfaces.baseColor("panel") === "#112233",
                         "theme alpha must not turn the RGB editor fallback white");
                     test.check(Math.abs(host.surfaces.panel.a - .4) < .005,
@@ -55,7 +56,7 @@ ShellRoot {
                     host.persistSettings({panelStyle:"wallpaper"});
                     test.check(String(host.surfaces.panel) === "#112233",
                         "wallpaper uses theme RGB and its independent transparency");
-                    host.persistSettings({panelStyle:"solid"}); Color.shellValues = originalShell;
+                    host.persistSettings({panelStyle:"solid"}); Commons.Color.shellValues = originalShell;
                     editor.begin(); editor.selectTarget("windows");
                     test.find(editor,"colorTargetPicker").changed("windows");
                     editor.changeRule("custom","theme","#204060");

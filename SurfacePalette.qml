@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "Appearance.js" as Appearance
 
 QtObject {
@@ -7,17 +8,17 @@ QtObject {
     property var appearance: ({})
     property string themeId: ""
     property string panelStyle: "solid"
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     function rule(target) { return Appearance.surfaceRuleFor(appearance, target, themeId); }
     function baseColor(target) {
         // Appearance stores RGB; Qt serializes translucent colors as #AARRGGBB.
-        if (target === "panel" || target === "windows") return String(Qt.alpha(Color.popups.background, 1));
+        if (target === "panel" || target === "windows") return String(Qt.alpha(Commons.Color.popups.background, 1));
         if (target === "menu") return String(accent);
         return "#FFFFFF";
     }
     function colorFor(target) {
         if (target === "panel" && panelStyle === "solid" && !rule(target).color && rule(target).brightness === 0)
-            return Color.popups.background;
+            return Commons.Color.popups.background;
         return Appearance.brighten(Appearance.surfaceColor(appearance,target,themeId,baseColor(target)), rule(target).brightness);
     }
     function defaultOpacity(target) {

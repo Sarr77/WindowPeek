@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "Settings.js" as Settings
 import "I18n.js" as I18n
@@ -73,7 +74,7 @@ Column {
         width: parent.width; text: root.words.sharedLogoCooldown
         description: root.words.sharedLogoCooldownHelp
         palette: root.hostWidget ? root.hostWidget.surfaces : null
-        accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+        accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
         isSwitch: true; checked: root.sharedCooldown
         onClicked: if (root.hostWidget) root.hostWidget.persistSettings({sharedLogoCooldownEnabled: !checked})
     }
@@ -119,7 +120,7 @@ Column {
                 width: parent.width
                 text: group.modelData === "hover" ? root.words.hoverLogo : root.words.settingsLogo
                 palette: root.hostWidget ? root.hostWidget.surfaces : null
-                accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+                accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
                 isSwitch: true
                 checked: !!root.hostWidget && (group.modelData === "hover" ? root.hostWidget.hoverLogo : root.hostWidget.settingsLogo)
                 onClicked: {
@@ -170,7 +171,7 @@ Column {
                     anchors.left: parent.left; anchors.right: delay.left; anchors.rightMargin: Style.space(8)
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.words.delayLoop; textFormat: Text.PlainText; elide: Text.ElideRight
-                    textColor: Qt.alpha(Color.popups.text, loop.checked ? 0.7 : 0.4)
+                    textColor: Qt.alpha(Commons.Color.popups.text, loop.checked ? 0.7 : 0.4)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 EditField {
@@ -186,7 +187,7 @@ Column {
                     maximumLength: 9; selectByMouse: true
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     validator: RegularExpressionValidator { regularExpression: /\d{1,5}([.,]\d{0,3})?/ }
-                    accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+                    accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
                     Accessible.name: root.words.delayLoop + " (s)"
                     Component.onCompleted: text = String(group.loopDelay)
                     function save() {
@@ -209,7 +210,7 @@ Column {
                     id: seconds
                     anchors.right: loop.left; anchors.rightMargin: Style.space(16)
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "s"; textColor: Qt.alpha(Color.popups.text, loop.checked ? 0.7 : 0.4)
+                    text: "s"; textColor: Qt.alpha(Commons.Color.popups.text, loop.checked ? 0.7 : 0.4)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 UpdateSwitch {
@@ -220,7 +221,7 @@ Column {
                     checked: !root.hostWidget || (group.modelData === "hover" ? root.hostWidget.hoverLogoLoop : root.hostWidget.settingsLogoLoop)
                     highlightWhenChecked: true
                     text: root.words.loopAnimation
-                    accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+                    accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
                     onClicked: {
                         if (!root.hostWidget) return;
                         delay.save();
@@ -235,7 +236,7 @@ Column {
                     hostWidget: root.hostWidget; words: root.words
                     label: root.words.delayLoop; valueText: "4.2 s"
                     modified: group.loopDelay !== 4.2
-                    accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+                    accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
                     onResetRequested: {
                         delay.text = "4.2";
                         var values = {}; values[group.modelData + "LogoLoopDelay"] = 4.2;
@@ -255,12 +256,12 @@ Column {
     ReadableText {
         anchors.right: parent.right; width: parent.width - Style.space(16)
         text: root.words.logoFormats + "\n" + root.copy.adjust; textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Qt.alpha(Color.popups.text, 0.7)
+        textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
         font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     ReadableText {
         width: parent.width; visible: root.error !== ""
         text: root.error; textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
 }

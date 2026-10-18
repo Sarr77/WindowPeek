@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 
@@ -38,7 +39,7 @@ ShellRoot {
     }
     FloatingWindow {
         id: window; visible: true; implicitWidth: 1000 * test.scale; implicitHeight: 680 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Item {
             width: 1000; height: 680; scale: test.scale; transformOrigin: Item.TopLeft
             Plugin.PanelContent { id: panel; x: 10; y: 10; width: 480; height: 650; hostWidget: host; visible: test.surface === 0 }

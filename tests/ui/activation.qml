@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -26,8 +27,8 @@ ShellRoot {
     FakeHost { id: host }
     Window {
         id: window; visible: true; width: 1020 * test.scale; height: 680 * test.scale
-        color: Color.popups.background
-        Rectangle { anchors.fill: parent; color: Color.popups.background }
+        color: Commons.Color.popups.background
+        Rectangle { anchors.fill: parent; color: Commons.Color.popups.background }
         Item {
             width: 1020; height: 680; scale: test.scale; transformOrigin: Item.TopLeft
             Plugin.PanelContent { id: panel; x: 10; y: 10; width: 530; height: 650; hostWidget: host }

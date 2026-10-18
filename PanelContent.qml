@@ -6,6 +6,7 @@ import QtQuick.Window
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "WindowModel.js" as Model
 import "WindowListModel.js" as ListData
@@ -114,7 +115,7 @@ FocusScope {
     property real modalDismissMargin: 0
     property real maximumHeight: Infinity
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property bool updateAvailable: !!hostWidget && !!hostWidget.runtime
         && hostWidget.preference("checkUpdates", true) === true
         && !!hostWidget.runtime.updates && hostWidget.runtime.updates.manualAvailable
@@ -686,7 +687,7 @@ FocusScope {
                     : root.mode === "move" ? (root.chooseMoveMonitor ? root.words.moveMonitor : root.words.moveTo)
                     : root.mode === "labels" ? I18n.words(root.hostWidget.language).labels : root.words.settings
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
+                textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
@@ -704,7 +705,7 @@ FocusScope {
                 width: Math.min(implicitWidth, parent.width * (root.panelPinned ? 0.28 : 0.45))
                 label: root.words.updateAvailable
                 accent: root.accent; bordered: true; focusable: true
-                foreground: Color.popups.text; background: Qt.alpha(root.accent, 0.12)
+                foreground: Commons.Color.popups.text; background: Qt.alpha(root.accent, 0.12)
                 onClicked: root.showUpdates()
                 PanelHint {
                     hostWidget: root.hostWidget; requested: availableUpdateButton.hot && availableUpdateButton.visible
@@ -784,7 +785,7 @@ FocusScope {
                 width: parent.width - recoveryButton.width - (protectionOff.visible ? protectionOff.width + Style.space(6) : 0) - Style.space(10)
                 text: root.focusNotice.text
                 textFormat: Text.PlainText; wrapMode: recoveryButton.needsAttention || root.protectionPaused ? Text.Wrap : Text.NoWrap
-                elide: Text.ElideRight; textColor: recoveryButton.needsAttention ? Color.popups.text : root.accent
+                elide: Text.ElideRight; textColor: recoveryButton.needsAttention ? Commons.Color.popups.text : root.accent
                 font.bold: recoveryButton.needsAttention
                 font.family: Style.font.family; font.pixelSize: recoveryButton.needsAttention ? Style.font.body : Style.font.caption
             }
@@ -799,12 +800,12 @@ FocusScope {
                 // of the theme's subtle normal-button border.
                 readonly property bool needsAttention: root.focusNotice.attention
                 readonly property color attentionColor: {
-                    var background = root.hostWidget ? root.hostWidget.surfaces.panel : Color.popups.background;
+                    var background = root.hostWidget ? root.hostWidget.surfaces.panel : Commons.Color.popups.background;
                     return 0.2126 * background.r + 0.7152 * background.g + 0.0722 * background.b > 0.5
                         ? "#98542a" : "#e8ad62";
                 }
                 accent: needsAttention ? attentionColor : root.accent
-                foreground: needsAttention ? attentionColor : Color.foreground
+                foreground: needsAttention ? attentionColor : Commons.Color.foreground
                 background: needsAttention ? Qt.alpha(attentionColor, 0.10) : "transparent"
                 bordered: true
                 borderSpec: needsAttention ? Border.flat(attentionColor, Style.space(2)) : _borderSpec
@@ -898,7 +899,7 @@ FocusScope {
         text: root.inventory.status !== "ready" ? root.words.unavailable
             : root.inventory.windows.length ? root.words.noMatches : root.words.emptyWindows
         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter
-        textColor: Qt.alpha(Color.popups.text, 0.7); font.pixelSize: Style.font.body; font.family: Style.font.family
+        textColor: Qt.alpha(Commons.Color.popups.text, 0.7); font.pixelSize: Style.font.body; font.family: Style.font.family
     }
 
     Item {
@@ -1076,7 +1077,7 @@ FocusScope {
                 ReadableText {
                     width: parent.width; text: root.moveWindow ? root.moveWindow.app + "\n" + root.moveWindow.title : root.words.windowClosed
                     textFormat: Text.PlainText; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight
-                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                    textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
                 ReadableText {
                     objectName: "moveSource"
@@ -1085,7 +1086,7 @@ FocusScope {
                     text: I18n.format(root.words.moveFrom, {workspace: I18n.workspaceTitle(workspace ? workspace.name : "", root.words)})
                         + (workspace && workspace.monitor ? " · " + workspace.monitor.name : "")
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Qt.alpha(Color.popups.text, 0.7)
+                    textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 LabelButton {
@@ -1138,7 +1139,7 @@ FocusScope {
                     width: parent.width; visible: !!root.selectedDestination && !root.chooseMoveMonitor && !!root.selectedDestination.monitor
                     text: root.words.moveMonitor + ": " + (root.selectedDestination ? root.selectedDestination.monitor : "")
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                    textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
                 LabelButton {
                     objectName: "moveWorkspaceBack"
@@ -1152,7 +1153,7 @@ FocusScope {
                     width: parent.width; visible: root.moveMonitors.length > 1
                     text: I18n.format(root.words.moveMonitorHint, {monitor: root.hostWidget.screenName || root.words.unknownMonitor})
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Qt.alpha(Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    textColor: Qt.alpha(Commons.Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 LabelButton {
                     objectName: "cancelMove"; width: parent.width; label: root.words.cancel
@@ -1163,7 +1164,7 @@ FocusScope {
                 ReadableText {
                     width: parent.width; text: root.words.moveHint
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Qt.alpha(Color.popups.text, 0.65); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    textColor: Qt.alpha(Commons.Color.popups.text, 0.65); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
             }
         }
@@ -1172,12 +1173,12 @@ FocusScope {
         id: footer; objectName: "panelFooter"; visible: !root.recoveryOpen; width: parent.width; anchors.bottom: parent.bottom; spacing: Style.space(9)
         enabled: !root.blockingModalOpen
         opacity: root.blockingModalOpen ? 0.14 : 1
-        Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
+        Rectangle { width: parent.width; height: 1; color: Qt.alpha(Commons.Color.popups.text, 0.1) }
         ReadableText {
             width: parent.width; visible: !!root.hostWidget && (!!root.hostWidget.actionError || root.hostWidget.saveFailed)
             text: root.hostWidget && root.hostWidget.saveFailed ? root.words.settingsError
                 : root.hostWidget ? (root.words[root.hostWidget.actionError] || root.words.actionFailed) : ""
-            textFormat: Text.PlainText; wrapMode: Text.Wrap; textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+            textFormat: Text.PlainText; wrapMode: Text.Wrap; textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         Item {
             width: parent.width
@@ -1252,7 +1253,7 @@ FocusScope {
                             anchors.left: footerUpdateTrack.right; anchors.leftMargin: Style.space(6)
                             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                             text: updateSwitch.text; textFormat: Text.PlainText; elide: Text.ElideRight
-                            textColor: updateSwitch.hot ? root.accent : Qt.alpha(Color.popups.text, 0.4)
+                            textColor: updateSwitch.hot ? root.accent : Qt.alpha(Commons.Color.popups.text, 0.4)
                             font.family: Style.font.family; font.pixelSize: Math.max(9, Style.font.caption - 1)
                             font.underline: updateSwitch.keyboardFocusVisible
                         }
@@ -1274,7 +1275,7 @@ FocusScope {
                 KeyNavigation.priority: KeyNavigation.BeforeItem
                 KeyNavigation.tab: root.mode === "windows" ? root.firstTabControl : null
                 textOnly: true; fontSize: Style.font.caption; accent: root.accent
-                foreground: Qt.alpha(Color.popups.text, 0.65)
+                foreground: Qt.alpha(Commons.Color.popups.text, 0.65)
                 opacity: root.expansion; visible: root.expansion > 0
                 anchors.right: parent.right
                 anchors.rightMargin: Math.max(0, Math.round((settingsButton.width - headerActionMetrics.advanceWidth) / 2))

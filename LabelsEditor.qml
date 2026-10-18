@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "Labels.js" as Labels
 import "I18n.js" as I18n
@@ -10,7 +11,7 @@ Column {
     id: root
     required property var hostWidget
     readonly property var words: I18n.words(hostWidget ? hostWidget.language : "en")
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     property string style: "default"
     property string group: "panel"
     property var custom: ({})
@@ -73,7 +74,7 @@ Column {
     ReadableText {
         width: parent.width; text: root.words.labelHelp
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Qt.alpha(Commons.Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     Choice.Dropdown {
         id: groupPicker; objectName: "labelGroupPicker"
@@ -97,7 +98,7 @@ Column {
             ReadableText {
                 width: parent.width; text: root.caption(field.modelData)
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
             EditField {
                 objectName: "labelInput_" + field.modelData.key
@@ -124,7 +125,7 @@ Column {
                 width: parent.width; visible: root.style === "custom" && field.modelData.variables.length > 0
                 text: I18n.format(root.words.labelVariables, {variables:field.modelData.variables.map(function(name) { return "{" + name + "}"; }).join(", ")})
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Qt.alpha(Commons.Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
             ReadableText {
                 objectName: "labelExample_" + field.modelData.key
@@ -137,7 +138,7 @@ Column {
                 width: parent.width; visible: root.style === "custom" && field.invalid.length > 0
                 text: I18n.format(root.words.labelInvalidVariables, {variables:field.invalid.join(", ")})
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
     }
@@ -154,12 +155,12 @@ Column {
             .map(function(field) { return root.caption(field) + " — " + I18n.format(root.words.labelInvalidVariables,
                 {variables:Labels.invalidVariables(field.key, root.custom[field.key]).join(", ")}); }).join("\n")
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     ReadableText {
         width: parent.width; visible: root.saveFailed; text: root.words.labelSaveError
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+        textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     Row {
         width: parent.width; spacing: Style.space(10)

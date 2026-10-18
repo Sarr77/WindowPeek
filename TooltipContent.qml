@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 import "WindowModel.js" as Model
 import "WindowPreview.js" as Preview
@@ -19,7 +20,7 @@ Rectangle {
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
     readonly property bool compact: hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     readonly property bool rtl: hostWidget && hostWidget.language === "ar"
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property real inset: Style.space(compact ? 12 : 16)
     readonly property real rowHeight: Style.space(compact ? 40 : 50)
     readonly property real rowGap: Style.space(3)
@@ -83,7 +84,7 @@ Rectangle {
     implicitWidth: Style.space(compact ? 360 : 420)
     implicitHeight: content.implicitHeight + inset * 2
     color: hostWidget && hostWidget.panelStyle === "glass" ? Qt.alpha(hostWidget.surfaces.panel, hostWidget.glassOpacity)
-        : hostWidget ? hostWidget.surfaces.panel : Color.popups.background
+        : hostWidget ? hostWidget.surfaces.panel : Commons.Color.popups.background
     border.color: Qt.alpha(accent, 0.5); border.width: 1
     radius: Style.space(8)
 
@@ -115,7 +116,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.hostWidget ? root.hostWidget.textTemplates.panelTitle : "WindowPeek"
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
+                textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
             }
             Rectangle {
                 id: countBadge
@@ -150,17 +151,17 @@ Rectangle {
             id: footer
             width: parent.width; spacing: Style.space(9)
             visible: root.showHint || root.errorText !== ""
-            Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
+            Rectangle { width: parent.width; height: 1; color: Qt.alpha(Commons.Color.popups.text, 0.1) }
             ReadableText {
                 width: parent.width; visible: root.errorText !== ""
                 text: root.errorText; textFormat: Text.PlainText; wrapMode: Text.Wrap
-                textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
             ReadableText {
                 id: help; width: parent.width; visible: root.showHint
                 text: root.words.focusHint + "\n" + root.words.chooseMoveHint + "\n" + root.words.bringHint + "\n" + root.words.openSearchHint
                 textFormat: Text.PlainText; wrapMode: Text.Wrap
-                textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Qt.alpha(Commons.Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
     }

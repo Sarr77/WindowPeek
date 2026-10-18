@@ -2,12 +2,13 @@ import QtQuick
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 // Mouse activation and keyboard focus have separate visual states.
 QQC.AbstractButton {
     id: root
-    property color accent: Color.accent
-    property color foreground: Color.popups.text
+    property color accent: Commons.Color.accent
+    property color foreground: Commons.Color.popups.text
     property real fontSize: Style.font.body
     property bool textOnly: false
     property bool emphasized: false

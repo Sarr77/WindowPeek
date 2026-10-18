@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "../.." as WindowPeek
 
 PanelWindow {
@@ -20,7 +21,7 @@ PanelWindow {
   // Native input regions already round their enclosing bounds separately.
   property real contentWidth: Style.space(280)
   property int contentHeight: Style.space(200)
-  property var borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
+  property var borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Math.max(1, Style.space(2)))
   property bool centerOnBar: false
   property bool hoverOpen: false
   property bool shortcutKeyboard: false
@@ -152,7 +153,7 @@ PanelWindow {
   readonly property bool primeInput: interactive && keyboardActive && !pointerReady
   property bool animationsEnabled: true
   property bool glassEnabled: false
-  property color panelColor: Color.popups.background
+  property color panelColor: Commons.Color.popups.background
   property real glassOpacity: 0.92
   property Component backgroundComponent: null
   readonly property bool backgroundReady: !backgroundComponent

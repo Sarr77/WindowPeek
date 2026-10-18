@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -10,8 +11,8 @@ FocusScope {
   property bool notificationMode: false
   property bool rtl: false
   property bool keyboardInput: false
-  property color foreground: Color.popups.text
-  property color accent: Color.accent
+  property color foreground: Commons.Color.popups.text
+  property color accent: Commons.Color.accent
   signal canceled(int focusReason)
   signal confirmed(int focusReason)
   signal updatesRequested(int focusReason)
@@ -41,7 +42,7 @@ FocusScope {
     width: Math.min(parent.width, Style.space(388))
     height: content.implicitHeight + Style.space(32)
     hostWidget: root.hostWidget; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
-    fallbackBackground: root.hostWidget ? root.hostWidget.surfaces.pickerBackground : Color.popups.background
+    fallbackBackground: root.hostWidget ? root.hostWidget.surfaces.pickerBackground : Commons.Color.popups.background
     borderSpec: Border.flat(root.accent, Style.normalBorderWidth)
     radius: Style.space(8)
     MouseArea {

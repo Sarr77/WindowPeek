@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 // Late wallpaper/worker replies must not repaint text already on screen.
@@ -60,8 +61,8 @@ ShellRoot {
         }
     }
     Component.onCompleted: {
-        Color.colorsFile.path=""; Color.shellFile.path=""; Color.userShellFile.path="";
-        Color.shellValues={};Color.background="#1a1b26";Color.foreground="#dcd7ba"; }
+        Commons.Color.colorsFile.path=""; Commons.Color.shellFile.path=""; Commons.Color.userShellFile.path="";
+        Commons.Color.shellValues={};Commons.Color.background="#1a1b26";Commons.Color.foreground="#dcd7ba"; }
     Timer { interval:16;running:true;repeat:true;onTriggered:test.sample() }
     Timer {
         interval:80;running:true;repeat:true
@@ -100,7 +101,7 @@ ShellRoot {
                     if(!test.settled())break;
                     test.checking=false;host.textPresentationActive=false;
                     host.wallpaperSource="file://"+Quickshell.env("WINDOWPEEK_TEST_PROFILE")+"/purple.ppm";
-                    Color.foreground="#a9b1d6";break;
+                    Commons.Color.foreground="#a9b1d6";break;
                 case 6:
                     host.textPresentationActive=true;test.begin();break;
                 case 7:

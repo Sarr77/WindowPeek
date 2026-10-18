@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 import "Shortcuts.js" as Shortcuts
 import "LogoWords.js" as LogoCopy
@@ -8,7 +9,7 @@ Column {
     id: root
     required property string language
     property var hostWidget: null
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property var shortcuts: ({})
     property bool doubleClickExpand: false
     readonly property var words: Shortcuts.applyWords(I18n.words(language), shortcuts)
@@ -46,7 +47,7 @@ Column {
                         required property string modelData
                         width: parent.width; text: modelData; textFormat: Text.PlainText
                         wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-                        textColor: Color.popups.text; lineHeight: 1.2
+                        textColor: Commons.Color.popups.text; lineHeight: 1.2
                         font.family: Style.font.family; font.pixelSize: Style.font.body + Style.space(1)
                     }
                 }

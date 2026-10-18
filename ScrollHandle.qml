@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 
 QQC.ScrollBar {
   id: root
-  property color accent: Color.accent
+  property color accent: Commons.Color.accent
   property real uiScale: 1
   implicitWidth: Style.space(12) * uiScale
   padding: Style.space(4) * uiScale

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "UpdateWords.js" as Copy
 
 Column {
@@ -8,7 +9,7 @@ Column {
     readonly property var updates: hostWidget ? hostWidget.runtime.updates : null
     readonly property var copy: Copy.words(hostWidget ? hostWidget.language : "en")
     readonly property var result: updates ? updates.manualResult : ({})
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property int descriptionFontSize: Style.font.title
     readonly property bool checking: !!updates && (updates.manualBusy || minimumCheck.running)
     readonly property bool available: !!updates && updates.manualAvailable
@@ -41,7 +42,7 @@ Column {
             width: parent.width; text: root.checking ? root.copy.checking : root.statusText()
             height: Math.max(implicitHeight, statusMeasure.implicitHeight)
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
         Text {
             id: statusMeasure; visible: false
@@ -54,7 +55,7 @@ Column {
             text: root.result.verification === "verified" ? root.copy.verified
                 : root.result.verification === "unverified" ? root.copy.unverified : root.copy.unknown
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
         ReadableText {
             objectName: "manualUpdateTime"
@@ -62,7 +63,7 @@ Column {
             text: (root.result.status === "failed" || root.blocked ? root.copy.attempted : root.copy.checked)
                 + ": " + Qt.formatDateTime(new Date((root.result.lastCheck || 0) * 1000), "yyyy-MM-dd HH:mm")
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
     }
     Column {
@@ -94,13 +95,13 @@ Column {
             objectName: "manualUpdateHelp"
             visible: root.available; width: parent.width; text: root.copy.explain
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
         ReadableText {
             visible: !!root.updates && root.updates.manualLaunchFailed
             width: parent.width; text: root.copy.launchFailed
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
         EditField {
             visible: BrowserLinks.failed && !!root.updates && BrowserLinks.lastUrl === root.updates.changesUrl()
@@ -111,7 +112,7 @@ Column {
             visible: BrowserLinks.failed && !!root.updates && BrowserLinks.lastUrl === root.updates.changesUrl()
             width: parent.width; text: root.hostWidget.words.browserOpenFailed
             font.family: Style.font.family; font.pixelSize: root.descriptionFontSize
-            textColor: Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            textColor: Commons.Color.popups.text; textFormat: Text.PlainText; wrapMode: Text.Wrap
         }
     }
     SettingsRow {
@@ -119,7 +120,7 @@ Column {
         palette: root.hostWidget ? root.hostWidget.surfaces : null
         width: parent.width; text: root.hostWidget.words.updateNotifications; description: root.copy.checksHelp
         labelFontSize: root.descriptionFontSize
-        descriptionFontSize: root.descriptionFontSize; descriptionColor: Color.popups.text
+        descriptionFontSize: root.descriptionFontSize; descriptionColor: Commons.Color.popups.text
         accent: root.accent; isSwitch: true
         checked: root.hostWidget && root.hostWidget.preference("checkUpdates", true) === true
         onClicked: root.hostWidget.persistSettings({checkUpdates: !checked})
@@ -130,7 +131,7 @@ Column {
         width: parent.width; text: root.hostWidget.words.autoUpdates
         description: root.hostWidget.updatesAvailable ? root.copy.autoHelp : root.hostWidget.words.updatesUnavailable
         labelFontSize: root.descriptionFontSize
-        descriptionFontSize: root.descriptionFontSize; descriptionColor: Color.popups.text
+        descriptionFontSize: root.descriptionFontSize; descriptionColor: Commons.Color.popups.text
         accent: root.accent; isSwitch: true
         enabled: root.hostWidget.updatesAvailable
         checked: root.hostWidget.autoUpdates && root.hostWidget.updatesAvailable

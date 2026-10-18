@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 FocusScope {
     id: root
@@ -14,7 +15,7 @@ FocusScope {
     property bool rtl: false
     LayoutMirroring.enabled: rtl
     LayoutMirroring.childrenInherit: true
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     readonly property var copy: recovery ? recovery.copy : ({})
     property int selectedIndex: 0
     property bool choosingIgnore: false
@@ -105,7 +106,7 @@ FocusScope {
     ReadableText {
         id: heading; anchors.top: parent.top; width: parent.width
         text: root.closingPresentation ? root.closingPresentation.title : (root.confirmingPermanent ? root.copy.confirmKeepTitle : root.choosingIgnore ? root.copy.ignoreMenu : root.protectionEnabled ? root.copy.activeTitle : root.copy.title) || ""; textFormat: Text.PlainText; wrapMode: Text.Wrap
-        font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true; textColor: Color.popups.text
+        font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true; textColor: Commons.Color.popups.text
     }
     Flickable {
         id: details; anchors { top: heading.bottom; topMargin: Style.space(16); bottom: actions.top; bottomMargin: Style.space(16); left: parent.left; right: parent.right }
@@ -123,7 +124,7 @@ FocusScope {
                 ReadableText {
                     required property string modelData
                     width: explanation.width; text: modelData; textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    font.family: Style.font.family; font.pixelSize: Style.font.body; textColor: Color.popups.text
+                    font.family: Style.font.family; font.pixelSize: Style.font.body; textColor: Commons.Color.popups.text
                 }
             }
             ReadableText {
@@ -156,7 +157,7 @@ FocusScope {
                     width: parent.width; visible: text !== ""; text: choice.modelData.help || ""
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
                     font.family: Style.font.family; font.pixelSize: Style.font.body
-                    textColor: Qt.alpha(Color.popups.text, 0.8)
+                    textColor: Qt.alpha(Commons.Color.popups.text, 0.8)
                 }
             }
         }

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import QtQml.Models
 import qs.Ui as Ui
 import "TextReadability.js" as Readability
@@ -16,7 +17,7 @@ Ui.Button {
         delegate: QtObject {
             required property var modelData
             readonly property color originalInk: root.selected ? root._selectedColor : root.foreground
-            readonly property var readability: root.visible && modelData.visible ? Readability.decision(root.shadowHost, originalInk, Color.popups.text, root.shadowBacking) : ({active:false,ink:originalInk})
+            readonly property var readability: root.visible && modelData.visible ? Readability.decision(root.shadowHost, originalInk, Commons.Color.popups.text, root.shadowBacking) : ({active:false,ink:originalInk})
             readonly property bool active: readability.active
             readonly property var readableInk: readability.ink
             property Binding inkColor: Binding {

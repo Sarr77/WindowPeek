@@ -63,7 +63,7 @@ var words = {
   "logoFormats": "Animacje: GIF · Obrazy: PNG, JPG, WebP, SVG",
   "animatedOmarchy": "Omarchy · Animacja pixelowa",
   "loopAnimation": "Zapętlaj animację",
-  "delayLoop": "Przerwa pętli",
+  "delayLoop": "Przerwa między powtórkami",
   "resetLogoImage": "Użyj logo Omarchy",
   "logoImageError": "Nie można otworzyć tego obrazu.",
   "logoHint": "Chcesz tu swój nick? Wybierz obraz w Ustawienia → Personalizacja → Obrazy i GIF-y. Możesz też całkowicie wyłączyć logo.",
@@ -251,7 +251,7 @@ var words = {
   "pinBarHint": "Kliknij, aby przypiąć panel kompaktowy",
   "unpinBarHint": "Kliknij, aby odpiąć i zamknąć",
   "closePanelHint": "Kliknij, aby zamknąć panel",
-  "animationCooldown": "Przerwa między odtworzeniami",
+  "animationCooldown": "Minimalny odstęp między odtworzeniami",
   "moveMonitor": "Docelowy monitor",
   "moveMonitorHint": "Nowy workspace: wybierz monitor · Shift: {monitor}"
 };

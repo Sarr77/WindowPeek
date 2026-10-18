@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import Quickshell.Widgets
 import qs.Commons
+import qs.Commons as Commons
 
 // Draw the same centered crop as Omarchy, then expose only this card's area.
 // An opaque backing also covers underlying windows while the image is loading.
@@ -10,7 +11,7 @@ ClippingRectangle {
     property url source: ""
     property bool pending: false
     property var palette: null
-    readonly property color tint: palette ? palette.panel : Color.popups.background
+    readonly property color tint: palette ? palette.panel : Commons.Color.popups.background
     property size screenSize: Qt.size(0, 0)
     property point screenOrigin: Qt.point(0, 0)
     property real displayScale: 1

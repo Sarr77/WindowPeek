@@ -3,6 +3,7 @@ import QtQuick.Window
 import Quickshell
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 // Wallpaper is painted afresh, so controls underneath never show through a menu.
 Ui.BorderSurface {
@@ -10,7 +11,7 @@ Ui.BorderSurface {
     objectName: "dropdownBackground"
     property var hostWidget: null
     property real uiScale: 1
-    property color fallbackBackground: Color.popups.background
+    property color fallbackBackground: Commons.Color.popups.background
     readonly property bool wallpaperMode: !!hostWidget && hostWidget.panelStyle === "wallpaper"
     readonly property var targetWindow: root.Window.window
     readonly property point wallpaperOrigin: {

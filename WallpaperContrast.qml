@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import "Settings.js" as Settings
 
 Scope {
@@ -12,8 +13,8 @@ Scope {
     property rect panelRect
     readonly property string theme: hostWidget ? hostWidget.themeId : ""
     readonly property url source: hostWidget ? hostWidget.wallpaperSource : ""
-    readonly property string paletteKey: JSON.stringify([Color.foreground, Color.background,
-        Color.themeShellValues, Color.popups.text, hostWidget ? hostWidget.surfaces.panel : "",
+    readonly property string paletteKey: JSON.stringify([Commons.Color.foreground, Commons.Color.background,
+        Commons.Color.themeShellValues, Commons.Color.popups.text, hostWidget ? hostWidget.surfaces.panel : "",
         hostWidget ? hostWidget.surfaces.wallpaperBrightness : 0])
     readonly property bool eligible: active && !!hostWidget && hostWidget.settingsReady
         && !!theme && !Settings.wallpaperRule(hostWidget.effectiveSettings, theme).initialized
@@ -51,12 +52,12 @@ Scope {
                 JSON.stringify({source: String(root.source),
                     screen: [root.screenSize.width, root.screenSize.height],
                     panel: [root.panelRect.x, root.panelRect.y, root.panelRect.width, root.panelRect.height],
-                    foreground: String(Color.popups.text), tint: String(root.hostWidget.surfaces.panel),
+                    foreground: String(Commons.Color.popups.text), tint: String(root.hostWidget.surfaces.panel),
                     brightness: root.hostWidget.surfaces.wallpaperBrightness,
                     transparency: root.hostWidget.wallpaperTransparency,
-                    themeState: {directory: Color.currentThemePath, theme: root.theme,
-                        foreground: String(Color.foreground), background: String(Color.background),
-                        shell: Color.themeShellValues}})];
+                    themeState: {directory: Commons.Color.currentThemePath, theme: root.theme,
+                        foreground: String(Commons.Color.foreground), background: String(Commons.Color.background),
+                        shell: Commons.Color.themeShellValues}})];
             worker.running = true;
         }
     }

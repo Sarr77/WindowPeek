@@ -3,6 +3,7 @@ import QtTest
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -26,10 +27,10 @@ ShellRoot {
         themeName.setText(name); themeName.waitForJob();
         themeColors.setText('background="'+background+'"\nforeground="'+foreground+'"\n'); themeColors.waitForJob();
         host.themeId = name;
-        if (applyNow !== false) { Color.shellValues = {}; Color.background = background; Color.foreground = foreground; }
+        if (applyNow !== false) { Commons.Color.shellValues = {}; Commons.Color.background = background; Commons.Color.foreground = foreground; }
     }
-    FileView { id: themeName; path: Color.currentThemePath + "/../theme.name"; blockWrites: true }
-    FileView { id: themeColors; path: Color.currentThemePath + "/colors.toml"; blockWrites: true }
+    FileView { id: themeName; path: Commons.Color.currentThemePath + "/../theme.name"; blockWrites: true }
+    FileView { id: themeColors; path: Commons.Color.currentThemePath + "/colors.toml"; blockWrites: true }
     FakeHost {
         id: host; themeId: "bright-theme"
         settings: ({panelStyle:"wallpaper",hintsMode:"off"})
@@ -94,7 +95,7 @@ ShellRoot {
                 case 12:
                     test.check(!host.wallpaperTransparencyRule.initialized,
                         "new theme must not save a default from the previous theme's pale text");
-                    Color.background = "#eff1f5"; Color.foreground = "#4c4f69"; break;
+                    Commons.Color.background = "#eff1f5"; Commons.Color.foreground = "#4c4f69"; break;
                 case 13:
                     if (test.waiting()) break;
                     test.check(host.wallpaperTransparency === 70 && host.wallpaperTransparencyDefault === 70,

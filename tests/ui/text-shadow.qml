@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -57,7 +58,7 @@ ShellRoot {
                 var picker=test.find(settings,"textShadowPicker");
                 switch(test.step++) {
                 case 0:
-                    Color.shellValues={}; Color.background="#181820"; Color.foreground="#dcd7ba";
+                    Commons.Color.shellValues={}; Commons.Color.background="#181820"; Commons.Color.foreground="#dcd7ba";
                     test.find(settings,"settingsPersonalizationSection").expanded=true;
                     break;
                 case 1:

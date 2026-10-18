@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 import "WindowPeek/I18n.js" as I18n
@@ -31,10 +32,10 @@ ShellRoot {
     FakeHost { id: host; Component.onCompleted: savedAppearance = Appearance.normalize({uiScale:test.scale}) }
     Window {
         id: window; visible: true; width: 950 * test.scale; height: 710 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Rectangle {
             width: 950; height: 710; scale: test.scale; transformOrigin: Item.TopLeft
-            color: Color.popups.background
+            color: Commons.Color.popups.background
             Plugin.PanelContent { id: panel; x: 20; y: 20; width: 468; height: 540; hostWidget: host }
             Plugin.TooltipContent { id: preview; x: 530; y: 20; width: 400; height: implicitHeight; maximumHeight: 670; hostWidget: host; interactive: false }
         }

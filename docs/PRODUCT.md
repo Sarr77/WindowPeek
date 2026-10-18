@@ -83,8 +83,9 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   Offer a saved switch in Window list to align numbers at the right of the second
   line, moving Active to their left. Keep the app/tab position as the default.
   Keep the window's current monitor and close the panel.
-  Left or middle clicks on unused panel space expand the hover view or return
-  the window list to hover. Returning clears the search filter. Controls retain
+  A double left click (or a middle click) on unused panel space expands the hover
+  view or returns the window list to hover. With single-click expansion enabled,
+  one left click does the same. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
 - With Wallpaper selected, offer a small Follow bar style switch, enabled by default, beside
   the default label. Use Solid with an opaque bar and Wallpaper with a transparent
@@ -150,9 +151,10 @@ a “Hidden” marker; workspaces shown on any monitor have no status label. The
 mirrors for Arabic. Destination choices use the same workspace labels.
 Mark the active window and grouped tabs clearly.
 
-- Clicking the bar expands the existing rounded hover panel over 200 ms by default, keeping
-  its rows, order and scroll position. Search, Move, Settings and the footer
-  become available in the same surface. Opening directly starts expanded.
+- Double-clicking the bar expands the existing rounded compact panel over 200 ms
+  by default, keeping its rows, order and scroll position. Search, Move,
+  Settings and the footer become available in the same surface. The keyboard
+  shortcut opens directly in the expanded view.
 - Opening the expanded panel focuses search. Arrow keys select a result; Enter activates
   it; Escape closes the panel. Closing without an action restores prior focus.
 - A hover changes only the hovered control's appearance. It does not focus an

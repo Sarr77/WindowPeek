@@ -2,6 +2,7 @@
 // WindowPeek: allow ink and glyph shadow to switch together without a color tween.
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: root
@@ -10,8 +11,8 @@ Item {
   property string text: ""
   property string fontFamily: bar ? bar.fontFamily : Style.font.family
   property real fontSize: Style.font.body
-  property color foreground: bar ? bar.barForeground : Color.foreground
-  property color activeColor: bar ? bar.urgent : Color.urgent
+  property color foreground: bar ? bar.barForeground : Commons.Color.foreground
+  property color activeColor: bar ? bar.urgent : Commons.Color.urgent
   property bool active: false
   property real horizontalMargin: 8.5
   property real verticalPadding: 6

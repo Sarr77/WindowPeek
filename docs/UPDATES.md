@@ -82,9 +82,10 @@ saved preferences. There is no background service between checks.
 
 ## Automatic release approval
 
-Automatic installation accepts only a newer stable `vX.Y.Z` release from `Sarr77/WindowPeek`, marked immutable
-by GitHub, can be installed. Its tag must resolve to the exact commit approved
-by the official [Omarchy catalog](https://plugins.omarchy.org/catalog.json).
+Automatic installation accepts only a newer stable `vX.Y.Z` release from
+`Sarr77/WindowPeek` that GitHub marks immutable. Its tag must resolve to the
+exact commit approved by the official
+[Omarchy catalog](https://plugins.omarchy.org/catalog.json).
 Schema 2 must contain exactly one entry with:
 
 | Field | Required value |

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
     id: root
@@ -26,13 +27,13 @@ Item {
         visible: !icon.source || icon.status !== Image.Ready
         Rectangle {
             x: parent.width * 0.23; y: 0; width: parent.width * 0.77; height: parent.height * 0.77
-            radius: 2; color: Color.popups.background
-            border.color: Qt.alpha(Color.popups.text, 0.3)
+            radius: 2; color: Commons.Color.popups.background
+            border.color: Qt.alpha(Commons.Color.popups.text, 0.3)
         }
         Rectangle {
             y: parent.height * 0.23; width: parent.width * 0.77; height: parent.height * 0.77
-            radius: 2; color: Color.popups.background
-            border.color: Qt.alpha(Color.popups.text, 0.65)
+            radius: 2; color: Commons.Color.popups.background
+            border.color: Qt.alpha(Commons.Color.popups.text, 0.65)
             Rectangle { x: 1; y: parent.height * 0.3; width: parent.width - 2; height: 1; color: parent.border.color }
         }
     }

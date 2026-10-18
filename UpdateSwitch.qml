@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: root
@@ -8,8 +9,8 @@ Item {
   property bool checked: true
   property bool highlightWhenChecked: false
   property bool hasCursor: false
-  property color foreground: Color.popups.text
-  property color accent: Color.accent
+  property color foreground: Commons.Color.popups.text
+  property color accent: Commons.Color.accent
   readonly property bool hot: pointer.containsMouse || hasCursor || activeFocus
   readonly property bool highlighted: hot || (highlightWhenChecked && checked)
   readonly property bool pointerHovered: pointer.containsMouse

@@ -66,7 +66,8 @@ ShellRoot {
                     test.check(!compact.playbackGranted && !settings.playbackGranted && !test.find(settings,"customPanelLogo").animating,"closing the backing window ends playback");
                     window.visible=true;break;
                 case 11:
-                    test.check(!settings.playbackGranted && peer.playbackGranted,"backing-window reopen respects cooldown and zero independently");
+                    test.check(compact.playbackGranted && !settings.playbackGranted && peer.playbackGranted,
+                        "cooldown runs from playback start: a long open visit permits an immediate compact replay, while recent Settings playback stays blocked");
                     compact.visible=false;settings.visible=false;peer.visible=false;
                     host.persistSettings({sharedLogoCooldownEnabled:true,sharedLogoCooldown:0.6});break;
                 case 12: compact.visible=true;break;

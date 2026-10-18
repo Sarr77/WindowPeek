@@ -1,13 +1,14 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 
 Column {
     id: root
     property var hostWidget: null
     required property var words
     required property string label
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property real from: 0
     property real to: 100
     property real stepSize: 1
@@ -24,7 +25,7 @@ Column {
             id: labelText; anchors.left:parent.left; anchors.right:percent.left
             anchors.rightMargin:Style.space(12); anchors.verticalCenter:parent.verticalCenter
             text:root.label; textFormat:Text.PlainText; wrapMode:Text.Wrap
-            textColor:Color.popups.text; font.family:Style.font.family; font.pixelSize:Style.font.body
+            textColor:Commons.Color.popups.text; font.family:Style.font.family; font.pixelSize:Style.font.body
         }
         ReadableText {
             id:percent; anchors.right:reset.left; anchors.rightMargin:Style.space(8); anchors.verticalCenter:parent.verticalCenter

@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui as Ui
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
@@ -97,7 +98,7 @@ ShellRoot {
                 if (test.compileOnly) { console.info("WINDOWPEEK_TEST_PASS: glass native compile"); Qt.quit(); return; }
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues = {}; Color.background = "#1b1b26"; Color.foreground = "#b7bedb"; Color.accent = "#d898f5";
+                    Commons.Color.shellValues = {}; Commons.Color.background = "#1b1b26"; Commons.Color.foreground = "#b7bedb"; Commons.Color.accent = "#d898f5";
                     test.showing = true; panel.hoverRequested = true; break;
                 case 1:
                     test.check(panel.mapped && panel.surface.cardItem.color.a === 1, "solid panel opens");
@@ -129,7 +130,7 @@ ShellRoot {
                     host.persistSettings({popupAnimations:true}); break;
                 case 7:
                     test.check(thumbnail.backingWindowVisible && thumbnail.cardItem.color.a < 0.99, "animated preview also uses glass");
-                    Color.background = "#eeeeee"; Color.foreground = "#222222"; host.themeId = "light"; host.themeAccent = "#227799";
+                    Commons.Color.background = "#eeeeee"; Commons.Color.foreground = "#222222"; host.themeId = "light"; host.themeAccent = "#227799";
                     break;
                 case 8:
                     test.check(panel.surface.cardItem.color.r > 0.9 && panel.surface.cardItem.color.a < 0.99,
@@ -142,7 +143,7 @@ ShellRoot {
                         "restoring solid removes native blur");
                     test.check(thumbnail.cardItem.color.a === 1, "preview returns to solid too");
                     thumbnail.dismiss(); panel.hoverRequested = false; panel.close(); test.useWallpaper = true;
-                    Color.background = "#1b1b26"; Color.foreground = "#b7bedb"; host.themeId = "tokyo-night"; host.themeAccent = "#7aa2f7";
+                    Commons.Color.background = "#1b1b26"; Commons.Color.foreground = "#b7bedb"; host.themeId = "tokyo-night"; host.themeAccent = "#7aa2f7";
                     wallpaperProvider.observe(test, true); break;
                 case 11:
                     test.check(!panel.mapped, "reference wallpaper has no panel");

@@ -4,6 +4,7 @@ import QtTest
 import Quickshell
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -338,8 +339,8 @@ ShellRoot {
     TestEvent { id: events }
     Window {
         id: window
-        visible: true; width: 500 * test.scale; height: 540 * test.scale; color: Color.popups.background
-        Rectangle { anchors.fill: parent; color: Color.popups.background }
+        visible: true; width: 500 * test.scale; height: 540 * test.scale; color: Commons.Color.popups.background
+        Rectangle { anchors.fill: parent; color: Commons.Color.popups.background }
         Plugin.Widget { id: host; bar: bar; visible: false }
         Plugin.PanelContent {
             id: panel; x:16*test.scale; y:16*test.scale; width: window.width / test.scale - 32; height: window.height / test.scale - 32
@@ -354,7 +355,7 @@ ShellRoot {
             try {
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues={}; Color.foreground="#c0caf5"; Color.background="#1a1b26"; Color.accent="#d898f5";
+                    Commons.Color.shellValues={}; Commons.Color.foreground="#c0caf5"; Commons.Color.background="#1a1b26"; Commons.Color.accent="#d898f5";
                     test.scheduler(); panel.begin(); break;
                 case 1: test.manualUpdates(); break;
                 case 2: test.footerAndFocus(); break;

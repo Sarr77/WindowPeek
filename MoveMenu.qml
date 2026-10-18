@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui as Ui
 import "WindowCommands.js" as Commands
 import "I18n.js" as I18n
@@ -13,7 +14,7 @@ FocusScope {
     property point invocation: Qt.point(0, 0)
     readonly property real uiScale: hostWidget ? hostWidget.uiScale : 1
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property var entry: hostWidget ? hostWidget.inventory.windows.find(function(w) { return w.address === root.address; }) : null
     readonly property var destinations: hostWidget ? Commands.destinations(hostWidget.snapshot, address, true) : []
     readonly property var monitors: Commands.monitors(hostWidget ? hostWidget.snapshot : null)
@@ -85,7 +86,7 @@ FocusScope {
     DropdownSurface {
         id: card; objectName: "moveMenuCard"
         hostWidget: root.hostWidget; uiScale: root.uiScale
-        fallbackBackground: root.hostWidget ? root.hostWidget.surfaces.pickerBackground : Color.popups.background
+        fallbackBackground: root.hostWidget ? root.hostWidget.surfaces.pickerBackground : Commons.Color.popups.background
         x: Math.max(Style.space(8), Math.min(root.invocation.x / root.uiScale, root.width - width - Style.space(8)))
         y: Math.max(Style.space(8), Math.min(root.invocation.y / root.uiScale, root.height - height - Style.space(8)))
         width: Math.min(Style.space(280), root.width - Style.space(16))
@@ -115,14 +116,14 @@ FocusScope {
                     width: parent.width
                     text: root.entry ? root.entry.title || root.entry.app : root.words.windowClosed
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    textColor: Color.popups.text
+                    textColor: Commons.Color.popups.text
                     font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
                 }
                 ReadableText {
                     width: parent.width
                     text: root.entry ? I18n.format(root.words.moveFrom, {workspace: I18n.workspaceTitle(root.entry.workspace.name, root.words)}) : ""
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    textColor: Qt.alpha(Color.popups.text, 0.65)
+                    textColor: Qt.alpha(Commons.Color.popups.text, 0.65)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
                 ReadableText {
@@ -135,7 +136,7 @@ FocusScope {
                     width: parent.width; visible: !root.choosingMonitor && root.monitors.length > 1
                     text: I18n.format(root.words.moveMonitorHint, {monitor: root.hostWidget.screenName || root.words.unknownMonitor})
                     textFormat: Text.PlainText; wrapMode: Text.Wrap
-                    textColor: Qt.alpha(Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                    textColor: Qt.alpha(Commons.Color.popups.text,0.7); font.family: Style.font.family; font.pixelSize: Style.font.caption
                 }
             }
             EditField {
@@ -189,14 +190,14 @@ FocusScope {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.choosingMonitor ? row.modelData.name : I18n.workspaceTitle(row.modelData.name, root.words)
                         textFormat: Text.PlainText; elide: Text.ElideRight
-                        textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                        textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                     }
                     ReadableText {
                         id: monitor; anchors.right: parent.right; anchors.rightMargin: Style.space(8)
                         anchors.verticalCenter: parent.verticalCenter
                         width: Math.min(implicitWidth, parent.width * 0.3)
                         text: row.modelData.monitor; textFormat: Text.PlainText; elide: Text.ElideRight
-                        textColor: Qt.alpha(Color.popups.text, 0.55); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                        textColor: Qt.alpha(Commons.Color.popups.text, 0.55); font.family: Style.font.family; font.pixelSize: Style.font.caption
                     }
                     MouseArea {
                         id: mouse; anchors.fill: parent; hoverEnabled: true
@@ -206,7 +207,7 @@ FocusScope {
                 }
                 ReadableText {
                     anchors.centerIn: parent; visible: !results.count
-                    text: root.words.noMatches; textColor: Qt.alpha(Color.popups.text, 0.65)
+                    text: root.words.noMatches; textColor: Qt.alpha(Commons.Color.popups.text, 0.65)
                     font.family: Style.font.family; font.pixelSize: Style.font.body
                 }
             }
@@ -219,7 +220,7 @@ FocusScope {
             Column {
                 id: footer
                 width: parent.width; spacing: Style.space(8)
-                Rectangle { width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.1) }
+                Rectangle { width: parent.width; height: 1; color: Qt.alpha(Commons.Color.popups.text, 0.1) }
                 LabelButton {
                     objectName: "moveMenuBack"; visible: root.choosingMonitor
                     width: parent.width; label: root.words.back; focusable: true

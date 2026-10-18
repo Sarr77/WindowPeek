@@ -3,11 +3,12 @@ import QtQuick.Controls as QQC
 import QtQuick.Shapes
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 // Native focus reasons keep mouse activation distinct from keyboard focus.
 QQC.AbstractButton {
     id: root
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property bool pointerFocus: false
     readonly property bool keyboardFocusVisible: visualFocus && !pointerFocus
     onActiveFocusChanged: if (!activeFocus) pointerFocus = false
@@ -24,12 +25,12 @@ QQC.AbstractButton {
     Keys.onEnterPressed: function(event) { pointerFocus = false; if (!event.isAutoRepeat) clicked(); }
     background: Ui.BorderSurface {
         radius: Style.cornerRadius
-        color: root.down ? Style.pressedFillFor(Color.foreground, root.accent)
-            : root.keyboardFocusVisible ? Style.focusFillFor(Color.foreground, root.accent)
-            : root.hovered ? Style.hoverFillFor(Color.foreground, root.accent)
+        color: root.down ? Style.pressedFillFor(Commons.Color.foreground, root.accent)
+            : root.keyboardFocusVisible ? Style.focusFillFor(Commons.Color.foreground, root.accent)
+            : root.hovered ? Style.hoverFillFor(Commons.Color.foreground, root.accent)
             : root.checked ? Qt.alpha(root.accent, 0.10) : "transparent"
-        borderSpec: root.keyboardFocusVisible ? Border.controlSpec("focus", Color.foreground, root.accent)
-            : root.hovered ? Border.controlSpec("hover-cursor", Color.foreground, root.accent)
+        borderSpec: root.keyboardFocusVisible ? Border.controlSpec("focus", Commons.Color.foreground, root.accent)
+            : root.hovered ? Border.controlSpec("hover-cursor", Commons.Color.foreground, root.accent)
             : Border.none()
     }
     contentItem: Item {
@@ -40,7 +41,7 @@ QQC.AbstractButton {
             rotation: root.checked ? 0 : 35
             ShapePath {
                 fillColor: "transparent"
-                strokeColor: root.checked ? Qt.alpha(root.accent, 0.85) : Qt.alpha(Color.popups.text, 0.75)
+                strokeColor: root.checked ? Qt.alpha(root.accent, 0.85) : Qt.alpha(Commons.Color.popups.text, 0.75)
                 strokeWidth: 1.4; capStyle: ShapePath.RoundCap; joinStyle: ShapePath.RoundJoin
                 PathSvg { path: "M6 2 H14 L13 5 V9 L16 12 V13 H4 V12 L7 9 V5 Z M10 13 V18" }
             }

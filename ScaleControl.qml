@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Column {
@@ -11,7 +12,7 @@ Column {
   property var hostWidget: null
   required property var words
   property int percent: 100
-  property color accent: Color.accent
+  property color accent: Commons.Color.accent
   readonly property bool valid: field.acceptableInput
   readonly property bool dragging: drag.pressed
   signal changed(int percent)
@@ -29,7 +30,7 @@ Column {
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    textColor: Color.popups.text
+    textColor: Commons.Color.popups.text
     font.pixelSize: Style.font.body
   }
   Row {
@@ -56,7 +57,7 @@ Column {
       onAccepted: if (acceptableInput) root.accepted()
       onActiveFocusChanged: if (activeFocus) root.ensureVisible()
     }
-    ReadableText { text: "%"; textColor: Color.popups.text; font.pixelSize: Style.font.body; anchors.verticalCenter: parent.verticalCenter }
+    ReadableText { text: "%"; textColor: Commons.Color.popups.text; font.pixelSize: Style.font.body; anchors.verticalCenter: parent.verticalCenter }
     ReadableButton {
       width: Style.space(36); text: "+"; accent: root.accent; focusable: true
       enabled: root.percent < 200
@@ -128,7 +129,7 @@ Column {
       width: Math.min(implicitWidth, parent.width * 0.45)
       text: I18n.format(root.words.defaultValue, {value: "100%"})
       textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-      textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+      textColor: Qt.alpha(Commons.Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
     }
   }
   ReadableText {
@@ -136,7 +137,7 @@ Column {
     visible: !root.valid
     text: root.invalidText
     textFormat: Text.PlainText
-    textColor: Color.urgent
+    textColor: Commons.Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.caption
   }

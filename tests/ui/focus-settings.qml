@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/FocusRecoveryText.js" as Texts
 
@@ -203,8 +204,8 @@ ShellRoot {
                     test.click("turnOffFocusProtection");recovery.interrupted=true;window.color="#428d72";
                     host.persistSettings({panelStyle:"wallpaper",wallpaperTransparency:100});
                     host.textShadowSamples=[[66,141,114]];
-                    Color.shellValues={};Color.background="#111c18";Color.foreground="#c1c497";
-                    Color.accent="#509475";host.themeAccent="#509475";
+                    Commons.Color.shellValues={};Commons.Color.background="#111c18";Commons.Color.foreground="#c1c497";
+                    Commons.Color.accent="#509475";host.themeAccent="#509475";
                     host.savedAppearance=Object.assign({},host.savedAppearance,{colorMode:"theme",colorScope:"all"});
                     host.appearance=host.savedAppearance;
                     break;

@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 import "WindowPeek/I18n.js" as I18n
@@ -42,7 +43,7 @@ ShellRoot {
     FakeHost { id: host }
     Window {
         id: window; visible: true; width: 520 * test.scale; height: (panel.implicitHeight + 32) * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Item { id: focusSink; width: 1; height: 1 }
         Plugin.PanelContent {
             id: panel; x: 16 * test.scale; y: 16 * test.scale; width: window.width / test.scale - 32; height: implicitHeight

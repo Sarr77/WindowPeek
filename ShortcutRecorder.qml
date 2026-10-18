@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "Shortcuts.js" as Shortcuts
 
@@ -93,7 +94,7 @@ QQC.Popup {
                         anchors.fill: parent; anchors.margins: Style.space(12)
                         text: Shortcuts.display(root.candidate) || root.words.shortcutChoose
                         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        textColor: Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold:true
+                        textColor: Commons.Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold:true
                     }
                 }
                 LabelButton {
@@ -103,7 +104,7 @@ QQC.Popup {
                 }
                 ReadableText {
                     width: parent.width; text: root.recording ? (root.captureReady ? root.words.shortcutPress : root.words.shortcutWaiting) : root.words.shortcutCompose
-                    textFormat: Text.PlainText; wrapMode: Text.Wrap; textColor: Qt.alpha(Color.popups.text,0.75); font.pixelSize:Style.font.caption
+                    textFormat: Text.PlainText; wrapMode: Text.Wrap; textColor: Qt.alpha(Commons.Color.popups.text,0.75); font.pixelSize:Style.font.caption
                 }
                 Row {
                     width: parent.width; spacing: Style.space(6)
@@ -130,7 +131,7 @@ QQC.Popup {
                 }
                 ReadableText {
                     width:parent.width; text: root.problem; textFormat:Text.PlainText; wrapMode:Text.Wrap
-                    textColor:Color.urgent; font.pixelSize:Style.font.caption
+                    textColor:Commons.Color.urgent; font.pixelSize:Style.font.caption
                     // Keep the status slot stable while trying another chord.
                     height: Math.max(Style.space(48),implicitHeight)
                 }

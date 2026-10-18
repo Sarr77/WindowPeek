@@ -63,7 +63,7 @@ var words = {
   "logoFormats": "Animation: GIF · Images: PNG, JPG, WebP, SVG",
   "animatedOmarchy": "Omarchy · Pixel animation",
   "loopAnimation": "Loop animation",
-  "delayLoop": "Delay loop",
+  "delayLoop": "Pause between repeats",
   "resetLogoImage": "Use Omarchy logo",
   "logoImageError": "Could not open this image.",
   "logoHint": "Want your nickname here? Choose an image in Settings → Personalization → Pictures and Gifs. You can also disable the logo entirely.",
@@ -251,7 +251,7 @@ var words = {
   "pinBarHint": "Click to pin the compact panel",
   "unpinBarHint": "Click to unpin and close",
   "closePanelHint": "Click to close the panel",
-  "animationCooldown": "Cooldown",
+  "animationCooldown": "Minimum time between plays",
   "moveMonitor": "Destination monitor",
   "moveMonitorHint": "New workspace: choose a monitor · Shift: {monitor}"
 };

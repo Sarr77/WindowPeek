@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Column {
@@ -10,7 +11,7 @@ Column {
     property var hostWidget: null
     required property var words
     property int value: 400
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     signal changed(int value)
     signal ensureVisible()
     spacing: Style.space(6)
@@ -39,7 +40,7 @@ Column {
             width: parent.stacked ? parent.width : parent.width - controls.width - Style.space(12)
             text: root.label; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            textColor: Qt.alpha(Color.popups.text, 0.85)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.85)
             font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         Item {
@@ -77,7 +78,7 @@ Column {
                     }
                 }
                 ReadableText {
-                    text: "ms"; textColor: Qt.alpha(Color.popups.text, 0.8)
+                    text: "ms"; textColor: Qt.alpha(Commons.Color.popups.text, 0.8)
                     font.family: Style.font.family; font.pixelSize: Style.font.body
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -102,6 +103,6 @@ Column {
         width: parent.width
         text: root.helpText + " · " + I18n.format(root.words.defaultValue, {value: "400 ms"})
         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-        textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+        textColor: Qt.alpha(Commons.Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
     }
 }

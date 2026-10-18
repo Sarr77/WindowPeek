@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Native
 
 // One list surface from compact browsing through keyboard search; a transient move menu.
@@ -339,7 +340,7 @@ Ui.Panel {
         protectionStrict: !!root.hostWidget && root.hostWidget.keepSearchFocus
         protectionHold: !!root.recovery && root.recovery.protecting
         onProtectionFailed: function(reason) { if (root.recovery) root.recovery.stop("backend-unavailable", reason) }
-        panelColor: root.hostWidget ? root.hostWidget.surfaces.panel : Color.popups.background
+        panelColor: root.hostWidget ? root.hostWidget.surfaces.panel : Commons.Color.popups.background
         glassEnabled: !!root.hostWidget && root.hostWidget.panelStyle === "glass"
         glassOpacity: root.hostWidget ? root.hostWidget.glassOpacity : 0.92
         backgroundComponent: root.hostWidget && (root.hostWidget.panelStyle === "wallpaper"
@@ -406,7 +407,7 @@ Ui.Panel {
         contentWidth: fittedContentWidth((Style.space(content.compact ? 360 : 420) * (1 - root.expansion)
             + Style.space(500) * root.expansion) * root.uiScale)
         contentHeight: fittedContentHeight(Math.ceil(content.implicitHeight * root.uiScale))
-        borderSpec: Border.flat(root.hostWidget ? root.hostWidget.accent : Color.accent, 1)
+        borderSpec: Border.flat(root.hostWidget ? root.hostWidget.accent : Commons.Color.accent, 1)
         cornerRadius: Style.space(8) * root.uiScale
         Item {
             id: bounds

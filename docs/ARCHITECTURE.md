@@ -150,13 +150,14 @@ and commits on Enter or editingFinished. Pauses are canceled while hidden.
 Independent `hoverLogoCooldown` and `settingsLogoCooldown` default to 60 and zero seconds;
 the `...CooldownUnit` fields select seconds or minutes without changing duration.
 Timing reset buttons restore 4.2 seconds for loop delay and the corresponding cooldown default.
-`Runtime.logoAnimationHistory` records each slot's source and last animated
-appearance across monitors for this shell session. Hiding an animated logo starts
-the cooldown; a blocked reopening stays static and does not extend it. Changing
+`Runtime.logoAnimationHistory` records each slot's source and last playback
+start across monitors for this shell session. Hiding an animated logo marks its
+session inactive without restarting the interval; a blocked reopening stays
+static and does not extend it. Changing
 the source permits immediate playback in independent mode. Optional shared mode
 uses one cooldown and a source-independent history for both slots: any admitted
 animation blocks the other slot too, including across monitors. An active shared
-animation holds the cooldown until hidden; rejected openings never extend it.
+animation blocks the other slot until hidden; rejected openings never extend the interval.
 Zero disables the delay. Individual values survive switching shared mode off.
 The history is not persisted.
 `LogoImage` uses an uncached, size-bounded
@@ -985,12 +986,16 @@ and active drags block this gesture.
 The card's background MouseArea sits behind its controls. A separate background
 area in the Flickable receives headings and gaps; normal row actions remain above
 it. Wheel events pass to the Flickable, which can also steal a background press
-for dragging. Only unmodified left clicks toggle the view.
+for dragging. With the default double-click setting, an unmodified left double-click
+or middle click toggles the view; with that setting off, a single left click does.
 
 `openOnHover` defaults to true and uses the shared durable preferences. Turning it
 off cancels bar hover eligibility, dismisses a passive panel and prevents demotion;
-bar clicks and the shortcut still open the expanded view. The bar-delay setting
-is disabled while hover opening is off. Thumbnail previews have their own switch.
+bar clicks still open the compact view when double-click expansion is enabled,
+and a second click expands it. With single-click expansion selected, a bar click
+opens the expanded view. The shortcut always opens the expanded view. The bar
+delay is disabled while hover opening is off. Thumbnail previews have their own
+switch.
 
 Closing through the bar label latches a per-widget hover dismissal before closing
 its controller. This cancels any dwell, including zero-delay opening. Leaving the

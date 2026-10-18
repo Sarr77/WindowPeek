@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "Settings.js" as Settings
 import "I18n.js" as I18n
@@ -18,7 +19,7 @@ Item {
         anchors.left: parent.left; anchors.right: cooldownInput.left; anchors.rightMargin: Style.space(8)
         anchors.verticalCenter: parent.verticalCenter
         text: root.words.animationCooldown; textFormat: Text.PlainText; elide: Text.ElideRight
-        textColor: Qt.alpha(Color.popups.text, 0.7)
+        textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
         font.family: Style.font.family; font.pixelSize: Style.font.caption
     }
     EditField {
@@ -30,7 +31,7 @@ Item {
         horizontalAlignment: TextInput.AlignHCenter; LayoutMirroring.enabled: false
         maximumLength: 12; selectByMouse: true; inputMethodHints: Qt.ImhFormattedNumbersOnly
         validator: RegularExpressionValidator { regularExpression: /\d{1,5}([.,]\d{0,6})?/ }
-        accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+        accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
         Accessible.name: root.words.animationCooldown + " (" + root.unit + ")"
         function resetText() { text = String(Number((root.value / root.factor).toFixed(6))); }
         function save() {
@@ -56,7 +57,7 @@ Item {
         anchors.right: cooldownReset.left; anchors.rightMargin: Style.space(4)
         width: Style.space(76)
         hostWidget: root.hostWidget; uiScale: root.hostWidget ? root.hostWidget.uiScale : 1
-        accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+        accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
         showLabel: false; value: root.unit
         options: [{value:"s", label:"s"}, {value:"min", label:"min"}]
         onChanged: function(value) {
@@ -75,7 +76,7 @@ Item {
         hostWidget: root.hostWidget; words: root.words
         label: root.words.animationCooldown; valueText: String(root.defaultValue / root.factor) + " " + root.unit
         modified: root.value !== root.defaultValue
-        accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+        accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
         onResetRequested: {
             cooldownInput.text = String(root.defaultValue / root.factor);
             var values = {}; values[root.prefix + "LogoCooldown"] = root.defaultValue;

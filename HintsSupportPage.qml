@@ -1,12 +1,13 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Column {
     id: root
     required property var hostWidget
     readonly property var words: I18n.words(hostWidget ? hostWidget.language : "en")
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property string issuesUrl: "https://github.com/Sarr77/WindowPeek/issues"
     spacing: Style.space(20)
     signal troubleshootingRequested()
@@ -19,7 +20,7 @@ Column {
         objectName: "hintsSupportIntro"
         width: parent.width; text: root.words.hintsSupportHelp
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.popups.text; lineHeight: 1.2
+        textColor: Commons.Color.popups.text; lineHeight: 1.2
         font.family: Style.font.family; font.pixelSize: Style.font.body + Style.space(1)
     }
     SettingsRow {
@@ -42,7 +43,7 @@ Column {
         visible: BrowserLinks.failed && BrowserLinks.lastUrl === root.issuesUrl
         width: parent.width; text: root.words.browserOpenFailed
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.popups.text
+        textColor: Commons.Color.popups.text
         font.family: Style.font.family; font.pixelSize: Style.font.body
     }
     SettingsRow {

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Item {
@@ -41,7 +42,7 @@ Item {
                 width: Math.max(0, Math.min(nameMetrics.advanceWidth, parent.width - hiddenLabel.width - parent.spacing))
                 text: I18n.workspaceTitle(root.workspaceName, root.words)
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                textColor: Qt.alpha(Color.popups.text, 0.8)
+                textColor: Qt.alpha(Commons.Color.popups.text, 0.8)
                 font.family: Style.font.family; font.pixelSize: Style.font.caption; font.bold: true
             }
             ReadableText {
@@ -50,7 +51,7 @@ Item {
                 width: visible ? Math.min(hiddenMetrics.advanceWidth, parent.width * 0.4) : 0
                 text: "· " + root.words.hiddenWorkspace
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                textColor: Qt.alpha(Color.popups.text, 0.55)
+                textColor: Qt.alpha(Commons.Color.popups.text, 0.55)
                 font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
@@ -60,7 +61,7 @@ Item {
             width: Math.min(monitorMetrics.advanceWidth, parent.width * 0.35)
             text: root.row && root.row.monitorName ? root.row.monitorName : root.words.unknownMonitor
             textFormat: Text.PlainText; elide: Text.ElideRight
-            textColor: Qt.alpha(Color.popups.text, 0.45)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.45)
             font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
     }

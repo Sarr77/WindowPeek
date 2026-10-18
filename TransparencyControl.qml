@@ -1,13 +1,14 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Column {
     id: root
     property var hostWidget: null
     required property var words
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property int value: 8
     property int defaultValue: 8
     signal changed(int value)
@@ -24,7 +25,7 @@ Column {
             anchors.left: parent.left; anchors.right: percent.left; anchors.rightMargin: Style.space(12)
             anchors.verticalCenter: parent.verticalCenter
             text: root.words.transparency; textFormat: Text.PlainText; wrapMode: Text.Wrap
-            textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         ReadableText {
             id: percent; objectName: "transparencyPercent"
@@ -60,7 +61,7 @@ Column {
             width: Math.min(implicitWidth, parent.width * 0.45)
             text: I18n.format(root.words.defaultValue, {value: root.defaultValue + "%"})
             textFormat: Text.PlainText; wrapMode: Text.Wrap
-            textColor: Qt.alpha(Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.7); font.family: Style.font.family; font.pixelSize: Style.font.body
         }
     }
 }

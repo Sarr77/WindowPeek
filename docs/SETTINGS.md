@@ -137,19 +137,20 @@ In **Settings → Personalization → Pictures and Gifs**, choose
 artwork separately for the compact panel and Settings. Changing or restoring one
 leaves the other unchanged. Each has its own visibility switch.
 
-#### Playback and cooldown
+#### Playback timing
 
 For animations, each view has a **Loop animation** switch and
-**Delay loop** field. Looping is on by default; the pause between repetitions
+**Pause between repeats** field. Looping is on by default; the pause between repetitions
 defaults to 4.2 seconds. Enter whole or fractional seconds (`0.3` or `0,3`), then
 press Enter or leave the field to save. Zero removes the extra pause. Switching
 looping off plays once and holds a GIF's last frame. In Settings, returning from
 a submenu resumes the same animation rather than replaying it; a new Settings
-visit starts another playback if cooldown permits. The
-saved delay stays available when looping is switched back on. **Cooldown** prevents
+visit starts another playback if its minimum interval permits. The
+saved delay stays available when looping is switched back on. **Minimum time between plays** prevents
 restarting the animation when reopening the panel too soon: enter seconds or
 minutes, including fractions. During that interval the logo stays still. Each
-logo keeps its own cooldown, starting when its last animated appearance ends.
+logo keeps its own interval, counted from the start of its last playback. Hiding
+the logo does not restart the interval.
 The defaults are one minute for hover and zero for Settings; zero allows animation
 on every opening. The timing reset arrows restore those values and the 4.2-second
 loop delay, without changing the other logo.

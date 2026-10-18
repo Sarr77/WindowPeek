@@ -3,6 +3,7 @@ import QtQuick.Window
 import Quickshell
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 // Draw hints without a Popup so wheel and click events reach rows beneath them.
@@ -62,12 +63,12 @@ Item {
     var a = scaleItem.mapToItem(windowRoot, 0, 0), b = scaleItem.mapToItem(windowRoot, 1, 0);
     return Math.hypot(b.x - a.x, b.y - a.y) || 1;
   }
-  readonly property var tipBorder: Border.localOrSurfaceSpec("tooltip", "border", Color.tooltip.border, Color.tooltip.border, Math.max(1, Style.normalBorderWidth))
+  readonly property var tipBorder: Border.localOrSurfaceSpec("tooltip", "border", Commons.Color.tooltip.border, Commons.Color.tooltip.border, Math.max(1, Style.normalBorderWidth))
 
   Ui.BorderSurface {
     id: bubble
     readonly property var hostWidget: root.hostWidget
-    readonly property color readabilityBackground: Color.tooltip.background
+    readonly property color readabilityBackground: Commons.Color.tooltip.background
     objectName: "panelHintSurface"
     parent: root.overlayRoot
     z: 1000002 // Above Qt Controls' overlay, without registering an input popup.
@@ -94,7 +95,7 @@ Item {
       }
       return Math.max(margin, Math.min(desired, (parent ? parent.height : 0) - margin - height * scale));
     }
-    color: Color.tooltip.background
+    color: Commons.Color.tooltip.background
     borderSpec: root.tipBorder
     radius: 0
     Accessible.role: Accessible.ToolTip
@@ -114,7 +115,7 @@ Item {
       text: root.displayText
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
-      textColor: Color.tooltip.text
+      textColor: Commons.Color.tooltip.text
       font.family: Style.font.family
       font.pixelSize: Style.font.bodySmall
       leftPadding: Border.left(root.tipBorder) + Style.spacing.controlPaddingX

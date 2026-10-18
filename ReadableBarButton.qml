@@ -2,6 +2,7 @@ import QtQuick
 import QtQml.Models
 import "vendor/omarchy" as Choice
 import qs.Commons
+import qs.Commons as Commons
 import "TextReadability.js" as Readability
 
 // The bar has its own background and adaptive foreground. Panel wallpaper
@@ -18,7 +19,7 @@ Choice.WidgetButton {
         readonly property string panelStyle: root.bar && root.bar.transparent ? "glass" : "wallpaper"
         readonly property real glassTransparency: 100
         readonly property real wallpaperTransparency: 0
-        readonly property var surfaces: ({panel: root.bar ? root.bar.background : Color.bar.background})
+        readonly property var surfaces: ({panel: root.bar ? root.bar.background : Commons.Color.bar.background})
     }
     Instantiator {
         model: root.nativeLabels

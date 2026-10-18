@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 
 // The owner supplies saved state; clicking never changes the switch optimistically.
 QQC.Control {
@@ -9,12 +10,12 @@ QQC.Control {
     property string description: ""
     property int labelFontSize: Style.font.body + Style.space(1)
     property int descriptionFontSize: Style.font.body
-    property color descriptionColor: Qt.alpha(Color.popups.text, 0.78)
+    property color descriptionColor: Qt.alpha(Commons.Color.popups.text, 0.78)
     property bool isSwitch: false
     property bool bordered: false
     property bool externalLink: false
     property bool checked: false
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property var palette: null
     property bool pointerFocus: false
     property bool keyboardReturnFocus: false
@@ -69,7 +70,7 @@ QQC.Control {
         ReadableText {
             width: parent.width; text: root.text; textFormat: Text.PlainText
             wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            textColor: Color.popups.text
+            textColor: Commons.Color.popups.text
             font.family: Style.font.family; font.pixelSize: root.labelFontSize
         }
         ReadableText {
@@ -89,9 +90,9 @@ QQC.Control {
             id: switchTrack; objectName: "settingsSwitchTrack"
             anchors.centerIn: parent; visible: root.isSwitch
             width: Style.space(38); height: Style.space(20); radius: height / 2
-            color: root.checked ? root.accent : Qt.alpha(Color.popups.text, 0.1)
+            color: root.checked ? root.accent : Qt.alpha(Commons.Color.popups.text, 0.1)
             border.width: root.checked ? 0 : 1
-            border.color: Qt.alpha(Color.popups.text, 0.35)
+            border.color: Qt.alpha(Commons.Color.popups.text, 0.35)
             // Keep on/off direction stable even when the surrounding row mirrors.
             LayoutMirroring.enabled: false
             Rectangle {
@@ -99,14 +100,14 @@ QQC.Control {
                 x: root.checked ? parent.width - width - Style.space(3) : Style.space(3)
                 anchors.verticalCenter: parent.verticalCenter
                 readonly property real brightness: 0.2126 * root.accent.r + 0.7152 * root.accent.g + 0.0722 * root.accent.b
-                color: root.checked ? (brightness > 0.6 ? "#181820" : "#ffffff") : Qt.alpha(Color.popups.text, 0.65)
+                color: root.checked ? (brightness > 0.6 ? "#181820" : "#ffffff") : Qt.alpha(Commons.Color.popups.text, 0.65)
                 Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             }
         }
         ReadableText {
             anchors.centerIn: parent; visible: !root.isSwitch
             text: root.externalLink ? "↗" : root.LayoutMirroring.enabled ? "‹" : "›"; textFormat: Text.PlainText
-            textColor: root.hot || root.bordered ? root.accent : Qt.alpha(Color.popups.text, 0.5)
+            textColor: root.hot || root.bordered ? root.accent : Qt.alpha(Commons.Color.popups.text, 0.5)
             font.family: Style.font.family; font.pixelSize: Style.font.subtitle
         }
     }

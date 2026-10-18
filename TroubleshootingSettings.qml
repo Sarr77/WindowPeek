@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "FocusRecoveryText.js" as Texts
 
 Column {
@@ -13,13 +14,13 @@ Column {
     component Paragraph: ReadableText {
         width: parent.width
         textFormat: Text.PlainText; wrapMode: Text.Wrap
-        textColor: Color.popups.text
+        textColor: Commons.Color.popups.text
         font.family: Style.font.family; font.pixelSize: Style.font.body
         lineHeight: 1.15
     }
     component Heading: Paragraph { font.bold: true }
     component Divider: Rectangle {
-        width: parent.width; height: 1; color: Qt.alpha(Color.popups.text, 0.12)
+        width: parent.width; height: 1; color: Qt.alpha(Commons.Color.popups.text, 0.12)
     }
 
     Column {
@@ -56,7 +57,7 @@ Column {
             objectName: "keepSearchFocusToggle"
             width: parent.width; text: root.copy.keep
             description: root.copy.protectionWhen
-            accent: root.hostWidget ? root.hostWidget.accent : Color.accent
+            accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
             bordered: true
             isSwitch: true; checked: !!root.hostWidget && root.hostWidget.keepSearchFocus
             onClicked: if (root.hostWidget) { if (checked) root.hostWidget.persistSettings({keepSearchFocus:false}); else root.protectionRequested(); }
@@ -66,7 +67,7 @@ Column {
             width: parent.width; spacing: Style.space(6)
             Heading { text: root.copy.tradeoffTitle }
             Paragraph { text: root.copy.tradeoff }
-            Paragraph { text: root.copy.protectionScope; color: Qt.alpha(Color.popups.text, 0.78) }
+            Paragraph { text: root.copy.protectionScope; color: Qt.alpha(Commons.Color.popups.text, 0.78) }
         }
     }
     Divider {}
@@ -109,8 +110,8 @@ Column {
                 id: appCard
                 required property var modelData
                 width: parent.width; implicitHeight: appDetails.implicitHeight + Style.space(24)
-                radius: Style.space(5); color: Qt.alpha(Color.popups.text, 0.025)
-                border.width: 1; border.color: Qt.alpha(Color.popups.text, 0.16)
+                radius: Style.space(5); color: Qt.alpha(Commons.Color.popups.text, 0.025)
+                border.width: 1; border.color: Qt.alpha(Commons.Color.popups.text, 0.16)
                 Column {
                     id: appDetails
                     x: Style.space(12); y: Style.space(12)
@@ -118,7 +119,7 @@ Column {
                     Heading { text: appCard.modelData.name }
                     Paragraph {
                         text: root.copy.appUncertain + " · " + (appCard.modelData.ignored ? root.copy.ignored : root.copy.warningsOn)
-                        color: Qt.alpha(Color.popups.text, 0.78)
+                        color: Qt.alpha(Commons.Color.popups.text, 0.78)
                     }
                     SettingsRow {
                         objectName: "focusIssueApp"; width: parent.width
@@ -133,14 +134,14 @@ Column {
                         text: root.copy.lastSeen.replace("{date}", Qt.formatDateTime(new Date(appCard.modelData.lastSeen), "yyyy-MM-dd hh:mm")) + "\n"
                             + root.copy.seenCount.replace("{count}", appCard.modelData.incidents) + "\n"
                             + root.copy.classLabel.replace("{class}", appCard.modelData.klass)
-                        color: Qt.alpha(Color.popups.text, 0.78)
+                        color: Qt.alpha(Commons.Color.popups.text, 0.78)
                         font.pixelSize: Style.font.caption
                     }
                 }
             }
         }
         Paragraph { visible: !!root.issues && root.issues.apps.length > 0; text: root.copy.appHelp }
-        Paragraph { text: root.copy.historyPrivacy; color: Qt.alpha(Color.popups.text, 0.78) }
+        Paragraph { text: root.copy.historyPrivacy; color: Qt.alpha(Commons.Color.popups.text, 0.78) }
     }
     Paragraph {
         objectName: "focusIssuesSaveError"

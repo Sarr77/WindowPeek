@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -77,8 +78,8 @@ ShellRoot {
     Window {
         id: window; visible: true
         width: 500 * test.scale; height: (panel.height + 34) * test.scale
-        color: Color.popups.background
-        Rectangle { anchors.fill: parent; color: Color.popups.background; border.width: 1; border.color: host.accent }
+        color: Commons.Color.popups.background
+        Rectangle { anchors.fill: parent; color: Commons.Color.popups.background; border.width: 1; border.color: host.accent }
         Plugin.PanelContent {
             id: panel; hostWidget: host
             x: 17 * test.scale; y: 17 * test.scale; width: 466
@@ -94,8 +95,8 @@ ShellRoot {
             try {
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues = ({}); Color.background = "#1b1b26";
-                    Color.foreground = "#b7bedb"; Color.accent = host.accent;
+                    Commons.Color.shellValues = ({}); Commons.Color.background = "#1b1b26";
+                    Commons.Color.foreground = "#b7bedb"; Commons.Color.accent = host.accent;
                     panel.begin(); test.list = test.find(panel, "windowList"); break;
                 case 1:
                     test.checkFit("expanded");

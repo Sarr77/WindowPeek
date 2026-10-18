@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/vendor/omarchy" as Choice
 import "WindowPeek/I18n.js" as I18n
@@ -45,7 +46,7 @@ ShellRoot {
     FakeHost { id: host; wallpaperSource: Qt.resolvedUrl("dropdown-wallpaper.svg") }
     Window {
         id: window; visible: true; width: 520 * test.scale; height: 600 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Item {
             width: 520; height: 600; scale: test.scale; transformOrigin: Item.TopLeft
             Rectangle {
@@ -92,9 +93,9 @@ ShellRoot {
             try {
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues = ({});
-                    Color.foreground = test.backgroundIndex === 3 ? "#303446" : "#c0caf5";
-                    Color.background = test.backgroundIndex === 3 ? "#eff1f5" : "#1a1b26";
+                    Commons.Color.shellValues = ({});
+                    Commons.Color.foreground = test.backgroundIndex === 3 ? "#303446" : "#c0caf5";
+                    Commons.Color.background = test.backgroundIndex === 3 ? "#eff1f5" : "#1a1b26";
                     host.themeId = test.backgroundIndex === 3 ? "catppuccin-latte" : "tokyo-night";
                     host.themeAccent = test.backgroundIndex === 3 ? "#8839ef" : "#7aa2f7";
                     host.persistSettings({panelStyle:test.backgrounds[test.backgroundIndex]});
@@ -115,8 +116,8 @@ ShellRoot {
                             "background effects stay in window pixels even when options are scaled");
                     } else {
                         test.check(host.glassPanels
-                            ? backing.color.a >= .9 && backing.color.a < 1 && backing.color !== Color.popups.background
-                            : backing.color === Color.popups.background,
+                            ? backing.color.a >= .9 && backing.color.a < 1 && backing.color !== Commons.Color.popups.background
+                            : backing.color === Commons.Color.popups.background,
                             "Transparency retains its tint; Solid retains the theme surface");
                     }
                     if (test.kind) {

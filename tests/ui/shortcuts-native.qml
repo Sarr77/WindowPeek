@@ -6,6 +6,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Shortcuts.js" as Shortcuts
 import "WindowPeek/ShortcutBindings.js" as Lua
@@ -50,7 +51,7 @@ ShellRoot {
         WlrLayershell.layer:WlrLayer.Overlay; WlrLayershell.keyboardFocus:WlrKeyboardFocus.Exclusive
         exclusionMode:ExclusionMode.Ignore
         implicitWidth:Math.min(screen.width,540*test.scale); implicitHeight:Math.min(screen.height,940*test.scale)
-        color:Color.popups.background
+        color:Commons.Color.popups.background
         Plugin.PanelContent {
             id:panel; x:20; y:20; width:(window.width-40)/test.scale; height:(window.height-40)/test.scale
             scale:test.scale; transformOrigin:Item.TopLeft; hostWidget:host

@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 
@@ -30,7 +31,7 @@ ShellRoot {
         Component.onCompleted: savedAppearance=Appearance.normalize({uiScale:test.scale})
     }
     Ui.PluginBarApi { id:api;pluginId:"sarr.windowpeek.contrast.test";position:"top";barSize:28 }
-    FileView { id: themeName; path: Color.currentThemePath + "/../theme.name"; blockWrites: true }
+    FileView { id: themeName; path: Commons.Color.currentThemePath + "/../theme.name"; blockWrites: true }
     PanelWindow {
         id:bar;visible:test.showing
         anchors {top:true;left:true;right:true}
@@ -59,7 +60,7 @@ ShellRoot {
             try {
                 switch(test.step++) {
                 case 0:
-                    Color.shellValues={};Color.background="#1f1f28";Color.foreground="#dcd7ba";
+                    Commons.Color.shellValues={};Commons.Color.background="#1f1f28";Commons.Color.foreground="#dcd7ba";
                     themeName.setText(host.themeId); themeName.waitForJob();
                     test.showing=true;break;
                 case 1: test.checking=true;panel.hoverRequested=true;break;

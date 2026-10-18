@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/I18n.js" as I18n
 import "WindowPeek/Appearance.js" as Appearance
@@ -88,8 +89,8 @@ ShellRoot {
     Window {
         id: window; visible: true
         width: 540 * test.scale; height: 580 * test.scale
-        color: Color.popups.background
-        Rectangle { anchors.fill: parent; color: Color.popups.background; border.color: host.accent; border.width: 2 }
+        color: Commons.Color.popups.background
+        Rectangle { anchors.fill: parent; color: Commons.Color.popups.background; border.color: host.accent; border.width: 2 }
         Plugin.PanelContent {
             id: panel
             x: 20 * test.scale; y: 20 * test.scale
@@ -106,8 +107,8 @@ ShellRoot {
             try {
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues = {};
-                    Color.foreground = "#c0caf5"; Color.background = "#1a1b26"; Color.accent = "#7aa2f7";
+                    Commons.Color.shellValues = {};
+                    Commons.Color.foreground = "#c0caf5"; Commons.Color.background = "#1a1b26"; Commons.Color.accent = "#7aa2f7";
                     panel.begin(); break;
                 case 1: test.screenshot("windows", function() { test.showSettings(); }); break;
                 case 2:

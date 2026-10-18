@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Shortcuts.js" as Shortcuts
 
@@ -29,7 +30,7 @@ ShellRoot {
     FakeHost { id: host }
     Window {
         id: window; visible:true; width:540*test.scale; height:900*test.scale
-        color:Color.popups.background
+        color:Commons.Color.popups.background
         Plugin.PanelContent {
             id: panel; x:20*test.scale; y:20*test.scale; width:500; height:860
             scale:test.scale; transformOrigin:Item.TopLeft; hostWidget:host

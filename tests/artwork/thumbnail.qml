@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 
 ShellRoot {
@@ -35,10 +36,10 @@ ShellRoot {
     Timer {
         interval: 800; running: true
         onTriggered: {
-            Color.shellValues = ({});
-            Color.background = "#1b1b26";
-            Color.foreground = "#b7bedb";
-            Color.accent = host.accent;
+            Commons.Color.shellValues = ({});
+            Commons.Color.background = "#1b1b26";
+            Commons.Color.foreground = "#b7bedb";
+            Commons.Color.accent = host.accent;
             thumbnail.modifierState.enabled = false;
             fixture.previewCard = fixture.find(thumbnail.contentItem, "windowThumbnailCard");
             var capture = fixture.find(thumbnail.contentItem, "windowThumbnailCapture");

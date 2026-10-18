@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui as Ui
 import "WindowPeek" as Plugin
 
@@ -48,7 +49,7 @@ ShellRoot {
         color: "transparent"
         Ui.BorderSurface {
             id: card; anchors.fill: parent
-            color: Color.popups.background; radius: Style.space(8)
+            color: Commons.Color.popups.background; radius: Style.space(8)
             borderSpec: Border.flat(host.accent, 1); padding: 16
             layer.enabled: true
             Plugin.PanelContent {
@@ -64,7 +65,7 @@ ShellRoot {
         color: "transparent"
         Ui.BorderSurface {
             id: hoverCard; anchors.fill: parent
-            color: Color.popups.background; radius: Style.space(8)
+            color: Commons.Color.popups.background; radius: Style.space(8)
             borderSpec: Border.flat(host.accent, 1); padding: 16
             layer.enabled: true
             Plugin.PanelContent {
@@ -78,10 +79,10 @@ ShellRoot {
         interval: 800; running: true
         onTriggered: {
             // A fixed example palette, independent of the developer's current theme.
-            Color.shellValues = ({});
-            Color.background = "#1b1b26";
-            Color.foreground = "#b7bedb";
-            Color.accent = host.accent;
+            Commons.Color.shellValues = ({});
+            Commons.Color.background = "#1b1b26";
+            Commons.Color.foreground = "#b7bedb";
+            Commons.Color.accent = host.accent;
             panel.begin(); overview.begin(false); fixture.sharpen(card); fixture.sharpen(hoverCard); capture.start();
         }
     }

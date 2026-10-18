@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import qs.Ui
 import qs.Commons
+import qs.Commons as Commons
 import "." as Local
 import "I18n.js" as I18n
 import "Settings.js" as Settings
@@ -115,7 +116,7 @@ BarWidget {
     readonly property var savedAppearance: Appearance.normalize(effectiveSettings)
     readonly property var appearance: runtime.previewOwner ? runtime.previewAppearance : savedAppearance
     readonly property string themeId: runtime.themeId
-    readonly property color themeAccent: Color.accent
+    readonly property color themeAccent: Commons.Color.accent
     readonly property color accent: Appearance.resolve(appearance, themeId, String(themeAccent))
     property SurfacePalette surfaces: SurfacePalette {
         appearance: root.appearance; themeId: root.themeId

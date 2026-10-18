@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/Appearance.js" as Appearance
 import "WindowPeek/I18n.js" as I18n
@@ -27,7 +28,7 @@ ShellRoot {
     Window {
         id: window; visible: true
         width: 540 * test.scale; height: (panel.implicitHeight + 40) * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Plugin.PanelContent {
             id: panel; x: 20 * test.scale; y: 20 * test.scale
             width: 500; height: implicitHeight; scale: test.scale; transformOrigin: Item.TopLeft

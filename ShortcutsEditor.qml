@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "Shortcuts.js" as Shortcuts
 import "OpenShortcut.js" as Binding
 import "I18n.js" as I18n
@@ -98,11 +99,11 @@ Column {
     }
     ReadableText {
         width: parent.width; text: root.words.shortcutsTitle; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; textColor: Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold: true
+        wrapMode: Text.Wrap; textColor: Commons.Color.popups.text; font.pixelSize: Style.font.subtitle; font.bold: true
     }
     ReadableText {
         width: parent.width; text: root.words.shortcutsHelp; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; textColor: Qt.alpha(Color.popups.text,0.75); font.pixelSize: Style.font.caption
+        wrapMode: Text.Wrap; textColor: Qt.alpha(Commons.Color.popups.text,0.75); font.pixelSize: Style.font.caption
     }
     Repeater {
         model: ["shortcutOpening","shortcutWindowActions","shortcutNavigation","shortcutMouse"]
@@ -126,7 +127,7 @@ Column {
                         anchors.left: parent.left; anchors.right: chord.left; anchors.rightMargin: Style.space(10)
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.words[row.modelData.label]; textFormat: Text.PlainText; wrapMode: Text.Wrap
-                        textColor: Color.popups.text; font.pixelSize: Style.font.body
+                        textColor: Commons.Color.popups.text; font.pixelSize: Style.font.body
                     }
                     LabelButton {
                         id: chord; objectName: "shortcut-" + row.modelData.id
@@ -134,7 +135,7 @@ Column {
                         width: Math.min(row.width * 0.55, Math.max(Style.space(110), implicitWidth))
                         label: Shortcuts.display(root.draft[row.modelData.id]) + (row.modelData.suffix ? " + " + (row.modelData.suffix === "click" ? root.words.shortcutClick : row.modelData.suffix) : "")
                         bordered: true; focusable: true; accent: root.accent
-                        foreground: root.errors[row.modelData.id] ? Color.urgent : root.accent
+                        foreground: root.errors[row.modelData.id] ? Commons.Color.urgent : root.accent
                         PanelHint {
                             hostWidget: root.hostWidget
                             requested: chordPointer.hovered
@@ -160,10 +161,10 @@ Column {
     }
     ReadableText {
         width: parent.width; text: root.words.shortcutManual; textFormat: Text.PlainText
-        wrapMode: Text.Wrap; textColor: Qt.alpha(Color.popups.text,0.65); font.pixelSize: Style.font.caption
+        wrapMode: Text.Wrap; textColor: Qt.alpha(Commons.Color.popups.text,0.65); font.pixelSize: Style.font.caption
     }
     ReadableText {
-        width: parent.width; visible: !!text; textColor: Color.urgent; textFormat: Text.PlainText; wrapMode: Text.Wrap
+        width: parent.width; visible: !!text; textColor: Commons.Color.urgent; textFormat: Text.PlainText; wrapMode: Text.Wrap
         text: !root.probeReady ? root.words.shortcutProbeError : root.saveFailed ? root.words.settingsError
             : Object.keys(root.errors).map(function(id) {
                 return root.words[Shortcuts.definitions.find(function(def) { return def.id === id; }).label] + ": " + root.errorText(root.errors[id]);

@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 Column {
@@ -8,7 +9,7 @@ Column {
   objectName: "scalingEditor"
   required property var hostWidget
   readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
-  readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+  readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
   property int panelPercent: 100
   property int barPercent: 100
   property bool saveFailed: false
@@ -46,7 +47,7 @@ Column {
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    textColor: Color.popups.text
+    textColor: Commons.Color.popups.text
     font.pixelSize: Style.font.subtitle
     font.bold: true
   }
@@ -56,7 +57,7 @@ Column {
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    textColor: Color.popups.text
+    textColor: Commons.Color.popups.text
     opacity: 0.75
     font.pixelSize: Style.font.caption
   }
@@ -95,10 +96,10 @@ Column {
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     horizontalAlignment: Text.AlignLeft
-    textColor: Color.popups.text
+    textColor: Commons.Color.popups.text
     font.pixelSize: Style.font.caption
   }
-  ReadableText { text: root.words.preview; textColor: Color.popups.text; font.pixelSize: Style.font.caption }
+  ReadableText { text: root.words.preview; textColor: Commons.Color.popups.text; font.pixelSize: Style.font.caption }
   // The surrounding panel already supplies the selected scale.
   AppearancePreview { width: parent.width; hostWidget: root.hostWidget }
   ReadableText {
@@ -106,7 +107,7 @@ Column {
     width: parent.width
     text: root.words.saveStyleError
     textFormat: Text.PlainText
-    textColor: Color.urgent
+    textColor: Commons.Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.body
   }

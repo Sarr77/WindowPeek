@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
     id: root
@@ -27,7 +28,7 @@ Item {
     Component.onCompleted: observe(visible)
     onVisibleChanged: observe(visible)
     Component.onDestruction: observe(false)
-    Rectangle { anchors.fill:parent; radius:Style.space(8); color:Color.popups.background; clip:true }
+    Rectangle { anchors.fill:parent; radius:Style.space(8); color:Commons.Color.popups.background; clip:true }
     WallpaperBackdrop {
         anchors.fill:parent; source:root.hostWidget.wallpaperSource
         screenSize:Qt.size(root.width,root.height); tintOpacity:0; radius:Style.space(8)
@@ -36,8 +37,8 @@ Item {
     Rectangle {
         x:root.width*0.33; y:Style.space(24); width:root.width*0.6; height:root.height-Style.space(40)
         visible:root.hostWidget.panelStyle === "glass"
-        color:Color.popups.text; opacity:0.65; radius:Style.space(5)
-        Rectangle { x:0; y:Style.space(24); width:parent.width; height:1; color:Color.popups.background }
+        color:Commons.Color.popups.text; opacity:0.65; radius:Style.space(5)
+        Rectangle { x:0; y:Style.space(24); width:parent.width; height:1; color:Commons.Color.popups.background }
     }
     Column {
         id:sample; x:Style.space(12); y:x; width:parent.width-x*2; spacing:Style.space(8)
@@ -72,7 +73,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent; radius: Style.space(6)
                     color: "transparent"; border.width: 4
-                    border.color: Color.popups.background
+                    border.color: Commons.Color.popups.background
                 }
                 Rectangle {
                     anchors.fill: parent; anchors.margins: 1; radius: Style.space(5)

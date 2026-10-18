@@ -1,10 +1,11 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
     id: root
     required property string title
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     property var palette: null
     property bool expanded: false
     readonly property alias headerItem: header
@@ -52,7 +53,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.title; textFormat: Text.PlainText
                 wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-                textColor: Color.popups.text
+                textColor: Commons.Color.popups.text
                 font.family: Style.font.family; font.pixelSize: Style.font.subtitle; font.bold: true
             }
             ReadableText {
@@ -75,7 +76,7 @@ Item {
             Rectangle {
                 anchors.fill: parent; radius: Style.space(6)
                 color: root.palette && root.palette.customMenu
-                    ? Qt.alpha(root.palette.menu, root.palette.menuOpacity) : Qt.alpha(Color.popups.text, 0.025)
+                    ? Qt.alpha(root.palette.menu, root.palette.menuOpacity) : Qt.alpha(Commons.Color.popups.text, 0.025)
             }
             Column {
                 id: body

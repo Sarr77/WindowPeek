@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "TextReadability.js" as Readability
 
 // End editing on an outside press even when the clicked item takes no focus.
@@ -13,9 +14,9 @@ Ui.TextField {
     readonly property color shadowBacking: Qt.tint(Readability.backingFor(parent),
         background && "color" in background ? background.color : "transparent")
     readonly property color originalPlaceholderColor: Qt.darker(foreground, 1.6)
-    readonly property var readability: visible ? Readability.decision(shadowHost, foreground, Color.popups.text, shadowBacking) : ({active:false,ink:foreground})
+    readonly property var readability: visible ? Readability.decision(shadowHost, foreground, Commons.Color.popups.text, shadowBacking) : ({active:false,ink:foreground})
     readonly property var readableInk: readability.ink
-    readonly property var placeholderReadability: visible && !length && !preeditText ? Readability.decision(shadowHost, originalPlaceholderColor, Color.popups.text, shadowBacking) : ({active:false,ink:originalPlaceholderColor})
+    readonly property var placeholderReadability: visible && !length && !preeditText ? Readability.decision(shadowHost, originalPlaceholderColor, Commons.Color.popups.text, shadowBacking) : ({active:false,ink:originalPlaceholderColor})
     readonly property bool readablePlaceholderEnabled: !!shadowHost
         && (shadowHost.panelStyle === "wallpaper" || shadowHost.panelStyle === "glass")
         && placeholderReadability.active
@@ -39,7 +40,7 @@ Ui.TextField {
         font: root.font; elide: Text.ElideRight
         horizontalAlignment: root.horizontalAlignment; verticalAlignment: root.verticalAlignment
         shadowHost: root.shadowHost; shadowBacking: root.shadowBacking
-        textColor: Qt.alpha(Color.popups.text, 1)
+        textColor: Qt.alpha(Commons.Color.popups.text, 1)
         style: Text.Raised
         Accessible.ignored: true // The native field already exposes its hint.
     }

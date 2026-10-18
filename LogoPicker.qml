@@ -4,6 +4,7 @@ import Qt.labs.folderlistmodel
 import QtCore
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 
 // Stay on the panel's layer surface: a separate file-dialog window cannot take
 // keyboard focus from an exclusive Wayland layer. No portal or shell commands.
@@ -75,14 +76,14 @@ QQC.Popup {
         ReadableText {
             id: title
             width: parent.width; text: root.words.chooseLogoImage; textFormat: Text.PlainText
-            textColor: Color.popups.text; font.family: Style.font.family
+            textColor: Commons.Color.popups.text; font.family: Style.font.family
             font.pixelSize: Style.font.subtitle; font.bold: true; elide: Text.ElideRight
         }
         ReadableText {
             id: formats
             width: parent.width; text: root.words.logoFormats
             textFormat: Text.PlainText; wrapMode: Text.Wrap
-            textColor: Qt.alpha(Color.popups.text, 0.7)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
             font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         Row {
@@ -127,7 +128,7 @@ QQC.Popup {
             }
             ReadableText {
                 anchors.centerIn: parent; visible: folders.count === 0
-                text: root.words.noMatches; textColor: Color.popups.text; font.pixelSize: Style.font.body
+                text: root.words.noMatches; textColor: Commons.Color.popups.text; font.pixelSize: Style.font.body
             }
         }
         LogoImage {
@@ -138,7 +139,7 @@ QQC.Popup {
                 anchors.fill: parent; visible: preview.status === Image.Error
                 text: root.words.logoImageError; textFormat: Text.PlainText; wrapMode: Text.Wrap
                 verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter
-                textColor: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
+                textColor: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.caption
             }
         }
         Row {

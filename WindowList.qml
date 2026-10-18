@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import "WindowListModel.js" as ListData
 
 Flickable {
@@ -53,7 +54,7 @@ Flickable {
     readonly property bool compact: !!hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     readonly property bool rtl: !!hostWidget && hostWidget.language === "ar"
     readonly property bool busy: !!hostWidget && hostWidget.actionBusy
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property bool interacting: windowScrollbar.pressed || dragging
     readonly property bool rowHovered: {
         for (var i = 0; i < windowRepeater.count; i++) {

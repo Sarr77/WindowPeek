@@ -1,19 +1,24 @@
 # ScratchPeek reference
 
-WindowPeek's baseline is ScratchPeek **0.11.0**, by Sarr, under the MIT license.
+WindowPeek began with selected code from ScratchPeek **0.11.0**, by Sarr,
+under the MIT license. The commits below record source provenance, not current
+ScratchPeek limitations or WindowPeek behavior.
 
 - Repository: https://github.com/Sarr77/ScratchPeek
 - Exact commit: `342efb5225cb0f56349f5bf1f96aa38f5298ab39`
 - [Pinned source tree](https://github.com/Sarr77/ScratchPeek/tree/342efb5225cb0f56349f5bf1f96aa38f5298ab39)
 
-Automatic updates and durable settings use the later **0.11.1** reference,
+The original update and preference implementations were adapted from the later
+ScratchPeek **0.11.1** reference,
 commit `06bf2b930303d9cf65224f61a8099258065f6b76`:
 [pinned source](https://github.com/Sarr77/ScratchPeek/tree/06bf2b930303d9cf65224f61a8099258065f6b76).
-This supersedes the 0.11.0 updater. `update.py`, `Updates.qml`, `Preferences.qml`,
-settings synchronization and their update/preferences/lifecycle tests are
-adapted from that version to WindowPeek's runtime, identifiers and paths.
+This superseded the 0.11.0 updater as a source reference. WindowPeek's
+`update.py`, `Updates.qml`, `Preferences.qml`, settings synchronization and
+related tests have since evolved independently, including bounded reads of
+mutable state. See [Updates](UPDATES.md) and [Architecture](ARCHITECTURE.md)
+for the current implementation.
 
-## Reference map
+## Historical source map
 
 | ScratchPeek source | Use in the WindowPeek design |
 | --- | --- |
@@ -28,7 +33,7 @@ adapted from that version to WindowPeek's runtime, identifiers and paths.
 | `Appearance.js`, `AppearanceEditor.qml`, `ScalingEditor.qml` | Colors, collapsed presets, saved-color restoration and scaling |
 | `LabelsEditor.qml`, label helpers in `Model.js` | Plain-text templates, shared live preview, Apply/Cancel and translated fallbacks; adapted to WindowPeek's field groups |
 | `HintsToggle.qml`, `PanelHint.qml` | Shared hint budget and always-available help control; WindowPeek uses 100 automatic displays |
-| `UpdateSwitch.qml`, `UpdateConfirmation.qml`, `Updates.qml`, `update.py` | Subtle update controls and daily release handling; replace every product-specific identifier |
+| `UpdateSwitch.qml`, `UpdateConfirmation.qml`, `Updates.qml`, `update.py` | Starting point for update controls; WindowPeek now separates six-hour notifications from verified release installation |
 | `I18n.js` | Locale selection and all 30 language catalogs |
 | `tests/`, `tools/`, `docs/TESTING.md` | Focus/group cases, live checks, isolated profiles and known validation limits |
 
@@ -48,18 +53,12 @@ Chinese.
 Preserve right-to-left handling and test new labels at larger scales. Do not
 reuse scratchpad state wording for ordinary workspace/window navigation.
 
-## Known limit to carry forward
-
-ScratchPeek 0.11.0 records diagnostics for an intermittent scratchpad visibility
-warning whose cause was not reproduced. Its visibility controller is not proof
-of a general solution for navigating ordinary workspaces. WindowPeek's focus
-behavior needs its own fresh-state and completion checks.
-
 ## Code used in WindowPeek
 
 The appearance editors and helpers, hints, scrolling and popup placement were
-selected from 0.11.0; updates and preference persistence now use the 0.11.1
-reference above. `I18n.js` retains the locale machinery and relevant catalog entries,
+selected from 0.11.0; updates and preference persistence originated from the
+0.11.1 reference above and now use WindowPeek-specific checks. `I18n.js` retains
+the locale machinery and relevant catalog entries,
 with WindowPeek messages added in all 30 languages. The inventory reader, model,
 action controller and main panel are specific to WindowPeek.
 The text editor follows ScratchPeek's draft and preview behavior, with a separate

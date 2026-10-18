@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/I18n.js" as I18n
 
@@ -29,7 +30,7 @@ ShellRoot {
     TestCase { id: pixels; when: false; name: "GlassPixels" }
     Window {
         id: window; visible: true; width: 540 * test.scale; height: 820 * test.scale
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         Rectangle {
             id: canvas; x: 20 * test.scale; y: 10 * test.scale
             width: 500; height: 60; color: "white"
@@ -38,7 +39,7 @@ ShellRoot {
                 id: row; x: 5; y: 5; width: 490; height: 50
                 glass: host.glassPanels; accent: host.accent
                 Rectangle { x: 25; y: 10; width: 25; height: 25; color: host.accent }
-                Text { x: 70; y: 10; text: "Atlas project"; color: Color.popups.text }
+                Text { x: 70; y: 10; text: "Atlas project"; color: Commons.Color.popups.text }
             }
         }
         Plugin.PanelContent {
@@ -56,7 +57,7 @@ ShellRoot {
                 var picker = test.find(panel, "panelStylePicker");
                 switch (test.step++) {
                 case 0:
-                    Color.shellValues = {}; Color.background = "#1b1b26"; Color.foreground = "#b7bedb";
+                    Commons.Color.shellValues = {}; Commons.Color.background = "#1b1b26"; Commons.Color.foreground = "#b7bedb";
                     panel.begin(); panel.showSettings();
                     test.find(panel, "settingsPersonalizationSection").expanded = true;
                     test.check(!host.glassPanels && picker.value === "solid", "fixture begins with the legacy solid style");
@@ -80,7 +81,7 @@ ShellRoot {
                         "row shows changes in the actual backdrop");
                     test.check(Math.abs(test.sample(shot, 42, 25, "red") - host.accent.r * 255) < 2,
                         "backdrop changes do not dim foreground content");
-                    Color.background = "#eeeeee"; Color.foreground = "#222222"; host.themeId = "light"; host.themeAccent = "#227799";
+                    Commons.Color.background = "#eeeeee"; Commons.Color.foreground = "#222222"; host.themeId = "light"; host.themeAccent = "#227799";
                     break;
                 case 3:
                     test.check(row.color.r > 0.9 && row.color.a < 1 && String(row.accent) === "#227799",

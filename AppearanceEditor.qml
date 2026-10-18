@@ -4,6 +4,7 @@ import "vendor/omarchy" as Choice
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons
+import qs.Commons as Commons
 import "Appearance.js" as Appearance
 import "I18n.js" as I18n
 
@@ -12,8 +13,8 @@ Column {
   objectName: "appearanceEditor"
   required property var hostWidget
   readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
-  readonly property color foreground: hostWidget && hostWidget.bar ? hostWidget.bar.barForeground : Color.popups.text
-  readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+  readonly property color foreground: hostWidget && hostWidget.bar ? hostWidget.bar.barForeground : Commons.Color.popups.text
+  readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
   property real hue: 0
   property real saturation: 0
   property real value: 1
@@ -65,7 +66,7 @@ Column {
   readonly property string savedColor: hostWidget
     ? (accentTarget ? Appearance.resolve(hostWidget.savedAppearance, targetTheme, String(hostWidget.themeAccent))
       : Appearance.surfaceColor(hostWidget.savedAppearance,colorTarget,targetTheme,hostWidget.surfaces.baseColor(colorTarget)))
-    : String(Color.accent).toUpperCase()
+    : String(Commons.Color.accent).toUpperCase()
 
   function syncHex(text) {
     var hsv = Appearance.toHsv(text);
@@ -376,7 +377,7 @@ Column {
   Row {
     visible: root.colorTargetVisible
     width: parent.width; spacing: Style.space(10)
-    Rectangle { width: Style.space(32); height: width; color: root.chosenHex; radius: Style.space(4); border.width: 1; border.color: Color.popups.text }
+    Rectangle { width: Style.space(32); height: width; color: root.chosenHex; radius: Style.space(4); border.width: 1; border.color: Commons.Color.popups.text }
     EditField {
       id: hexInput
       objectName: "hexInput"
@@ -406,7 +407,7 @@ Column {
     width: parent.width
     visible: !root.validHex || root.saveFailed
     text: root.saveFailed ? root.words.saveStyleError : root.words.invalidHex
-    textColor: Color.urgent
+    textColor: Commons.Color.urgent
     wrapMode: Text.Wrap
     font.pixelSize: Style.font.body
   }
@@ -578,7 +579,7 @@ Column {
         visible: root.presetError
         width: parent.width; wrapMode: Text.Wrap
         text: root.words.presetNameError
-        font.pixelSize: Style.font.caption; textColor: Color.urgent
+        font.pixelSize: Style.font.caption; textColor: Commons.Color.urgent
       }
       Row {
         width: parent.width; spacing: Style.space(6)

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "vendor/omarchy" as Choice
 import "Appearance.js" as Appearance
 import "I18n.js" as I18n
@@ -9,7 +10,7 @@ Column {
     id: root
     required property var hostWidget
     readonly property var words: I18n.words(hostWidget ? hostWidget.language : "en")
-    readonly property color accent: hostWidget ? hostWidget.accent : Color.accent
+    readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property var saved: hostWidget ? hostWidget.savedAppearance : Appearance.normalize({})
     readonly property var colorRule: Appearance.ruleFor(saved, hostWidget ? hostWidget.themeId : "")
     readonly property string selectedPanelStyle: hostWidget ? hostWidget.selectedPanelStyle : "wallpaper"
@@ -290,7 +291,7 @@ Column {
             text: I18n.format(root.words.colorThisTheme, {theme: root.hostWidget ? root.hostWidget.themeId.replace(/(^|-)([a-z])/g,
                 function(_, dash, c) { return (dash ? " " : "") + c.toUpperCase(); }) : ""})
             textFormat: Text.PlainText; wrapMode: Text.Wrap
-            textColor: Qt.alpha(Color.popups.text, 0.7)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
             font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         SettingsRow {

@@ -26,7 +26,8 @@ QtObject {
     property string themeId: ""
     property var labelsPreviewOwner: null
     property var labelsPreview: ({})
-    // Session-only history across monitors, independent or shared between slots.
+    // Session-only history across monitors. Cooldown starts when playback starts,
+    // so leaving a panel open does not postpone the next eligible greeting.
     property var logoAnimationHistory: ({})
     function beginLogoAnimation(slot, source, cooldown, shared) {
         if (!slot) return true;
@@ -39,10 +40,10 @@ QtObject {
     }
     function endLogoAnimation(slot, source) {
         var last = logoAnimationHistory[slot];
-        if (last && last.source === source) { last.at = Date.now(); last.active = false; }
+        if (last && last.source === source) last.active = false;
         var shared = logoAnimationHistory.shared;
         if (shared && shared.slot === slot && shared.source === source) {
-            shared.at = Date.now(); shared.active = false;
+            shared.active = false;
         }
     }
 

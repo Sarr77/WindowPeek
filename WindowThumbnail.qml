@@ -3,6 +3,7 @@ import QtQuick.Window
 import Quickshell
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 import "PopupPlacement.js" as Placement
 import "PreviewGeometry.js" as Geometry
 import "Shortcuts.js" as Shortcuts
@@ -288,7 +289,7 @@ Scope {
                             width: parent.width; text: root.entry ? root.entry.title || root.words.unnamed : ""
                             textFormat: Text.PlainText; elide: Text.ElideRight
                             wrapMode: Text.Wrap; maximumLineCount: 2
-                            textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
+                            textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
                         }
                     }
                 }
@@ -296,9 +297,9 @@ Scope {
                     id: display; objectName: "windowThumbnailDisplay"
                     readonly property color readabilityBackground: color
                     width: parent.width; height: root.imageSize.height + Style.space(6)
-                    color: root.hostWidget.previewBackdrop ? Qt.darker(Color.popups.background, 1.25) : "transparent"
+                    color: root.hostWidget.previewBackdrop ? Qt.darker(Commons.Color.popups.background, 1.25) : "transparent"
                     radius: Style.space(3)
-                    border.width: root.hostWidget.previewBackdrop ? 1 : 0; border.color: Qt.alpha(Color.popups.text, 0.14)
+                    border.width: root.hostWidget.previewBackdrop ? 1 : 0; border.color: Qt.alpha(Commons.Color.popups.text, 0.14)
                     Loader {
                         id: captureLoader; objectName: "windowThumbnailCapture"
                         anchors.fill: parent; anchors.margins: Style.space(3)
@@ -311,7 +312,7 @@ Scope {
                         visible: !root.hasContent
                         text: loading.running ? root.words.previewLoading : root.words.previewUnavailable
                         textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter
-                        textColor: Qt.alpha(Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
+                        textColor: Qt.alpha(Commons.Color.popups.text, 0.6); font.family: Style.font.family; font.pixelSize: Style.font.caption
                     }
                     Timer { id: loading; interval: 1200; running: root.visible && !root.hasContent }
                 }

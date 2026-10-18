@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import qs.Commons as Commons
 import "LogoCatalog.js" as Catalog
 import "LogoWords.js" as Copy
 import "vendor/omarchy" as Choice
@@ -81,7 +82,7 @@ QQC.Popup {
             id: heading; width: parent.width; spacing: Style.space(8)
             ReadableText {
                 width: parent.width - close.width - parent.spacing; anchors.verticalCenter: parent.verticalCenter
-                text: root.copy.library; textColor: Color.popups.text; font.family: Style.font.family
+                text: root.copy.library; textColor: Commons.Color.popups.text; font.family: Style.font.family
                 font.pixelSize: Style.font.subtitle; font.bold: true; elide: Text.ElideRight
             }
             LabelButton { id: close; label: root.words.back; focusable: true; enabled: !root.busy; onClicked: root.close() }
@@ -147,7 +148,7 @@ QQC.Popup {
                     ReadableText {
                         anchors.fill: parent; anchors.margins: Style.space(8)
                         visible: root.entries.length === 0; text: root.filesTab && !search.text ? root.copy.emptyFiles : root.words.noMatches
-                        textColor: Qt.alpha(Color.popups.text, 0.75); wrapMode: Text.Wrap; font.pixelSize: Style.font.bodySmall
+                        textColor: Qt.alpha(Commons.Color.popups.text, 0.75); wrapMode: Text.Wrap; font.pixelSize: Style.font.bodySmall
                         font.family: Style.font.family
                     }
                 }
@@ -156,7 +157,7 @@ QQC.Popup {
                 width: parent.width - parent.spacing - parent.width * 0.42; height: parent.height; spacing: Style.space(8)
                 ReadableText {
                     width: parent.width; text: Catalog.label(root.previewSource, root.words, root.copy); textFormat: Text.PlainText
-                    textColor: Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body; font.bold: true; elide: Text.ElideMiddle
+                    textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body; font.bold: true; elide: Text.ElideMiddle
                 }
                 Item {
                     clip: true
@@ -195,7 +196,7 @@ QQC.Popup {
             id: opacityRow; width: parent.width; spacing: Style.space(8)
             ReadableText {
                 id: opacityLabel; anchors.verticalCenter: parent.verticalCenter
-                text: root.words.transparency; textColor: Color.popups.text
+                text: root.words.transparency; textColor: Commons.Color.popups.text
                 font.family: Style.font.family; font.pixelSize: Style.font.body
             }
             QQC.Slider {
@@ -241,7 +242,7 @@ QQC.Popup {
         ReadableText {
             id: message; width: parent.width; wrapMode: Text.Wrap
             text: root.error || (preview.status === Image.Error ? root.copy.missing : Catalog.isRandom(root.selection) ? root.copy.randomHelp : root.reveal !== "none" ? root.copy.openingHelp : root.copy.fit)
-            textColor: root.error || preview.status === Image.Error ? Color.urgent : Qt.alpha(Color.popups.text, 0.65)
+            textColor: root.error || preview.status === Image.Error ? Commons.Color.urgent : Qt.alpha(Commons.Color.popups.text, 0.65)
             font.family: Style.font.family; font.pixelSize: Style.font.caption
         }
         Row {

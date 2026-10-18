@@ -3,6 +3,7 @@ import "Shortcuts.js" as Shortcuts
 import QtQuick.Window
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
     id: root
@@ -119,7 +120,7 @@ Item {
                 width: parent.width
                 text: root.window.title || root.window.app || root.words.unnamed
                 textFormat: Text.PlainText; elide: Text.ElideRight
-                textColor: Color.popups.text
+                textColor: Commons.Color.popups.text
                 font.family: Style.font.family; font.pixelSize: Style.font.body; font.bold: root.window.active
             }
             Item {
@@ -134,7 +135,7 @@ Item {
                     text: (root.window.app || root.words.unnamed)
                         + (root.window.grouped ? " · " + root.words.grouped : "")
                     textFormat: Text.PlainText; elide: Text.ElideRight
-                    textColor: Qt.alpha(Color.popups.text, 0.7)
+                    textColor: Qt.alpha(Commons.Color.popups.text, 0.7)
                     font.family: Style.font.family; font.pixelSize: Style.font.caption
                     TextMetrics { id: appMetrics; text: appLabel.text; font: appLabel.font }
                 }

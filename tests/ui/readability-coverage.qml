@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import "WindowPeek" as Plugin
 import "WindowPeek/vendor/omarchy" as Choice
 
@@ -66,7 +67,7 @@ ShellRoot {
             try {
                 switch(test.step++) {
                 case 0:
-                    Color.shellValues={}; Color.background="#111c18"; Color.foreground="#c1c497"; Color.accent="#509475";
+                    Commons.Color.shellValues={}; Commons.Color.background="#111c18"; Commons.Color.foreground="#c1c497"; Commons.Color.accent="#509475";
                     host.previewAppearance({colorMode:"theme",colorScope:"all"});
                     panel.begin(); thumbnail.modifierState.enabled=false;
                     thumbnail.showFor(test.find(panel,"windowFocusPointer"),"0x1",panel);

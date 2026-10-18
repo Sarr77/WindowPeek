@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "I18n.js" as I18n
 
 // The owner decides whether Reset saves immediately or changes an editor draft.
@@ -12,7 +13,7 @@ Item {
     property string description: ""
     property bool showReset: true
     property bool modified: false
-    property color accent: Color.accent
+    property color accent: Commons.Color.accent
     signal resetRequested()
     signal ensureVisible()
     implicitHeight: Math.max(captions.implicitHeight, showReset ? resetButton.height : 0)
@@ -29,13 +30,13 @@ Item {
             width: parent.width
             text: I18n.format(root.words.defaultValue, {value: root.valueText})
             textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            textColor: Qt.alpha(Color.popups.text, 0.75)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.75)
             font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         ReadableText {
             width: parent.width; visible: root.description !== ""; text: root.description
             textFormat: Text.PlainText; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignLeft
-            textColor: Qt.alpha(Color.popups.text, 0.65)
+            textColor: Qt.alpha(Commons.Color.popups.text, 0.65)
             font.family: Style.font.family; font.pixelSize: Style.font.body
         }
     }
