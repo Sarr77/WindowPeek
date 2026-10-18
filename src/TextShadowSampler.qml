@@ -30,7 +30,7 @@ Scope {
         onTriggered: {
             if (!root.eligible || root.screenSize.width<=0 || root.screenSize.height<=0 || root.panelRect.width<=0 || root.panelRect.height<=0) return;
             worker.key=root.sampleKey; worker.result="";
-            worker.command=["python3","-I","-B",Qt.resolvedUrl("wallpaper_contrast.py").toString().replace(/^file:\/\//,""),
+            worker.command=["python3","-I","-B",Qt.resolvedUrl("../wallpaper_contrast.py").toString().replace(/^file:\/\//,""),
                 JSON.stringify({mode:"text-shadow",source:String(root.hostWidget.wallpaperSource),
                     screen:[root.screenSize.width,root.screenSize.height],
                     panel:[root.panelRect.x,root.panelRect.y,root.panelRect.width,root.panelRect.height]})];

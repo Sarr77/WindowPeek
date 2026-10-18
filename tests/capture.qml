@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui as Ui
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 // Native fixture: only fictional windows are ever passed to the capture API.
 ShellRoot {

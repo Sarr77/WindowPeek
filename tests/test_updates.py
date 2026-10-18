@@ -617,7 +617,7 @@ class UpdatesTest(unittest.TestCase):
         self.assertEqual(self.worker.git(self.worker.plugin, "rev-parse", "HEAD"), target)
         self.assertFalse((self.worker.plugin / "install.py").exists())
         self.assertFalse((self.worker.plugin / "UX_AGREEMENTS.md").exists())
-        for name in ("update.py", "Updates.qml", "manifest.json", "preview.png", "vendor/omarchy/LICENSE"):
+        for name in ("update.py", "src/Updates.qml", "manifest.json", "preview.png", "vendor/omarchy/LICENSE"):
             self.assertEqual((self.worker.plugin / name).read_bytes(), (ROOT / name).read_bytes())
         self.assertEqual(self.prefs.read_bytes(), self.saved)
 

@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "Appearance.js" as Appearance
 import "I18n.js" as I18n
 import "UpdateWords.js" as UpdateCopy

@@ -3,7 +3,7 @@ import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import "WindowPeek" as Plugin
-import "WindowPeek/WindowCommands.js" as Commands
+import "WindowPeek/src/WindowCommands.js" as Commands
 
 // Actual dispatcher and verification against two private Wayland outputs.
 ShellRoot {

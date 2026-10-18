@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "Buka Pembaruan",
   "turnOffNotifications": "Matikan",
   "projectSupportIntro": "Suka? Beri tahu yang lain",
-  "projectSupportMission": "Mari jadikan ini cara paling populer untuk menemukan jendela di Omarchy",
+  "projectSupportMission": "Bantu lebih banyak orang menemukan WindowPeek dan menyesuaikannya dengan gaya mereka.",
   "starWindowPeekCatalog": "Kirim hati di Omarchy Plugins",
   "starWindowPeekGitHub": "Beri bintang di GitHub",
   "projectSupportThanks": "Terima kasih atas dukungan Anda.",

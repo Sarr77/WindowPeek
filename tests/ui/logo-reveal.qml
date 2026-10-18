@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Window
 import Quickshell
 import "WindowPeek" as Plugin
-import "WindowPeek/LogoCatalog.js" as Catalog
+import "WindowPeek/src/LogoCatalog.js" as Catalog
 
 ShellRoot {
     id: test

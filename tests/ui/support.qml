@@ -5,9 +5,9 @@ import Quickshell
 import Quickshell.Io
 import qs.Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/I18n.js" as Languages
-import "WindowPeek/LogoCatalog.js" as Catalog
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/I18n.js" as Languages
+import "WindowPeek/src/LogoCatalog.js" as Catalog
+import "WindowPeek/src/Appearance.js" as Appearance
 
 ShellRoot {
     id: test
@@ -169,6 +169,9 @@ ShellRoot {
                     test.check(!test.named("closeProjectSupport"),"no corner close glyph");
                     test.check(test.named("projectSupportHeading").text==="Like this? Let people know",
                         "requested heading without a final period");
+                    test.check(test.named("projectSupportMission").text===
+                        "Help more people discover\nWindowPeek and make it their own.",
+                        "support message invites discovery and customization");
                     test.capture("project");
                     test.click(test.named("starWindowPeekCatalog")); break;
                 case 17:

@@ -121,7 +121,7 @@ QtObject {
     property Process worker: Process {
         property string message: ""
         stdinEnabled: true
-        command: ["python3","-I","-B","-u", decodeURIComponent(Qt.resolvedUrl("wallpaper_contrast.py").toString().replace(/^file:\/\//,"")),
+        command: ["python3","-I","-B","-u", decodeURIComponent(Qt.resolvedUrl("../wallpaper_contrast.py").toString().replace(/^file:\/\//,"")),
             "--text-readability-worker"]
         onStarted: write(message)
         stdout: SplitParser {

@@ -4,7 +4,7 @@ const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const focus = vm.createContext({});
-vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../SearchFocus.js'), 'utf8'), focus);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../src/SearchFocus.js'), 'utf8'), focus);
 
 test('temporary keyboard focus restores all mouse modes on close or lease expiry', () => {
     for (const original of [0, 1, 2, 3]) {

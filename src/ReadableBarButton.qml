@@ -1,6 +1,6 @@
 import QtQuick
 import QtQml.Models
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import qs.Commons
 import qs.Commons as Commons
 import "TextReadability.js" as Readability

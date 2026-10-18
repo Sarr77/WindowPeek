@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const policy = vm.createContext({});
-vm.runInContext(fs.readFileSync(path.join(__dirname, '../FocusIncident.js'), 'utf8'), policy);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/FocusIncident.js'), 'utf8'), policy);
 const interruptions = vm.createContext({});
-vm.runInContext(fs.readFileSync(path.join(__dirname, '../FocusInterruptions.js'), 'utf8'), interruptions);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/FocusInterruptions.js'), 'utf8'), interruptions);
 const owner = 'panel:1';
 const backend = 'fixture-backend:1';
 test('settings suggestion needs three separate unexplained losses, across panel openings', () => {

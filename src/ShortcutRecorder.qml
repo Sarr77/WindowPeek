@@ -6,7 +6,7 @@ import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "Shortcuts.js" as Shortcuts
 
 QQC.Popup {

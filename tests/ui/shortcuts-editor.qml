@@ -5,7 +5,7 @@ import Quickshell
 import qs.Commons
 import qs.Commons as Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/Shortcuts.js" as Shortcuts
+import "WindowPeek/src/Shortcuts.js" as Shortcuts
 
 ShellRoot {
     id: test

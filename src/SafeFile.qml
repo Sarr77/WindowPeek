@@ -10,7 +10,7 @@ QtObject {
     property bool watchChanges: false
     property bool readPending: false
     property string writePending: ""
-    readonly property string helper: decodeURIComponent(Qt.resolvedUrl("bounded_io.py").toString().replace(/^file:\/\//, ""))
+    readonly property string helper: decodeURIComponent(Qt.resolvedUrl("../bounded_io.py").toString().replace(/^file:\/\//, ""))
     signal loaded(string content)
     signal loadFailed(string reason)
     signal saved()

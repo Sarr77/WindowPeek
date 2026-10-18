@@ -3,7 +3,7 @@ import QtQuick
 import qs.Ui as Ui
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "Labels.js" as Labels
 import "I18n.js" as I18n
 

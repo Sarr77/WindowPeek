@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "打开更新",
   "turnOffNotifications": "关闭",
   "projectSupportIntro": "喜欢吗？让更多人知道",
-  "projectSupportMission": "让我们一起把它变成在 Omarchy 中查找窗口的最热门方式",
+  "projectSupportMission": "帮助更多人发现 WindowPeek，并将它定制成自己的风格。",
   "starWindowPeekCatalog": "在 Omarchy Plugins 上送出爱心",
   "starWindowPeekGitHub": "在 GitHub 上点亮星标",
   "projectSupportThanks": "衷心感谢你的支持。",

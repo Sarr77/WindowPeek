@@ -4,8 +4,8 @@ import QtQuick.Controls as QQC
 import QtTest
 import Quickshell
 import "WindowPeek" as Plugin
-import "WindowPeek/LogoCatalog.js" as Catalog
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/LogoCatalog.js" as Catalog
+import "WindowPeek/src/Appearance.js" as Appearance
 
 ShellRoot {
     id: test

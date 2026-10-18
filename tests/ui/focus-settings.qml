@@ -5,7 +5,7 @@ import Quickshell
 import qs.Commons
 import qs.Commons as Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/FocusRecoveryText.js" as Texts
+import "WindowPeek/src/FocusRecoveryText.js" as Texts
 
 ShellRoot {
     id: test

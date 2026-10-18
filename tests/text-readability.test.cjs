@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const r = vm.createContext({});
-vm.runInContext(fs.readFileSync('TextReadability.js', 'utf8'), r);
+vm.runInContext(fs.readFileSync('src/TextReadability.js', 'utf8'), r);
 const c = (v, a=1) => ({r:v,g:v,b:v,a});
 const host = {textShadowMode:'auto',panelStyle:'wallpaper',wallpaperTransparency:90,
     glassTransparency:90,surfaces:{panel:c(.08),wallpaperBrightness:0},textShadowSamples:[[240,240,240]]};

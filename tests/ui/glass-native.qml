@@ -7,7 +7,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui as Ui
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 // A fictional backdrop covers the capture region; notifications sit outside it.
 // This fixture never moves the pointer, sends input or asks for keyboard focus.

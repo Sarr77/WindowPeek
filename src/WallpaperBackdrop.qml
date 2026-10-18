@@ -49,7 +49,7 @@ ClippingRectangle {
     Rectangle { anchors.fill: parent; visible: root.wallpaper; color: Qt.alpha(root.tint, root.tintOpacity) }
     Image {
         anchors.fill: parent; visible: root.textured
-        source: root.textured ? Qt.resolvedUrl(root.palette && root.palette.customGrain ? "assets/grain-tint.svg" : "assets/grain.svg") : ""
+        source: root.textured ? Qt.resolvedUrl(root.palette && root.palette.customGrain ? "../assets/grain-tint.svg" : "../assets/grain.svg") : ""
         sourceSize: Qt.size(64, 64); fillMode: Image.Tile
         opacity: root.palette ? root.palette.grainOpacity : 0.045; smooth: false
         layer.enabled: !!root.palette && root.palette.customGrain

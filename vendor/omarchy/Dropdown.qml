@@ -2,7 +2,7 @@
 // ScratchPeek: keep scaled popup menus inside their window.
 import QtQuick
 import QtQuick.Window
-import "../../PopupPlacement.js" as Placement
+import "../../src/PopupPlacement.js" as Placement
 import "../.." as WindowPeek
 import qs.Ui
 import QtQuick.Controls

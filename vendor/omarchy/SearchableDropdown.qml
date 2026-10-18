@@ -3,7 +3,7 @@
 import QtQuick
 import QtQuick.Window
 import Quickshell
-import "../../PopupPlacement.js" as Placement
+import "../../src/PopupPlacement.js" as Placement
 import "../.." as WindowPeek
 import qs.Ui
 import QtQuick.Controls as QQC

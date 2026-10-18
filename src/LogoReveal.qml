@@ -42,7 +42,7 @@ Item {
             property real mode: Catalog.reveals.indexOf(root.kind)
             property real imageWidth: root.imageSize.width
             property real imageHeight: root.imageSize.height
-            fragmentShader: Qt.resolvedUrl("assets/shaders/logo-reveal.frag.qsb")
+            fragmentShader: Qt.resolvedUrl("../assets/shaders/logo-reveal.frag.qsb")
             onStatusChanged: if (status === ShaderEffect.Error) root.shaderFailed = true
         }
     }

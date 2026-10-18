@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 import "HostBar" as Host
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 // Use the production layer surface: a plain Window does not reproduce its
 // content-item ownership and transforms. Run in a private compositor.

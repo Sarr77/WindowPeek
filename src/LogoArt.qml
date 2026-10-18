@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Effects
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "LogoCatalog.js" as Catalog
 
 // One selected source only. The browser list has no running animations; no effect engine,
@@ -65,13 +65,13 @@ Item {
         Image {
             id: poster
             anchors.fill: parent; asynchronous: true; fillMode: Image.PreserveAspectFit
-            source: root.effect ? Qt.resolvedUrl("vendor/ttfx/" + root.effect + ".png") : ""
+            source: root.effect ? Qt.resolvedUrl("../vendor/ttfx/" + root.effect + ".png") : ""
             visible: !!root.effect && (!root.playing || !root.imageReady)
         }
         LogoImage {
             id: picture; objectName: "customPanelLogo"
             anchors.fill: parent
-            source: root.effect ? Qt.resolvedUrl("vendor/ttfx/" + root.effect + ".gif") : root.pixel ? "" : root.source
+            source: root.effect ? Qt.resolvedUrl("../vendor/ttfx/" + root.effect + ".gif") : root.pixel ? "" : root.source
             knownAspect: root.effect ? 588 / 169 : 0
             sourceSize: root.effect ? Qt.size(588,169) : Qt.size(1024, 1024)
             playing: root.playing; suspended: root.suspended

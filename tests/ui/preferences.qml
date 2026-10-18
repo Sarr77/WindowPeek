@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import "WindowPeek" as Plugin
-import "WindowPeek/Settings.js" as Settings
+import "WindowPeek/src/Settings.js" as Settings
 
 ShellRoot {
   id: suite

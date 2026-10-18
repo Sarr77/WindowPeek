@@ -3,6 +3,15 @@
 WindowPeek is a QML plugin loaded by Omarchy. One runtime serves every bar
 instance; no daemon or per-monitor compositor reader is needed.
 
+The repository root keeps the Omarchy entry point (`Widget.qml`), `manifest.json`,
+the root `qmldir` map and the runtime Python workers alongside README, license
+and release metadata. `Widget.qml` delegates to `src/Widget.qml`; the other QML
+components and JavaScript modules live together under `src/` so their local
+imports remain local. The root and `src/qmldir` maps expose the same types to the
+Omarchy entry point, tests and internal components. Assets, translations and
+vendored Omarchy controls retain their own directories. The package includes
+this layout unchanged, and the updater replaces the validated whole plugin tree.
+
 ```text
 Hyprland events → WindowState → WindowModel → Widget / PanelContent
                        ↑                           |

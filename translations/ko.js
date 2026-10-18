@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "업데이트 열기",
   "turnOffNotifications": "끄기",
   "projectSupportIntro": "마음에 드시나요? 다른 사람들에게 알려 주세요",
-  "projectSupportMission": "Omarchy에서 창을 찾는 가장 인기 있는 방법으로 함께 만들어 가요",
+  "projectSupportMission": "더 많은 사람이 WindowPeek을 발견하고 자신만의 스타일로 꾸밀 수 있게 도와주세요",
   "starWindowPeekCatalog": "Omarchy Plugins에서 하트 보내기",
   "starWindowPeekGitHub": "GitHub에서 별 주기",
   "projectSupportThanks": "응원해 주셔서 감사합니다.",

@@ -1,5 +1,5 @@
 import QtQuick
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 
 // A stepped glint over the existing Omarchy wordmark. All colors come from the
 // theme; the original SVG paths and their attribution remain unchanged.

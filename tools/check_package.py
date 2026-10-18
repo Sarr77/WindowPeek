@@ -15,6 +15,9 @@ def main():
     parser.add_argument("--validate", action="store_true", help="Also run Omarchy's validator")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
+    source_root_qml_js = {path.name for path in root.iterdir()
+                          if path.is_file() and path.suffix in (".qml", ".js")}
+    assert source_root_qml_js == {"Widget.qml"}, "Runtime QML/JS must live in src/"
     manifest = json.loads((root / "manifest.json").read_text())
     assert manifest["schemaVersion"] == 1
     assert manifest["id"] == "sarr.windowpeek"
@@ -24,13 +27,13 @@ def main():
     forbidden = {".git", ".reference", "dist", "__pycache__", "AGENTS.md",
                  "HANDOFF.md", "UX_AGREEMENTS.md", "NEW_CHAT.txt", "install.py"}
     required = {
-        "manifest.json", "qmldir", "LICENSE", "README.md", "CHANGELOG.md",
+        "manifest.json", "release.json", "qmldir", "src/qmldir", "src/Widget.qml", "LICENSE", "README.md", "CHANGELOG.md",
         "vendor/omarchy/LICENSE", "vendor/omarchy/OmarchyLogo.qml",
         "vendor/omarchy/PopupMotion.qml", "vendor/omarchy/WindowPanel.qml",
-        "update.py", "wallpaper_contrast.py", "bounded_io.py", "SafeFile.qml", "tools/focus_observer.py",
-        "FocusIncident.js", "FocusWatch.js", "NativeProtection.js", "SearchFocus.js",
-        "FocusRecoveryText.js", "FocusIssues.js", "TextReadability.js",
-        "Shortcuts.js", "ShortcutBindings.js", "assets/grain.svg", "assets/grain-tint.svg",
+        "update.py", "wallpaper_contrast.py", "bounded_io.py", "src/SafeFile.qml", "tools/focus_observer.py",
+        "src/FocusIncident.js", "src/FocusWatch.js", "src/NativeProtection.js", "src/SearchFocus.js",
+        "src/FocusRecoveryText.js", "src/FocusIssues.js", "src/TextReadability.js",
+        "src/Shortcuts.js", "src/ShortcutBindings.js", "assets/grain.svg", "assets/grain-tint.svg",
         "assets/shaders/logo-reveal.frag", "assets/shaders/logo-reveal.frag.qsb",
         "docs/UPDATES.md", "docs/GUIDE.md", "docs/README.pl.md", "docs/KNOWN_ISSUES.md",
         "docs/TROUBLESHOOTING.md", "docs/FOCUS_RECOVERY.md",
@@ -40,6 +43,10 @@ def main():
     }
     with ZipFile(archive_path) as archive:
         names = archive.namelist()
+        root_qml_js = {PurePosixPath(name).name for name in names
+                       if len(PurePosixPath(name).parts) == 2
+                       and PurePosixPath(name).suffix in (".qml", ".js")}
+        assert root_qml_js == {"Widget.qml"}, "Unexpected root QML or JavaScript"
         assert len(names) == len(set(names)), "Duplicate archive paths"
         assert archive.testzip() is None, "Corrupt archive"
         for info in archive.infolist():
@@ -54,9 +61,9 @@ def main():
         assert {p.name for p in map(PurePosixPath, names) if len(p.parts) == 2 and p.suffix == ".py"} == {
             "update.py", "wallpaper_contrast.py", "bounded_io.py"}, "Unexpected root Python worker"
         assert json.loads(archive.read("windowpeek/manifest.json")) == manifest
-        for relative in re.findall(r'^\.import "(translations/[^"\n]+\.js)" as ', archive.read("windowpeek/I18n.js").decode(), re.M):
+        for relative in re.findall(r'^\.import "\.\./(translations/[^"\n]+\.js)" as ', archive.read("windowpeek/src/I18n.js").decode(), re.M):
             required.add(relative)
-        version = re.search(r'property string version: "([^"]+)"', archive.read("windowpeek/Runtime.qml").decode())
+        version = re.search(r'property string version: "([^"]+)"', archive.read("windowpeek/src/Runtime.qml").decode())
         assert version and version[1] == manifest["version"], "Runtime/manifest version mismatch"
         releases = re.findall(r"^## ([0-9]+\.[0-9]+\.[0-9]+)$", archive.read("windowpeek/CHANGELOG.md").decode(), re.M)
         assert releases and releases[0] == manifest["version"], "Changelog/manifest version mismatch"
@@ -69,6 +76,10 @@ def main():
             fields = line.split()
             if fields and fields[-1].endswith(".qml"):
                 required.add(fields[-1])
+        for line in archive.read("windowpeek/src/qmldir").decode().splitlines():
+            fields = line.split()
+            if fields and fields[-1].endswith(".qml"):
+                required.add("src/" + fields[-1])
         assert {"windowpeek/" + name for name in required} <= set(names), "Missing runtime or documentation"
         if args.validate:
             # Validate what users receive, not ignored diagnostics in the worktree.

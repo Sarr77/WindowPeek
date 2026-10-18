@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const vm = require('node:vm');
 const root = require('node:path').join(__dirname,'..');
 function load(file) { const c=vm.createContext({});vm.runInContext(fs.readFileSync(root+'/'+file,'utf8'),c);return c; }
-const catalog=load('LogoCatalog.js'), settings=load('Settings.js');
+const catalog=load('src/LogoCatalog.js'), settings=load('src/Settings.js');
 test('random selection draws only bundled GIFs, excluding the previous choice',()=>{
   assert.equal(settings.logoChoice(catalog.randomChoice),catalog.randomChoice);
   assert.ok(catalog.animated(catalog.randomChoice));

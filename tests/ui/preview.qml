@@ -3,8 +3,8 @@ import QtQuick.Window
 import Quickshell
 import qs.Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
-import "WindowPeek/I18n.js" as I18n
+import "WindowPeek/src/Appearance.js" as Appearance
+import "WindowPeek/src/I18n.js" as I18n
 
 ShellRoot {
     id: test

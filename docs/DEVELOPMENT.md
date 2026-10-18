@@ -21,6 +21,9 @@ omarchy plugin add https://github.com/Sarr77/WindowPeek --enable
 
 Omarchy clones the repository into `~/.config/omarchy/plugins/sarr.windowpeek`
 and enables the widget. WindowPeek does not include a separate installer.
+The root `Widget.qml` is the Omarchy entry point; implementation QML and JS are
+under `src/`. Keep the root manifest, module map and worker scripts at their
+expected paths when changing the layout.
 
 For local development, the same command accepts an absolute path to a Git
 checkout in place of the URL. It clones committed files; it does not link to

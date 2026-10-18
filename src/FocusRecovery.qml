@@ -342,7 +342,7 @@ QtObject {
         Qt.callLater(function() { root.notification(text); });
     }
     property Process observer: Process {
-        command: ["python3", decodeURIComponent(Qt.resolvedUrl("tools/focus_observer.py").toString().replace(/^file:\/\//, ""))]
+        command: ["python3", decodeURIComponent(Qt.resolvedUrl("../tools/focus_observer.py").toString().replace(/^file:\/\//, ""))]
         stdinEnabled: true
         stdout: SplitParser { onRead: function(line) { root.receive(line); } }
         stderr: StdioCollector { }

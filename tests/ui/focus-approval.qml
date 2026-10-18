@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "WindowPeek" as Plugin
-import "WindowPeek/FocusIncident.js" as Policy
+import "WindowPeek/src/FocusIncident.js" as Policy
 
 ShellRoot {
     id:test

@@ -4,7 +4,7 @@ const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const bindings = vm.createContext({});
-vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../ShortcutBindings.js'), 'utf8'), bindings);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../src/ShortcutBindings.js'), 'utf8'), bindings);
 
 test('digit leases consume both keyboards, expire, reuse handles and preserve another owner', () => {
     const script = `
@@ -68,9 +68,9 @@ test('only internal session tokens can enter Lua commands', () => {
 });
 
 const vocabulary = vm.createContext({});
-vm.runInContext(fs.readFileSync(require("node:path").join(__dirname,"../Shortcuts.js"),"utf8"), vocabulary);
+vm.runInContext(fs.readFileSync(require("node:path").join(__dirname,"../src/Shortcuts.js"),"utf8"), vocabulary);
 const opener = vm.createContext({Keys:vocabulary});
-vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../OpenShortcut.js'), 'utf8').replace(/^\.import.*\n/gm, ''), opener);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../src/OpenShortcut.js'), 'utf8').replace(/^\.import.*\n/gm, ''), opener);
 test('automatic opening preserves configured chords and rejects unreadable inventories', () => {
     assert.equal(opener.occupied([]), false);
     for (const list of [null, {}, [{modmask:72,key:'P'}], [{modmask:72,keycode:33}],
@@ -172,7 +172,7 @@ assert(keys['ALT + 1'].enabled)
 });
 
 const hover = vm.createContext({});
-vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../HoverBindings.js'), 'utf8'), hover);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../src/HoverBindings.js'), 'utf8'), hover);
 test('passive hover leases follow remapping and RTL without capturing text or stealing numpad digits', () => {
     const defaults = vocabulary.hoverBindings({},false);
     for (const chord of ['HOME','END','PRIOR','NEXT','UP','DOWN','RETURN','KP_ENTER','ESCAPE','TAB','SHIFT + TAB'])
@@ -225,7 +225,7 @@ for _,b in pairs(keys) do assert(not b.enabled) end
 });
 
 const outside = vm.createContext({});
-vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../OutsideClicks.js'), 'utf8'), outside);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../src/OutsideClicks.js'), 'utf8'), outside);
 test('outside clicks pass through, expire and preserve a newer panel owner', () => {
     execFileSync('lua', ['-'], {encoding:'utf8', input:`
 local keys,events={},{}

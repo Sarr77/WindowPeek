@@ -4,7 +4,7 @@ import qs.Commons
 import qs.Commons as Commons
 import "LogoCatalog.js" as Catalog
 import "LogoWords.js" as Copy
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 
 QQC.Popup {
     id: root

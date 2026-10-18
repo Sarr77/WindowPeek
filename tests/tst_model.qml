@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../WindowModel.js" as Model
+import "../src/WindowModel.js" as Model
 
 TestCase {
     name: "WindowModel"

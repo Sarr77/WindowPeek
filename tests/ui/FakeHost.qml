@@ -1,12 +1,12 @@
 import QtQuick
 import "WindowPeek" as Plugin
 import qs.Commons
-import "WindowPeek/WindowModel.js" as Model
-import "WindowPeek/Appearance.js" as Appearance
-import "WindowPeek/I18n.js" as I18n
-import "WindowPeek/Settings.js" as Settings
-import "WindowPeek/Shortcuts.js" as Shortcuts
-import "WindowPeek/Labels.js" as Labels
+import "WindowPeek/src/WindowModel.js" as Model
+import "WindowPeek/src/Appearance.js" as Appearance
+import "WindowPeek/src/I18n.js" as I18n
+import "WindowPeek/src/Settings.js" as Settings
+import "WindowPeek/src/Shortcuts.js" as Shortcuts
+import "WindowPeek/src/Labels.js" as Labels
 
 QtObject {
     id: fake

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 JS = r'''
 const fs=require('node:fs'),vm=require('node:vm');
 function load(file,globals={}) {const c=vm.createContext(globals);vm.runInContext(fs.readFileSync(file,'utf8').replace(/^\.import.*\n/gm,''),c);return c;}
-const keys=load('Shortcuts.js');
+const keys=load('src/Shortcuts.js');
 const families=[['ShortcutBindings.js','_windowpeek_shortcuts_v1',[]],['HoverBindings.js','_windowpeek_hover_keys_v1',[keys.hoverBindings({},false)]],['OpenShortcut.js','_windowpeek_open_v1',[]],['OutsideClicks.js','_windowpeek_outside_clicks_v1',[]],['NativeProtection.js','_windowpeek_native_focus_v2',[123,'WPTEST',10,36,500,600,true]]];
 let out=`local timers={}\nfunction hl.timer(callback,options)
  local t={callback=callback};function t:set_enabled(value) end;function t:set_timeout(value) end
@@ -28,7 +28,7 @@ local function enabled(s,value)
  for _,b in ipairs(handles(s)) do assert(tostring(b)~='HL.Keybind(expired)');assert(b:is_enabled()==value) end
 end\n`;
 for (const [file,state,args] of families) {
- const api=load(file,{Keys:keys});
+ const api=load('src/'+file,{Keys:keys});
  out+=api.install('first:1',...args)+`\nlocal s=${state}; enabled(s,true);local live=handles(s)[2];expire(s,true)\n`;
  out+=api.renew('first:1')+api.release('first:1')+'\nfor _,t in ipairs(timers) do t.callback() end\n';
  out+=api.install('second:2',...(file==='NativeProtection.js'?args.concat(false):args))+`\nenabled(s,true);${file==='NativeProtection.js'?"assert(s.enabled==false,'initial hold must match the current view')":""};if live then assert(handles(s)[2]==live,'live handles must be reused') end;expire(s,false)\n`;

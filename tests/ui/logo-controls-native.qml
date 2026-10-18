@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 import "HostBar" as Host
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 // Real Wayland pointer/keyboard events against the production layer surface.
 // Private compositor only; never run on the user's desktop.

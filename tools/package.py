@@ -6,11 +6,13 @@ import zipfile
 
 root = Path(__file__).resolve().parents[1]
 version = json.loads((root / "manifest.json").read_text())["version"]
-# Local Python helpers are not part of the release. Include only runtime workers.
-files = [p for p in root.iterdir() if p.is_file() and (
-    p.suffix in (".qml", ".js", ".json") or p.name in ("update.py", "wallpaper_contrast.py", "bounded_io.py",
-    "README.md", "CHANGELOG.md", "LICENSE", "qmldir", ".gitignore", "preview.png"))]
-for directory in ("docs", "tests", "tools", "vendor", "assets", "translations", ".github"):
+# The root is intentionally small. Local Python helpers are not part of the
+# release; only these runtime workers and entry-point files belong here.
+root_files = ("Widget.qml", "manifest.json", "release.json", "qmldir",
+              "update.py", "wallpaper_contrast.py", "bounded_io.py",
+              "README.md", "CHANGELOG.md", "LICENSE", ".gitignore", "preview.png")
+files = [root / name for name in root_files if (root / name).is_file()]
+for directory in ("src", "docs", "tests", "tools", "vendor", "assets", "translations", ".github"):
     files.extend(p for p in (root / directory).rglob("*") if p.is_file() and "__pycache__" not in p.parts)
 output = root / "dist" / ("WindowPeek-" + version + ".zip")
 output.parent.mkdir(exist_ok=True)

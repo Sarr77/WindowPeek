@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "Frissítések megnyitása",
   "turnOffNotifications": "Kikapcsolás",
   "projectSupportIntro": "Tetszik? Mondd el másoknak is",
-  "projectSupportMission": "Legyen ez az ablakok megtalálásának legnépszerűbb módja az Omarchyban",
+  "projectSupportMission": "Segíts több embernek felfedezni a WindowPeeket, és a saját ízlésükre szabni.",
   "starWindowPeekCatalog": "Küldj szívet az Omarchy Plugins oldalon",
   "starWindowPeekGitHub": "Csillagozás a GitHubon",
   "projectSupportThanks": "Köszönöm a támogatásodat.",

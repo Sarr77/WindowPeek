@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const model = vm.createContext({});
-const filename = path.join(__dirname, '../WindowModel.js');
+const filename = path.join(__dirname, '../src/WindowModel.js');
 vm.runInContext(fs.readFileSync(filename, 'utf8'), model, { filename });
 const plain = value => JSON.parse(JSON.stringify(value));
 const normalize = snapshot => plain(model.normalize(snapshot));
@@ -226,7 +226,7 @@ test('normalization and search do not mutate their inputs or keep state between 
 });
 
 const preview = vm.createContext({});
-vm.runInContext(fs.readFileSync(path.join(__dirname, '../WindowPreview.js'), 'utf8'), preview);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/WindowPreview.js'), 'utf8'), preview);
 test('session ordering survives focus changes without dropping or mutating windows', () => {
     const initial = search(normalize(snapshot([
         client('0x1', { workspace: { id: 1, name: '1' } }),

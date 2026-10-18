@@ -48,7 +48,7 @@ Scope {
             worker.requestedTheme = root.theme; worker.requestedSource = String(root.source);
             worker.requestedGeneration = root.generation; worker.result = "";
             worker.command = ["python3", "-I", "-B",
-                decodeURIComponent(Qt.resolvedUrl("wallpaper_contrast.py").toString().replace(/^file:\/\//, "")),
+                decodeURIComponent(Qt.resolvedUrl("../wallpaper_contrast.py").toString().replace(/^file:\/\//, "")),
                 JSON.stringify({source: String(root.source),
                     screen: [root.screenSize.width, root.screenSize.height],
                     panel: [root.panelRect.x, root.panelRect.y, root.panelRect.width, root.panelRect.height],

@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import "WindowPeek" as Plugin
-import "WindowPeek/TextReadability.js" as Policy
+import "WindowPeek/src/TextReadability.js" as Policy
 
 ShellRoot {
     id:test

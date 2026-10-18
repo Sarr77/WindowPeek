@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Window
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons

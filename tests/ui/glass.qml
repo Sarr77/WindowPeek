@@ -6,7 +6,7 @@ import Quickshell
 import qs.Commons
 import qs.Commons as Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/I18n.js" as I18n
+import "WindowPeek/src/I18n.js" as I18n
 
 ShellRoot {
     id: test

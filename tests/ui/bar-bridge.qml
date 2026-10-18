@@ -4,7 +4,7 @@ import QtTest
 import Quickshell
 import qs.Ui as Ui
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 ShellRoot {
     id: test

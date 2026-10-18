@@ -7,7 +7,7 @@ import QtQuick.Controls as QQC
 import qs.Ui as Ui
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "WindowModel.js" as Model
 import "WindowListModel.js" as ListData
 import "WindowCommands.js" as Commands

@@ -14,15 +14,15 @@ function load(file, globals = {}) {
     vm.runInContext(source.replace(/^\.import .*\n/gm, ''), context, { filename: file });
     return context;
 }
-const model = load('WindowModel.js');
-const commands = load('WindowCommands.js', { Model: model });
-const compositor = load('Compositor.js');
-const settings = load('Settings.js');
-const i18n = load('I18n.js');
-const appearance = load('Appearance.js');
-const preview = load('WindowPreview.js');
-const labels = load('Labels.js');
-const placement = load('PopupPlacement.js');
+const model = load('src/WindowModel.js');
+const commands = load('src/WindowCommands.js', { Model: model });
+const compositor = load('src/Compositor.js');
+const settings = load('src/Settings.js');
+const i18n = load('src/I18n.js');
+const appearance = load('src/Appearance.js');
+const preview = load('src/WindowPreview.js');
+const labels = load('src/Labels.js');
+const placement = load('src/PopupPlacement.js');
 
 test('background choices reject invalid saved values and preserve transparency endpoints', () => {
     for (const value of [undefined, null, '', '0', false, {}, NaN, Infinity]) {
@@ -248,8 +248,8 @@ test('all 30 catalogs cover every UI key and preserve placeholders', () => {
             assert.deepEqual(tokens(value), tokens(i18n.catalogs.en[key]), code + ':' + key);
         }
     }
-    for (const file of fs.readdirSync(root).filter(file => file.endsWith('.qml')))
-        for (const match of fs.readFileSync(path.join(root, file), 'utf8').matchAll(/words\.([a-zA-Z]+)/g))
+    for (const file of fs.readdirSync(path.join(root, 'src')).filter(file => file.endsWith('.qml')))
+        for (const match of fs.readFileSync(path.join(root, 'src', file), 'utf8').matchAll(/words\.([a-zA-Z]+)/g))
             assert.ok(keys.includes(match[1]), file + ':' + match[1]);
     assert.equal(i18n.language('auto', ['pl-PL'], 'en_US'), 'pl');
     assert.equal(i18n.language('auto', ['zh-Hant-HK'], 'en_US'), 'zh-TW');
@@ -369,12 +369,12 @@ test('complete color presets round trip, preserve legacy presets and reset only 
 
 test('displayed runtime version matches the manifest', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8'));
-    assert.ok(fs.readFileSync(path.join(root,'Runtime.qml'),'utf8').includes('readonly property string version: "' + manifest.version + '"'));
+    assert.ok(fs.readFileSync(path.join(root,'src','Runtime.qml'),'utf8').includes('readonly property string version: "' + manifest.version + '"'));
 });
 
 
 test('preview dimensions follow portrait, landscape and changing source sizes within monitor bounds', () => {
-    const geometry = load('PreviewGeometry.js');
+    const geometry = load('src/PreviewGeometry.js');
     for (const [w,h] of [[320,640],[1920,1080],[100,2000],[2000,100]]) {
         const fitted = geometry.fit(w,h,290,300,164,true);
         assert.ok(fitted.width <= 290 && fitted.height <= 300);
@@ -398,7 +398,7 @@ test('following the local bar changes only the rendered Wallpaper style', () => 
 
 
 test('recovery copy has matching English/Polish fields and an explicit English fallback', () => {
-    const recovery = load('FocusRecoveryText.js');
+    const recovery = load('src/FocusRecoveryText.js');
     assert.deepEqual(Object.keys(recovery.catalogs.pl).sort(), Object.keys(recovery.catalogs.en).sort());
     for (const code of ['en', 'pl']) for (const key of Object.keys(recovery.catalogs.en)) {
         assert.ok(recovery.catalogs[code][key].length > 0, code + ':' + key);

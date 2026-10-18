@@ -49,9 +49,10 @@ with tempfile.TemporaryDirectory(prefix="windowpeek-ui #-" if args.case == "focu
         plugin = profile / "WindowPeek"
         plugin.mkdir()
         for source in root.iterdir():
-            if source.name != "WindowCapture.qml":
+            if source.name != "src":
                 (plugin / source.name).symlink_to(source, target_is_directory=source.is_dir())
-        shutil.copyfile(root / "tests/ui/FictionalCapture.qml", plugin / "WindowCapture.qml")
+        shutil.copytree(root / "src", plugin / "src")
+        shutil.copyfile(root / "tests/ui/FictionalCapture.qml", plugin / "src/WindowCapture.qml")
     else:
         (profile / "WindowPeek").symlink_to(root, target_is_directory=True)
     fixture = {"settings-input-native": "settings-input", "dropdowns-native": "dropdowns", "bar-return-native": "bar-return", "bar-bridge-native": "bar-bridge", "hints-native": "hints", "borders-native": "borders"}.get(args.case, args.case)

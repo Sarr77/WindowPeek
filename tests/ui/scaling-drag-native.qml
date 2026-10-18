@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 import "HostBar" as Host
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 // Bounded real Wayland drag in the private compositor, with fictional content.
 ShellRoot {

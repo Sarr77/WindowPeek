@@ -6,7 +6,7 @@ import Quickshell.Wayland
 import qs.Ui as Ui
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Native
+import "../vendor/omarchy" as Native
 
 // One list surface from compact browsing through keyboard search; a transient move menu.
 Ui.Panel {

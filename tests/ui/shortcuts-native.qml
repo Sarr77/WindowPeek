@@ -8,8 +8,8 @@ import Quickshell.Hyprland
 import qs.Commons
 import qs.Commons as Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/Shortcuts.js" as Shortcuts
-import "WindowPeek/ShortcutBindings.js" as Lua
+import "WindowPeek/src/Shortcuts.js" as Shortcuts
+import "WindowPeek/src/ShortcutBindings.js" as Lua
 
 ShellRoot {
     id: test

@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
 const p = vm.createContext({});
-vm.runInContext(fs.readFileSync(path.join(__dirname,'../FocusIssues.js'),'utf8'),p);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/FocusIssues.js'),'utf8'),p);
 const client = {xwayland:true, class:'Dynamic',initialClass:'FictionalApp',app:'Fictional App',title:'PRIVATE QUERY',pid:45,address:'0x123'};
 test('history keeps only application identity and evidence metadata across windows',()=>{
  let d=p.record(p.empty(),client,1000);

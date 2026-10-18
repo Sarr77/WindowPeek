@@ -6,7 +6,7 @@ import qs.Ui as Ui
 import qs.Commons
 import qs.Commons as Commons
 import "WindowPeek" as Plugin
-import "WindowPeek/Appearance.js" as Appearance
+import "WindowPeek/src/Appearance.js" as Appearance
 
 ShellRoot {
     id: test

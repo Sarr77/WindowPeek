@@ -27,7 +27,7 @@ QtObject {
   readonly property bool manualBlocked: manualResult.status === "local-changes" || manualResult.status === "ahead"
   readonly property bool manualCanUpdate: runtimeAvailable && !manualBlocked && !manualBusy && !terminal.running
     && (manualResult.status !== "available" || manualAvailable)
-  readonly property string workerPath: decodeURIComponent(Qt.resolvedUrl("update.py").toString().replace(/^file:\/\//, ""))
+  readonly property string workerPath: decodeURIComponent(Qt.resolvedUrl("../update.py").toString().replace(/^file:\/\//, ""))
   property var startManualCheck: function(force) {
     manualCheck.command = ["python3", "-I", "-B", workerPath, "--check-manual"].concat(force ? ["--force"] : []);
     manualCheck.running = true;
@@ -88,14 +88,14 @@ QtObject {
   }
   property bool runtimeAvailable: Quickshell.env("QT_QPA_PLATFORM") !== "offscreen"
   property var launch: function(startup) {
-    var command = ["python3", "-I", "-B", decodeURIComponent(Qt.resolvedUrl("update.py").toString().replace(/^file:\/\//, ""))];
+    var command = ["python3", "-I", "-B", decodeURIComponent(Qt.resolvedUrl("../update.py").toString().replace(/^file:\/\//, ""))];
     if (startup) command.push("--startup");
     Quickshell.execDetached(command);
   }
   readonly property bool available: !!source.repository && !!source.latestRelease
   property var source: ({})
   property SafeFile releaseSource: SafeFile {
-    path: decodeURIComponent(Qt.resolvedUrl("release.json").toString().replace(/^file:\/\//, ""))
+    path: decodeURIComponent(Qt.resolvedUrl("../release.json").toString().replace(/^file:\/\//, ""))
     maxBytes: 16384
     onLoaded: function(content) { try { root.source = JSON.parse(content); } catch (error) { root.source = {}; } }
     onLoadFailed: root.source = {}

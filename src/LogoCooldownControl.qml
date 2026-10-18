@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
-import "vendor/omarchy" as Choice
+import "../vendor/omarchy" as Choice
 import "Settings.js" as Settings
 import "I18n.js" as I18n
 
