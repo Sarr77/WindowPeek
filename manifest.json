@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "sarr.windowpeek",
   "name": "WindowPeek",
-  "version": "0.7.9",
+  "version": "1.0.0",
   "author": "Sarr",
   "license": "MIT",
   "description": "Find any window in seconds. Omarchy makes it easy to organize windows. WindowPeek makes them easy to find again — a fast window switcher, window finder and desktop navigation tool for busy Omarchy desktops. Search, preview and jump across workspaces, monitors, Hyprland group tabs and the scratchpad, right from the bar. It takes the useful parts of a dock, launcher, Start menu, Launchpad and Mission Control, without giving up the Omarchy way. Keyboard, mouse, theme-native and deeply customizable.",

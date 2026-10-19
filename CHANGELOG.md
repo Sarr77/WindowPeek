@@ -1,10 +1,8 @@
 # Changelog
 
-## 0.7.9
+## 1.0.0
 
-Local test build for the update to 1.0.0.
-
-- Keep the familiar window search, previews and customization while preparing the 1.0 release.
+- Keep the familiar window search, previews and customization in the first 1.0 release.
 - Make WindowPeek easier to browse on GitHub by moving implementation files into
   `src/`, while keeping the Omarchy entry point at the repository root.
 - Restore theme text and separator colors after the Omarchy palette change, and
