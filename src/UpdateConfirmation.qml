@@ -78,7 +78,7 @@ FocusScope {
       id: content
       anchors.centerIn: parent
       width: parent.width - Style.space(32)
-      spacing: Style.space(12)
+      spacing: Style.space(root.installMode ? 18 : 12)
       LayoutMirroring.enabled: root.rtl
       LayoutMirroring.childrenInherit: true
       ReadableText {
@@ -87,7 +87,8 @@ FocusScope {
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
         textColor: root.foreground
-        font.family: Style.font.family; font.pixelSize: Style.font.title
+        font.family: Style.font.family
+        font.pixelSize: root.installMode ? Style.font.heading : Style.font.title
         font.bold: true
       }
       ReadableText {
@@ -98,16 +99,8 @@ FocusScope {
         textColor: root.foreground
         font.family: Style.font.family; font.pixelSize: Style.font.title
       }
-      ReadableText {
-        visible: root.installMode
-        width: parent.width
-        text: root.installWords.commit + ": " + root.installCommit.slice(0, 12)
-        textFormat: Text.PlainText
-        textColor: root.foreground
-        font.family: Style.font.family; font.pixelSize: Style.font.caption
-      }
       Row {
-        visible: root.installMode; spacing: Style.space(8)
+        visible: root.installMode; width: parent.width; spacing: Style.space(8)
         Rectangle {
           objectName: "installVerificationDot"
           width: Style.space(8); height: width; radius: width / 2
@@ -117,29 +110,36 @@ FocusScope {
         ReadableText {
           text: root.installVerification === "verified" ? root.installWords.verified
             : root.installVerification === "unverified" ? root.installWords.unverified : root.installWords.unknown
-          textColor: root.foreground; font.family: Style.font.family; font.pixelSize: Style.font.caption
+          width: Math.max(0, parent.width - Style.space(16))
+          wrapMode: Text.Wrap
+          textColor: root.foreground; font.family: Style.font.family; font.pixelSize: Style.font.body
         }
       }
-      Row {
-        visible: root.installMode; spacing: Style.space(18)
+      Flow {
+        visible: root.installMode; width: parent.width; spacing: Style.space(18)
         ActionButton {
-          text: root.installWords.changes; textOnly: true; accent: root.accent
-          fontSize: Style.font.caption
+          id: changesButton
+          objectName: "viewInstallChanges"
+          text: root.installWords.changes; textOnly: true; underlinedLink: true; accent: root.accent
+          fontSize: Style.font.body
+          height: Style.space(30)
+          enabled: !!root.installChangesUrl
+          Accessible.role: Accessible.Link
+          KeyNavigation.priority: KeyNavigation.BeforeItem
+          KeyNavigation.tab: cancelButton
+          KeyNavigation.backtab: confirmButton
           onClicked: if (root.installChangesUrl) BrowserLinks.open(root.installChangesUrl)
-        }
-        ActionButton {
-          id: skipButton; objectName: "skipUpdateVersion"
-          text: root.installWords.skip; textOnly: true; accent: root.accent
-          fontSize: Style.font.caption
-          onClicked: root.skip()
         }
       }
       Grid {
-        id: actions
+        id: actions; objectName: "installDecisionActions"
         width: parent.width
         readonly property real confirmWidth: root.notificationMode ? Math.max(Style.space(96), confirmButton.implicitWidth) : confirmButton.implicitWidth
-        readonly property bool stacked: cancelButton.implicitWidth + confirmWidth + columnSpacing > width
-        columns: stacked ? 1 : 2
+        readonly property bool stacked: cancelButton.implicitWidth + confirmWidth
+          + (root.installMode ? skipButton.implicitWidth + 2 * columnSpacing : columnSpacing) > width
+        readonly property real extraInstallWidth: Math.max(0, width - cancelButton.implicitWidth
+          - skipButton.implicitWidth - confirmButton.implicitWidth - 2 * columnSpacing)
+        columns: stacked ? 1 : root.installMode ? 3 : 2
         horizontalItemAlignment: root.rtl ? Grid.AlignLeft : Grid.AlignRight
         columnSpacing: Style.space(10)
         rowSpacing: Style.space(8)
@@ -147,31 +147,49 @@ FocusScope {
           id: cancelButton
           objectName: "cancelUpdateOff"
           KeyNavigation.priority: KeyNavigation.BeforeItem
-          KeyNavigation.backtab: confirmButton
+          KeyNavigation.tab: root.installMode ? skipButton : confirmButton
+          KeyNavigation.backtab: changesButton.enabled ? changesButton : confirmButton
           fontSize: Style.font.title
-          width: actions.stacked ? actions.width : root.notificationMode ? actions.width - actions.confirmWidth - actions.columnSpacing : Math.max(implicitWidth,
-            Math.min(actions.width * 0.3, actions.width - confirmButton.implicitWidth - actions.columnSpacing))
+          width: actions.stacked ? actions.width : root.installMode ? implicitWidth + actions.extraInstallWidth * 0.2
+            : root.notificationMode ? actions.width - actions.confirmWidth - actions.columnSpacing : Math.max(implicitWidth,
+              Math.min(actions.width * 0.3, actions.width - confirmButton.implicitWidth - actions.columnSpacing))
           text: root.installMode ? root.installWords.later
             : root.notificationMode ? root.words.openUpdates : root.words.cancel
           accent: root.accent
-          KeyNavigation.right: root.rtl ? null : confirmButton
-          KeyNavigation.left: root.rtl ? confirmButton : null
+          KeyNavigation.right: root.rtl ? null : root.installMode ? skipButton : confirmButton
+          KeyNavigation.left: root.rtl ? (root.installMode ? skipButton : confirmButton) : null
           TapHandler { onPressedChanged: if (pressed) root.keyboardInput = false }
           onClicked: root.primary(root.keyboardInput || keyboardFocusVisible ? Qt.TabFocusReason : Qt.MouseFocusReason)
+        }
+        ActionButton {
+          id: skipButton; objectName: "skipUpdateVersion"
+          visible: root.installMode
+          KeyNavigation.priority: KeyNavigation.BeforeItem
+          KeyNavigation.backtab: cancelButton
+          KeyNavigation.tab: confirmButton
+          fontSize: Style.font.body
+          width: actions.stacked ? actions.width : implicitWidth + actions.extraInstallWidth * 0.25
+          text: root.installWords.skip
+          accent: root.accent
+          KeyNavigation.left: root.rtl ? confirmButton : cancelButton
+          KeyNavigation.right: root.rtl ? cancelButton : confirmButton
+          onClicked: root.skip()
         }
         ActionButton {
           id: confirmButton
           objectName: "confirmUpdateOff"
           KeyNavigation.priority: KeyNavigation.BeforeItem
-          KeyNavigation.tab: cancelButton
+          KeyNavigation.tab: changesButton.enabled ? changesButton : cancelButton
+          KeyNavigation.backtab: root.installMode ? skipButton : cancelButton
           fontSize: Style.font.title
           width: actions.stacked ? (root.notificationMode ? Math.min(actions.width, actions.confirmWidth) : actions.width)
+            : root.installMode ? actions.width - cancelButton.width - skipButton.width - 2 * actions.columnSpacing
             : actions.width - cancelButton.width - actions.columnSpacing
           text: root.installMode ? root.installWords.install
             : root.notificationMode ? root.words.turnOffNotifications : root.words.turnOffUpdates
           accent: root.accent
-          KeyNavigation.left: root.rtl ? null : cancelButton
-          KeyNavigation.right: root.rtl ? cancelButton : null
+          KeyNavigation.left: root.rtl ? null : root.installMode ? skipButton : cancelButton
+          KeyNavigation.right: root.rtl ? (root.installMode ? skipButton : cancelButton) : null
           TapHandler { onPressedChanged: if (pressed) root.keyboardInput = false }
           onClicked: root.confirm(root.keyboardInput || keyboardFocusVisible ? Qt.TabFocusReason : Qt.MouseFocusReason)
         }

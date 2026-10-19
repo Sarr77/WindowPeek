@@ -11,6 +11,7 @@ QQC.AbstractButton {
     property color foreground: Commons.Color.popups.text
     property real fontSize: Style.font.body
     property bool textOnly: false
+    property bool underlinedLink: false
     property bool emphasized: false
     property bool pointerFocus: false
     readonly property bool keyboardFocusVisible: visualFocus && !pointerFocus
@@ -43,9 +44,9 @@ QQC.AbstractButton {
         id: label
         text: root.text; textFormat: Text.PlainText
         horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-        textColor: root.textOnly && (root.hot || root.down || root.emphasized) ? root.accent : root.foreground
+        textColor: root.textOnly && (root.hot || root.down || root.emphasized || root.underlinedLink) ? root.accent : root.foreground
         font.family: Style.font.family; font.pixelSize: root.fontSize
-        font.underline: root.textOnly && root.keyboardFocusVisible
+        font.underline: root.underlinedLink || (root.textOnly && root.keyboardFocusVisible)
         opacity: root.enabled ? 1 : 0.5
     }
     HoverHandler { cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor }

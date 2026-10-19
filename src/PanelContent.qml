@@ -140,6 +140,7 @@ FocusScope {
     property real updatesReturnScrollY: 0
     property string retainedEditorMode: ""
     readonly property bool blockingModalOpen: projectSupport.opened || confirmation.opened
+    readonly property bool installConfirmationOpen: confirmation.opened && confirmation.installMode
     function dismissModalOutside() {
         // The physical click belongs to another application. Keep the parent
         // panel and its scroll, without focusing the modal's origin control.

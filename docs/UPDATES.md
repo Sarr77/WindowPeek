@@ -36,7 +36,8 @@ appears green after the next check. Switching the option back on refreshes the
 latest-release check. The installer enforces the choice again before replacing
 the plugin.
 
-**Install now** confirms the displayed version and commit in WindowPeek. The
+**Install now** confirms the offered version in WindowPeek. The exact commit
+is retained internally and checked again before installation. The
 worker refuses to install a changed release or tag. If the cached offer changes
 while the prompt is open, the Updates page asks you to review it again. The
 worker rechecks the release and, for an update displayed as verified, the

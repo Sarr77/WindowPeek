@@ -309,7 +309,7 @@ controls, treating the window list as one stop; use arrows inside the list.
 ### Updates
 
 **Check now** checks for newer published GitHub Releases. When available, **Install now** asks you to
-confirm the displayed commit in WindowPeek; **View changes** opens the comparison.
+confirm the offered release in WindowPeek; **View changes** opens the comparison.
 Without an available update, the second button is **Version history**.
 
 - **Update notifications** checks for newer published releases every six hours and

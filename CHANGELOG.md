@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- Make the update prompt easier to read, with a clear changes link and
+  Later, Skip version and Install now together in one row.
+- Keep the version and release source visible while checking the exact
+  commit in the background. Hide the bar underline during the prompt and
+  extend it across the full WindowPeek control when the prompt closes.
+
 ## 1.0.0
 
 - Keep the familiar window search, previews and customization in the first 1.0 release.

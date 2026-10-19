@@ -856,7 +856,7 @@ worker refuses an early-release install and rechecks the catalog before
 exchange. The same release becomes eligible after a later exact-SHA catalog
 verification.
 
-Installation starts only after the user confirms the displayed SHA in WindowPeek.
+Installation starts only after the user confirms the offered release in WindowPeek.
 `ManualUpdates.install_exact` checks the cached choice under the shared lock,
 rechecks the release, tag and catalog approval where applicable, fetches the exact
 tag into a fresh staging tree, validates it and atomically exchanges the
@@ -878,7 +878,7 @@ version at its current verification stage or when notifications are off. An
 expanded-list visit can open one prompt per version and stage: a skipped early
 release returns and may prompt once after the same SHA becomes verified.
 Neither opening nor navigating starts installation.
-`UpdateConfirmation` freezes the shown commit, version and verification status
+`UpdateConfirmation` freezes the offered commit, version and verification status
 for that decision. It blocks background controls and previews, offers View
 changes, Install now, Later and Skip version, and returns focus according to
 pointer or keyboard dismissal. A stale choice cannot silently install the new

@@ -73,7 +73,7 @@ Settings includes **30 languages** and live previews while you customize.
 
 ## Updates
 
-Open **Settings → Controls → Updates** to check for updates, review changes and choose when to install the displayed commit.
+Open **Settings → Controls → Updates** to check for updates, review changes and choose when to install the offered release.
 
 The footer's **Automatic updates** switch enables update notifications. WindowPeek offers published GitHub Releases: a green dot means **Verified by Omarchy**, while an amber dot marks an **Early WindowPeek GitHub release**. The same release turns green when Omarchy verifies its exact commit. You can turn off **Early GitHub releases**, install an offered version now, leave it for later or skip it. A skipped early release returns if Omarchy later verifies it.
 

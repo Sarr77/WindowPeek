@@ -6,7 +6,7 @@ import "Appearance.js" as Appearance
 
 QtObject {
     id: root
-    readonly property string version: "1.0.0"
+    readonly property string version: "1.0.1"
     property WindowState state: WindowState { }
     property FocusRecovery recovery: FocusRecovery {
         state: root.state

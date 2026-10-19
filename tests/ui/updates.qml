@@ -129,6 +129,24 @@ ShellRoot {
             click(action);
             check(confirmation.opened && confirmation.question === copy.ready.replace("{version}","1.0.1"),
                 locale + " renders the exact-version confirmation");
+            check(confirmation.explanation === copy.askInstall,
+                locale + " renders the localized installation question");
+            if (locale === "en") check(confirmation.explanation.indexOf("Ready to install?") === 0,
+                "English prompt asks whether the user is ready to install");
+            var decisions=find(confirmation,"installDecisionActions");
+            var later=find(confirmation,"cancelUpdateOff");
+            var skip=find(confirmation,"skipUpdateVersion");
+            var install=find(confirmation,"confirmUpdateOff");
+            var link=find(confirmation,"viewInstallChanges");
+            check(link.enabled && link.contentItem.font.underline,
+                locale + " shows View changes as a usable underlined link");
+            [later,skip,install].forEach(function(button) {
+                check(button.visible && button.contentItem.implicitWidth + button.leftPadding
+                    + button.rightPadding <= button.width + 1,
+                    locale + " decision button fits: " + button.text);
+            });
+            if (decisions.columns===3) check(later.y===skip.y && skip.y===install.y,
+                locale + " keeps Later, Skip version and Install now on one row");
             check(confirmation.popupInputItem.height <= confirmation.height + 1,
                 locale + " confirmation fits the panel");
             click(find(panel,"cancelUpdateOff"));
@@ -201,6 +219,17 @@ ShellRoot {
         check(String(find(panel,"installVerificationDot").color).toLowerCase().indexOf("edb65c")>=0,
             "unverified confirmation uses an amber dot");
         screenshot(".install-prompt-amber.png");
+        var modalLater=find(panel,"cancelUpdateOff"), modalSkipButton=find(panel,"skipUpdateVersion");
+        var modalInstall=find(panel,"confirmUpdateOff"), modalChanges=find(panel,"viewInstallChanges");
+        check(modalLater.activeFocus,"confirmation starts at Later");
+        events.keyClick(Qt.Key_Tab,Qt.NoModifier,0);
+        check(modalSkipButton.activeFocus,"Tab reaches Skip version");
+        events.keyClick(Qt.Key_Tab,Qt.NoModifier,0);
+        check(modalInstall.activeFocus,"Tab reaches Install now");
+        events.keyClick(Qt.Key_Tab,Qt.NoModifier,0);
+        check(modalChanges.activeFocus,"Tab reaches View changes");
+        events.keyClick(Qt.Key_Backtab,Qt.ShiftModifier,0);
+        check(modalInstall.activeFocus,"Shift+Tab returns to Install now");
         check(find(panel,"updateConfirmation").installCommit==="a".repeat(40),
             "confirmation freezes the displayed commit");
         var offeredChanges=find(panel,"updateConfirmation").installChangesUrl;

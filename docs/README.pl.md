@@ -73,7 +73,7 @@ Ustawienia obsługują **30 języków** i pokazują zmiany na żywo.
 
 ## Aktualizacje
 
-Otwórz **Ustawienia → Sterowanie → Aktualizacje**, aby sprawdzić aktualizacje, zobaczyć zmiany i wybrać moment instalacji pokazanego commita.
+Otwórz **Ustawienia → Sterowanie → Aktualizacje**, aby sprawdzić aktualizacje, zobaczyć zmiany i wybrać moment instalacji proponowanego wydania.
 
 Przełącznik **Automatyczne aktualizacje** w stopce włącza powiadomienia o nowych wydaniach GitHub. Zielona kropka oznacza **Zweryfikowano przez Omarchy**, a pomarańczowa — **Wczesne wydanie WindowPeek na GitHubie**. To samo wydanie zmieni oznaczenie na zielone, gdy Omarchy zweryfikuje jego dokładny commit. Możesz wyłączyć **Wczesne wydania GitHub**, zainstalować proponowaną wersję teraz, odłożyć ją lub pominąć. Pominięte wczesne wydanie wróci, jeśli Omarchy je później zweryfikuje.
 

@@ -317,7 +317,7 @@ Carry over these established design decisions where they fit WindowPeek:
   reminder; Skip version hides it for its current stage, while the Updates page
   keeps installation available and lets the user restore the reminder. A skipped
   early release can return as verified without changing version or commit. Confirming in
-  WindowPeek installs only the displayed commit after fresh checks. Scheduled
+  WindowPeek installs only the selected release commit after fresh checks. Scheduled
   checks never install automatically, regardless of the old saved autoUpdates key.
 - Troubleshooting lives under Hints and Support. Warning/recovery links still
   open the same editor and Back returns to the origin. Retain support guide

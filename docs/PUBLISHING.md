@@ -52,7 +52,7 @@ Only after publication, use a separate user profile with a clean older Git
 installation that contains this updater. Save distinctive preferences, make
 its scheduled deadline due, and leave the widget running with its panels closed.
 Let the production scheduler discover the newer published release. Check the badge color,
-the version and the commit displayed in the prompt; explicitly confirm the
+the version and release source displayed in the prompt; explicitly confirm the
 installation. Do not inject metadata, force installation through a test
 subclass or change the
 version/files of the normal desktop installation.

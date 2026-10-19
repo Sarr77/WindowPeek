@@ -463,10 +463,13 @@ BarWidget {
         shortcutTarget: panelLoader.item ? panelLoader.item.body.previewKeyTarget : null
     }
     Rectangle {
-        height: Style.space(2); width: Math.min(button.labelWidth, parent.width)
+        objectName: "windowPeekActiveUnderline"
+        height: Style.space(2); width: root.width
         anchors.horizontalCenter: parent.horizontalCenter
         y: root.bar && root.bar.position === "bottom" ? 2 : parent.height - height - 2
-        color: root.accent; visible: root.opened
+        color: root.accent
+        visible: root.opened && !(panelLoader.item && panelLoader.item.body
+            && panelLoader.item.body.installConfirmationOpen)
     }
     Loader {
         id: panelLoader; active: true; visible: false
