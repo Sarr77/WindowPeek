@@ -12,8 +12,8 @@ Scroll with the wheel or drag the scrollbar.
 
 By default, a single click on the bar label opens the compact panel. Double-click
 the label to expand or collapse the same panel, adding search, Move and Settings.
-The list keeps its position. The expanded footer shows the installed version
-next to **by Sarr**. Double-clicking unused space inside the list also expands
+The list keeps its position. The expanded list footer shows the installed version
+and **2026**; Settings keeps the version and **by Sarr**. Double-clicking unused space inside the list also expands
 it; another double-click there returns to the hover view and clears search.
 The middle mouse button also toggles between these views when used on empty
 space or a workspace heading. Buttons, window rows and the scrollbar keep their
@@ -28,8 +28,12 @@ and typing protection.
 While pinned, typing protection pauses its keyboard hold and intentional focus
 changes do not trigger warnings. Unpin restores the saved protection behavior.
 
-If an update is available, a button beside Settings opens its details before
-you choose whether to install it. It uses the background check's cached result.
+If an update is available, a badge on the bar and a button beside Settings open
+its details. A green dot means Omarchy has verified the exact commit; an amber
+dot marks an early WindowPeek GitHub release. Turn off **Early GitHub releases**
+to see only Omarchy-verified offers. Installation waits for your
+confirmation. **Later** keeps the badge; **Skip version** hides it until you
+choose to show that version again.
 
 Hover the logo for its own help or a window row for that window's actions.
 Hover unused panel space for its expand/collapse gesture. These hints stay below
@@ -291,8 +295,8 @@ Preferences are stored outside the plugin in
 if set. They survive restarts, updates and reinstalls. WindowPeek does not
 share preferences with ScratchPeek.
 
-For **Settings → Controls → Updates**, manual terminal confirmation and automatic
-updates, see [update details](UPDATES.md). For installation from
+For **Settings → Controls → Updates**, checking and confirming an exact update,
+see [update details](UPDATES.md). For installation from
 a local source directory, see [development](DEVELOPMENT.md).
 
 ## Known issues

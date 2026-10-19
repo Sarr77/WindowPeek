@@ -397,13 +397,37 @@ test('following the local bar changes only the rendered Wallpaper style', () => 
 });
 
 
-test('recovery copy has matching English/Polish fields and an explicit English fallback', () => {
-    const recovery = load('src/FocusRecoveryText.js');
-    assert.deepEqual(Object.keys(recovery.catalogs.pl).sort(), Object.keys(recovery.catalogs.en).sort());
-    for (const code of ['en', 'pl']) for (const key of Object.keys(recovery.catalogs.en)) {
-        assert.ok(recovery.catalogs[code][key].length > 0, code + ':' + key);
-        assert.deepEqual((recovery.catalogs[code][key].match(/\{[a-z]+\}/g) || []),
-            (recovery.catalogs.en[key].match(/\{[a-z]+\}/g) || []));
+test('updates, artwork and recovery copy cover every declared language', () => {
+    const languages = Array.from(i18n.languages, ({code}) => code).sort();
+    for (const file of ['src/UpdateWords.js', 'src/LogoWords.js', 'src/FocusRecoveryText.js']) {
+        const section = load(file);
+        const sourceKeys = Object.keys(section.catalogs.en).sort();
+        assert.deepEqual(Object.keys(section.catalogs).sort(), languages, file + ':languages');
+        for (const code of languages) {
+            const translated = section.catalogs[code];
+            assert.deepEqual(Object.keys(translated).sort(), sourceKeys, file + ':' + code + ':keys');
+            assert.equal(section.words(code), translated, file + ':' + code + ':lookup');
+            for (const key of sourceKeys) {
+                assert.ok(typeof translated[key] === 'string' && translated[key].trim(), file + ':' + code + ':' + key);
+                const tokens = text => (text.match(/\{[a-zA-Z]+\}/g) || []).sort();
+                assert.deepEqual(tokens(translated[key]), tokens(section.catalogs.en[key]),
+                    file + ':' + code + ':' + key + ':placeholders');
+            }
+        }
+        assert.equal(section.words('pt_BR'), section.catalogs['pt-BR'], file + ':regional-lookup');
+        assert.equal(section.words('unknown'), section.catalogs.en, file + ':fallback');
     }
-    assert.equal(recovery.words('unknown'), recovery.catalogs.en);
+});
+
+test('recovery directions use the actual translated Settings labels', () => {
+    const recovery = load('src/FocusRecoveryText.js');
+    for (const {code} of i18n.languages) {
+        const labels = i18n.words(code);
+        const copy = recovery.words(code);
+        for (const key of ['ignoreHelp', 'confirmKeepWhere', 'suggested']) {
+            for (const label of [labels.settings, labels.controls, labels.troubleshooting]) {
+                assert.ok(copy[key].includes(label), `${code}:${key} should name ${label}`);
+            }
+        }
+    }
 });

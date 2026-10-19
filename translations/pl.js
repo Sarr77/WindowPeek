@@ -1,11 +1,11 @@
 // UTF-8 translations: pl
 var words = {
   "notificationsOffQuestion": "Wyłączyć powiadomienia o aktualizacjach?",
-  "notificationsOffWarning": "Nie będziesz otrzymywać informacji o nowszych wersjach. Powiadomieniami i automatyczną instalacją zarządzasz w Aktualizacjach.",
+  "notificationsOffWarning": "Nie będziesz otrzymywać informacji o nowszych wersjach.",
   "openUpdates": "Przejdź do Aktualizacji",
   "turnOffNotifications": "Wyłącz",
   "projectSupportIntro": "Podoba Ci się? Daj znać innym",
-  "projectSupportMission": "Pomóż innym odkryć WindowPeek i dopasować go do siebie.",
+  "projectSupportMission": "Pomóż innym odkryć WindowPeek\ni dopasować go do ich stylu",
   "starWindowPeekCatalog": "Wyślij serce na Omarchy Plugins",
   "starWindowPeekGitHub": "Daj gwiazdkę na GitHubie",
   "projectSupportThanks": "Dziękuję za Twoje wsparcie.",

@@ -1,11 +1,11 @@
 // UTF-8 translations: el
 var words = {
   "notificationsOffQuestion": "Απενεργοποίηση ειδοποιήσεων ενημερώσεων;",
-  "notificationsOffWarning": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις για νέες εκδόσεις. Διαχειριστείτε ειδοποιήσεις και αυτόματη εγκατάσταση στις Ενημερώσεις.",
+  "notificationsOffWarning": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις για νέες εκδόσεις.",
   "openUpdates": "Άνοιγμα Ενημερώσεων",
   "turnOffNotifications": "Απενεργοποίηση",
   "projectSupportIntro": "Σας αρέσει; Πείτε το και σε άλλους",
-  "projectSupportMission": "Βοηθήστε περισσότερους να ανακαλύψουν το WindowPeek και να το προσαρμόσουν στα μέτρα τους.",
+  "projectSupportMission": "Βοηθήστε περισσότερους να ανακαλύψουν το WindowPeek και να το προσαρμόσουν στα μέτρα τους",
   "starWindowPeekCatalog": "Στείλτε μια καρδιά στο Omarchy Plugins",
   "starWindowPeekGitHub": "Δώστε αστέρι στο GitHub",
   "projectSupportThanks": "Σας ευχαριστώ για την υποστήριξή σας.",

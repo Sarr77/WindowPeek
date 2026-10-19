@@ -33,7 +33,7 @@ for the current implementation.
 | `Appearance.js`, `AppearanceEditor.qml`, `ScalingEditor.qml` | Colors, collapsed presets, saved-color restoration and scaling |
 | `LabelsEditor.qml`, label helpers in `Model.js` | Plain-text templates, shared live preview, Apply/Cancel and translated fallbacks; adapted to WindowPeek's field groups |
 | `HintsToggle.qml`, `PanelHint.qml` | Shared hint budget and always-available help control; WindowPeek uses 100 automatic displays |
-| `UpdateSwitch.qml`, `UpdateConfirmation.qml`, `Updates.qml`, `update.py` | Starting point for update controls; WindowPeek now separates six-hour notifications from verified release installation |
+| `UpdateSwitch.qml`, `UpdateConfirmation.qml`, `Updates.qml`, `update.py` | Starting point for update controls; WindowPeek now checks metadata every six hours and installs a chosen exact commit only after confirmation |
 | `I18n.js` | Locale selection and all 30 language catalogs |
 | `tests/`, `tools/`, `docs/TESTING.md` | Focus/group cases, live checks, isolated profiles and known validation limits |
 

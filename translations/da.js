@@ -1,11 +1,11 @@
 // UTF-8 translations: da
 var words = {
   "notificationsOffQuestion": "Slå opdateringsbeskeder fra?",
-  "notificationsOffWarning": "Du får ikke længere besked om nye versioner. Administrer beskeder og automatisk installation under Opdateringer.",
+  "notificationsOffWarning": "Du får ikke længere besked om nye versioner.",
   "openUpdates": "Åbn Opdateringer",
   "turnOffNotifications": "Slå fra",
   "projectSupportIntro": "Kan du lide det? Fortæl andre om det",
-  "projectSupportMission": "Hjælp flere med at opdage WindowPeek og gøre det til deres eget.",
+  "projectSupportMission": "Hjælp flere med at opdage WindowPeek og gøre det til deres eget",
   "starWindowPeekCatalog": "Send et hjerte på Omarchy Plugins",
   "starWindowPeekGitHub": "Giv en stjerne på GitHub",
   "projectSupportThanks": "Tak for din støtte.",

@@ -1,11 +1,11 @@
 // UTF-8 translations: hi
 var words = {
   "notificationsOffQuestion": "अपडेट सूचनाएँ बंद करें?",
-  "notificationsOffWarning": "अब आपको नए संस्करणों की सूचना नहीं मिलेगी। अपडेट अनुभाग में सूचनाओं और अपने आप इंस्टॉल करने की सेटिंग बदलें।",
+  "notificationsOffWarning": "अब आपको नए संस्करणों की सूचना नहीं मिलेगी।",
   "openUpdates": "अपडेट खोलें",
   "turnOffNotifications": "बंद करें",
   "projectSupportIntro": "पसंद आया? दूसरों को बताएँ",
-  "projectSupportMission": "और लोगों को WindowPeek खोजने और इसे अपने अनुसार ढालने में मदद करें।",
+  "projectSupportMission": "और लोगों को WindowPeek खोजने और इसे अपने अनुसार ढालने में मदद करें",
   "starWindowPeekCatalog": "Omarchy Plugins पर दिल भेजें",
   "starWindowPeekGitHub": "GitHub पर स्टार दें",
   "projectSupportThanks": "आपके सहयोग के लिए बहुत धन्यवाद।",

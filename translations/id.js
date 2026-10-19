@@ -1,11 +1,11 @@
 // UTF-8 translations: id
 var words = {
   "notificationsOffQuestion": "Matikan pemberitahuan pembaruan?",
-  "notificationsOffWarning": "Anda tidak akan diberi tahu tentang versi baru. Kelola pemberitahuan dan pemasangan otomatis di Pembaruan.",
+  "notificationsOffWarning": "Anda tidak akan diberi tahu tentang versi baru.",
   "openUpdates": "Buka Pembaruan",
   "turnOffNotifications": "Matikan",
   "projectSupportIntro": "Suka? Beri tahu yang lain",
-  "projectSupportMission": "Bantu lebih banyak orang menemukan WindowPeek dan menyesuaikannya dengan gaya mereka.",
+  "projectSupportMission": "Bantu lebih banyak orang menemukan WindowPeek dan menyesuaikannya dengan gaya mereka",
   "starWindowPeekCatalog": "Kirim hati di Omarchy Plugins",
   "starWindowPeekGitHub": "Beri bintang di GitHub",
   "projectSupportThanks": "Terima kasih atas dukungan Anda.",

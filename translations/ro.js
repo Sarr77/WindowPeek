@@ -1,11 +1,11 @@
 // UTF-8 translations: ro
 var words = {
   "notificationsOffQuestion": "Dezactivezi notificările de actualizare?",
-  "notificationsOffWarning": "Nu vei mai primi notificări despre versiuni noi. Gestionează notificările și instalarea automată în Actualizări.",
+  "notificationsOffWarning": "Nu vei mai primi notificări despre versiuni noi.",
   "openUpdates": "Deschide Actualizări",
   "turnOffNotifications": "Dezactivează",
   "projectSupportIntro": "Îți place? Spune-le și altora",
-  "projectSupportMission": "Ajută mai mulți oameni să descopere WindowPeek și să-l adapteze stilului lor.",
+  "projectSupportMission": "Ajută mai mulți oameni să descopere WindowPeek și să-l adapteze stilului lor",
   "starWindowPeekCatalog": "Trimite o inimă pe Omarchy Plugins",
   "starWindowPeekGitHub": "Oferă o stea pe GitHub",
   "projectSupportThanks": "Îți mulțumesc pentru sprijin.",

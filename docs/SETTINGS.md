@@ -308,16 +308,23 @@ controls, treating the window list as one stop; use arrows inside the list.
 
 ### Updates
 
-**Check now** checks for newer code. When available, **Update…** opens Omarchy's
-terminal confirmation; **View changes** opens the comparison. Without an available
-update, the second button is **Version history**.
+**Check now** checks for newer published GitHub Releases. When available, **Install now** asks you to
+confirm the displayed commit in WindowPeek; **View changes** opens the comparison.
+Without an available update, the second button is **Version history**.
 
-- **Update notifications** checks for newer repository code and shows a notice.
-  It is the same setting as **Automatic updates** in the footer.
-- **Verified updates** installs only verified, immutable releases automatically.
+- **Update notifications** checks for newer published releases every six hours and
+  shows a notice. It is the same setting as **Automatic updates** in the footer.
+- A green dot means **Verified by Omarchy**. An amber dot identifies a published
+  **Early WindowPeek GitHub release**. The same release turns green if Omarchy
+  later verifies its exact commit.
+- **Early GitHub releases** starts on. Turn it off to offer only releases already
+  verified by Omarchy; turning it back on restores an early offer.
+- **Skip version** hides the bar notice for that version at its current stage.
+  You can still install it from this page or show it again. If a skipped early
+  release gains Omarchy verification, the same version appears again in green.
 
-Both start enabled and are independent. Manual updates can install code still
-awaiting catalog verification. Development copies and local edits are protected.
+Notifications start enabled. Installation always asks you first, including for
+verified updates. Development copies and local edits are protected.
 
 [Update behavior, confirmation and schedules](UPDATES.md)
 
@@ -366,11 +373,11 @@ not reset an existing setup. Missing preferences use the corresponding defaults.
 | Animation looping / pause between loops | On / 4.2 seconds in both views |
 | Hover / Settings cooldown | 1 minute / 0; shared cooldown off |
 | Hints | Automatic for 100 displays; manually re-enabling removes the limit |
-| Update notifications / verified automatic installation | Both on; independent settings |
+| Update notifications | On; installation always requires confirmation |
 | Keep search focus / temporary protection | Off; require an explicit choice |
 | Header pin | Off on every new panel opening |
 
-See [Updates](UPDATES.md) for the separate check and installation schedules,
+See [Updates](UPDATES.md) for checking and installation details,
 and [Troubleshooting](TROUBLESHOOTING.md) for focus-protection trade-offs.
 
 [Back to README](../README.md) · [User guide](GUIDE.md)

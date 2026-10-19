@@ -1,11 +1,11 @@
 // UTF-8 translations: sv
 var words = {
   "notificationsOffQuestion": "Stänga av uppdateringsaviseringar?",
-  "notificationsOffWarning": "Du får inga aviseringar om nya versioner. Hantera aviseringar och automatisk installation under Uppdateringar.",
+  "notificationsOffWarning": "Du får inga aviseringar om nya versioner.",
   "openUpdates": "Öppna Uppdateringar",
   "turnOffNotifications": "Stäng av",
   "projectSupportIntro": "Gillar du det? Tipsa andra",
-  "projectSupportMission": "Hjälp fler att upptäcka WindowPeek och göra det till sitt eget.",
+  "projectSupportMission": "Hjälp fler att upptäcka WindowPeek och göra det till sitt eget",
   "starWindowPeekCatalog": "Skicka ett hjärta på Omarchy Plugins",
   "starWindowPeekGitHub": "Ge en stjärna på GitHub",
   "projectSupportThanks": "Tack för ditt stöd.",

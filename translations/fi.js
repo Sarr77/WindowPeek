@@ -1,11 +1,11 @@
 // UTF-8 translations: fi
 var words = {
   "notificationsOffQuestion": "Poistetaanko päivitysilmoitukset käytöstä?",
-  "notificationsOffWarning": "Et enää saa ilmoituksia uusista versioista. Hallitse ilmoituksia ja automaattista asennusta Päivitykset-sivulla.",
+  "notificationsOffWarning": "Et enää saa ilmoituksia uusista versioista.",
   "openUpdates": "Avaa päivitykset",
   "turnOffNotifications": "Poista käytöstä",
   "projectSupportIntro": "Pidätkö tästä? Kerro muille",
-  "projectSupportMission": "Auta useampia löytämään WindowPeek ja tekemään siitä omannäköisensä.",
+  "projectSupportMission": "Auta useampia löytämään WindowPeek ja tekemään siitä omannäköisensä",
   "starWindowPeekCatalog": "Lähetä sydän Omarchy Pluginsissa",
   "starWindowPeekGitHub": "Anna tähti GitHubissa",
   "projectSupportThanks": "Kiitos tuestasi.",

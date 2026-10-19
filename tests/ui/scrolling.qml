@@ -22,7 +22,7 @@ ShellRoot {
         if (item.objectName === rowName) {
             var point = list.mapToItem(item, 40, 100);
             if (point.x >= 0 && point.x < item.width && point.y >= 0 && point.y < item.height)
-                check(item.parent.hovered, "window under the pointer loses its hover while scrolling: step=" + test.step
+                check(item.parent.hovered, "window under the pointer lacks hover after offscreen pointer refresh: step=" + test.step
                     + " y=" + test.list.contentY + " row=" + item.parent.parent.window.address
                     + " point=" + point.x + "," + point.y + " contains=" + item.containsMouse
                     + " lastMouse=" + item.mouseX + "," + item.mouseY + " height=" + item.height
@@ -73,9 +73,12 @@ ShellRoot {
             try {
                 test.check(Math.abs(test.list.contentItem.y - Math.round(test.list.contentItem.y)) < 0.001,
                     "scrolling keeps thin borders aligned to pixels");
-                // Wheel delivery and animation can move geometry before Qt's
-                // next hover update. Compare the state at the rendered frame.
+                // Offscreen TestEvent wheel input moves content without
+                // retargeting hover. Refresh the pointer at the same position
+                // before checking the rendered row; native input is tested
+                // separately by interaction-native.
                 if (test.step >= 8) {
+                    events.mouseMove(test.list, 40, 100, 0, Qt.NoButton, Qt.NoModifier);
                     test.checkHover(test.surface);
                     test.hoverFrames++;
                 }

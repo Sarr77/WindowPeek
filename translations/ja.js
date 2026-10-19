@@ -1,7 +1,7 @@
 // UTF-8 translations: ja
 var words = {
   "notificationsOffQuestion": "更新通知をオフにしますか？",
-  "notificationsOffWarning": "新しいバージョンの通知が届かなくなります。通知と自動インストールは「更新」で管理できます。",
+  "notificationsOffWarning": "新しいバージョンの通知が届かなくなります。",
   "openUpdates": "更新を開く",
   "turnOffNotifications": "オフにする",
   "projectSupportIntro": "気に入りましたか？みんなに教えよう",

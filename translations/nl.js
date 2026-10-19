@@ -1,11 +1,11 @@
 // UTF-8 translations: nl
 var words = {
   "notificationsOffQuestion": "Updatemeldingen uitschakelen?",
-  "notificationsOffWarning": "Je krijgt geen meldingen meer over nieuwe versies. Beheer meldingen en automatische installatie bij Updates.",
+  "notificationsOffWarning": "Je krijgt geen meldingen meer over nieuwe versies.",
   "openUpdates": "Updates openen",
   "turnOffNotifications": "Uitschakelen",
   "projectSupportIntro": "Bevalt het? Vertel het verder",
-  "projectSupportMission": "Help meer mensen WindowPeek ontdekken en het naar hun hand zetten.",
+  "projectSupportMission": "Help meer mensen WindowPeek ontdekken en het naar hun hand zetten",
   "starWindowPeekCatalog": "Stuur een hartje op Omarchy Plugins",
   "starWindowPeekGitHub": "Geef een ster op GitHub",
   "projectSupportThanks": "Bedankt voor je steun.",

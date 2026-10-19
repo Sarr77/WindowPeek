@@ -117,8 +117,7 @@ FocusScope {
     readonly property var words: hostWidget ? hostWidget.words : I18n.words("en")
     readonly property color accent: hostWidget ? hostWidget.accent : Commons.Color.accent
     readonly property bool updateAvailable: !!hostWidget && !!hostWidget.runtime
-        && hostWidget.preference("checkUpdates", true) === true
-        && !!hostWidget.runtime.updates && hostWidget.runtime.updates.manualAvailable
+        && !!hostWidget.runtime.updates && hostWidget.runtime.updates.offerAvailable === true
     readonly property bool rtl: hostWidget && hostWidget.language === "ar"
     readonly property bool compact: hostWidget && hostWidget.appearance.tooltipStyle === "compact"
     property alias searchField: search
@@ -131,7 +130,11 @@ FocusScope {
         if (mode === "windows" || mode === "move") settingsVisit = false;
         else if (mode === "settings") settingsVisit = true;
     }
-    onOpenedChanged: if (!opened) settingsVisit = false;
+    onOpenedChanged: {
+        if (!opened) settingsVisit = false;
+        else Qt.callLater(root.maybeOfferUpdate);
+    }
+    onExpandedChanged: if (expanded && opened) Qt.callLater(root.maybeOfferUpdate)
     property string settingsReturnMode: ""
     property string updatesReturnMode: "windows"
     property real updatesReturnScrollY: 0
@@ -388,6 +391,25 @@ FocusScope {
         mode = "updates";
         editorScroll.cancelFlick(); editorScroll.contentY = 0;
     }
+    function openInstallPrompt(force) {
+        var updates = hostWidget && hostWidget.runtime ? hostWidget.runtime.updates : null;
+        if (!opened || !expanded || !updates || !updates.manualAvailable || updates.installing
+                || blockingModalOpen || recoveryOpen) return false;
+        if (!force) {
+            if (mode !== "windows" || !updateAvailable
+                    || (hostWidget.preference("promptedUpdateVersion", "") === updates.manualResult.version
+                        && hostWidget.preference("promptedUpdateStage", "verified") === updates.manualStage)) return false;
+            // Remember this offer when it is shown, not after Later. Checks must
+            // never reopen the same prompt every six hours, but later approval
+            // should offer the same release once more with its verified status.
+            hostWidget.persistSettings({promptedUpdateVersion: updates.manualResult.version,
+                promptedUpdateStage: updates.manualStage});
+        }
+        confirmation.openInstall(updates.manualResult.commit, updates.manualResult.version,
+            updates.manualResult.verification, updates.changesUrl());
+        return true;
+    }
+    function maybeOfferUpdate() { openInstallPrompt(false); }
     function back(focusReason) {
         if (mode === "updates") {
             if (updatesReturnMode === "settings") root.returnToSettings(focusReason);
@@ -996,10 +1018,7 @@ FocusScope {
                 sourceComponent: UpdatesPage {
                     objectName: "updatesPage"
                     hostWidget: root.hostWidget
-                    onToggleAutomatic: {
-                        if (root.hostWidget.autoUpdates) confirmation.open();
-                        else root.hostWidget.toggleUpdates();
-                    }
+                    onInstallRequested: root.openInstallPrompt(true)
                 }
             }
             Loader {
@@ -1280,7 +1299,7 @@ FocusScope {
                 anchors.right: parent.right
                 anchors.rightMargin: Math.max(0, Math.round((settingsButton.width - headerActionMetrics.advanceWidth) / 2))
                 anchors.verticalCenter: parent.verticalCenter
-                text: "v" + root.hostWidget.version + " · by Sarr"
+                text: "v" + root.hostWidget.version + (root.mode === "windows" ? " · 2026" : " · by Sarr")
                 onClicked: projectSupport.open()
             }
         }
@@ -1313,12 +1332,24 @@ FocusScope {
         function restoreOrigin(reason) {
             if (reason === Qt.NoFocusReason) return;
             if (notificationMode) updateSwitch.forceActiveFocus(reason);
-            else if (updatesLoader.item) updatesLoader.item.focusAutomatic(reason);
+            else if (updatesLoader.item) updatesLoader.item.focusFirst(reason);
         }
         onCanceled: function(focusReason) { restoreOrigin(focusReason); }
         onConfirmed: function(focusReason) {
-            if (root.hostWidget) root.hostWidget.persistSettings(notificationMode ? {checkUpdates:false} : {autoUpdates:false});
+            if (root.hostWidget && notificationMode) root.hostWidget.persistSettings({checkUpdates:false});
             restoreOrigin(focusReason);
+        }
+        onInstallRequested: function(commit, version, verification) {
+            if (root.hostWidget) {
+                root.hostWidget.runtime.updates.openManualUpdate(commit, version, verification);
+                root.showUpdates();
+            }
+        }
+        onSkipRequested: function(version, verification) {
+            if (root.hostWidget && root.hostWidget.runtime.updates.manualAvailable
+                    && root.hostWidget.runtime.updates.manualResult.version === version)
+                root.hostWidget.persistSettings({skippedUpdateVersion:version,
+                    skippedUpdateStage:verification === "verified" ? "verified" : "early"});
         }
         onUpdatesRequested: function(focusReason) {
             root.showUpdates();

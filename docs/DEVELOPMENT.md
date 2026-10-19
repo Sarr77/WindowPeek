@@ -70,7 +70,7 @@ This creates `dist/WindowPeek-<version>.zip` with source, documentation, license
 and tests. It excludes Git state, development notes, local Python helpers and
 caches. No commit or upload is made. The ZIP is a source archive for inspection
 and offline checks; use Omarchy’s Git installation above to install the plugin
-with manual updates and optional verified automatic updates.
+with explicit confirmation for each update.
 
 The root `preview.png` is used by README and the marketplace. Its original
 PNG is [preview-wallpaper.png](preview-wallpaper.png), a promotional illustration

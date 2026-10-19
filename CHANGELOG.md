@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.9
+
+Local test build for the update to 1.0.0.
+
+- Keep the familiar window search, previews and customization while preparing the 1.0 release.
+- Make WindowPeek easier to browse on GitHub by moving implementation files into
+  `src/`, while keeping the Omarchy entry point at the repository root.
+- Restore theme text and separator colors after the Omarchy palette change, and
+  count the logo's minimum replay interval from the start of its animation.
+- Refresh the support popup's invitation to discover and customize WindowPeek.
+- Show the version and year in the expanded window list footer; keep the version
+  and author credit in Settings.
+- Translate updates, artwork controls and typing help into all 30 supported
+  languages, including the new release confirmation.
+- Discover published WindowPeek GitHub Releases and mark exact Omarchy-verified
+  commits with a green dot; show early releases in amber. The same release turns
+  green when verified. Let you include or hide early releases, install the
+  displayed commit after confirmation, leave its reminder or skip it. A skipped
+  early release can be offered again when the same commit gains verification.
+
 ## 0.7.8
 
 - Bound reads of preferences, update state, focus history and the current theme

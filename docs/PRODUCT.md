@@ -298,21 +298,27 @@ Carry over these established design decisions where they fit WindowPeek:
   reset, shortcut and update hints.
 - Help descriptions have no final full stop. Preserve meaningful action ellipses
   and sentence separators. Use natural, explicit text instead of unexplained icons.
-- The installed version beside `by Sarr` at the other end of the expanded footer.
+- The installed version beside `2026` at the other end of the expanded list
+  footer; Settings keeps `by Sarr` beside the version.
 - A subtle **Automatic updates** notification control beside help, enabled by default. Its
   track and label toggle the same setting.
-  Notifications check newer repository code every six hours and announce it in
-  the expanded panel; opting out hides the notice and stops scheduled metadata
+  Notifications check newer published GitHub Releases every six hours and announce them in
+  the expanded panel and on the bar; opting out hides the notice and stops scheduled metadata
   checks. Manual checks still work. The Updates page has one primary action:
-  Check now, becoming Update… when newer code is found, plus a matching bordered changes/history
+  Check now, becoming Install now when a newer release is found, plus a matching bordered changes/history
   button. Development copies retain Check now and Version history, with a short
   Git explanation; manual installation stays blocked.
-- Keep a separate default-on Verified updates option on the Updates page only.
-  Install only immutable stable releases whose exact commits are verified by
-  Omarchy. Explain that verification may take time and newer code remains
-  available with user confirmation. Preserve saved settings independently.
-  Disabling automatic installation asks for confirmation; mouse dismissal must
-  clear focus styling, while keyboard dismissal restores the keyboard cue.
+- The bar, Updates page and installation prompt show a green dot only when the
+  exact commit is verified by Omarchy; an early GitHub release is amber. The
+  same release turns green after Omarchy verifies that exact commit. **Early
+  GitHub releases** starts enabled; switching it off hides amber offers and
+  restricts installation to verified commits, without disabling manual checks.
+  Opening the expanded list offers the new version once. Later leaves its bar
+  reminder; Skip version hides it for its current stage, while the Updates page
+  keeps installation available and lets the user restore the reminder. A skipped
+  early release can return as verified without changing version or commit. Confirming in
+  WindowPeek installs only the displayed commit after fresh checks. Scheduled
+  checks never install automatically, regardless of the old saved autoUpdates key.
 - Troubleshooting lives under Hints and Support. Warning/recovery links still
   open the same editor and Back returns to the origin. Retain support guide
   expansion and scroll position when visiting Troubleshooting from there.

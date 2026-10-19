@@ -19,6 +19,8 @@ Ui.Panel {
     property var hiddenCallback: null
     property bool opening: false
     property bool settingsRequested: false
+    property bool updatePromptRequested: false
+    onExpandedGeometryChanged: if (expandedGeometry && updatePromptRequested) Qt.callLater(root.deliverUpdatePrompt)
     property bool hoverRequested: false
     property bool hoverRetained: false
     property bool promoted: false
@@ -95,6 +97,21 @@ Ui.Panel {
         if (!opened && !opening) open();
         if (opening) settingsRequested = true;
         else content.showSettings();
+    }
+    function showUpdatePrompt() {
+        updatePromptRequested = true;
+        if (!opened && !opening) open();
+        else if (opened && compactPinned) open();
+        if (opened) Qt.callLater(root.deliverUpdatePrompt);
+    }
+    function deliverUpdatePrompt() {
+        if (!opened || !updatePromptRequested || !content.expanded) return;
+        if (!hostWidget || !hostWidget.runtime.updates.offerAvailable) {
+            updatePromptRequested = false;
+            return;
+        }
+        if (content.openInstallPrompt(true) || content.blockingModalOpen)
+            updatePromptRequested = false;
     }
     function showMoveMenu(address, position) {
         if ((!opened && !hoverOpened) || !mapped || content.mode !== "windows") return false;
@@ -231,7 +248,9 @@ Ui.Panel {
                 Qt.callLater(function() { if (root.opened) content.startQuickSelection(); });
             }
             if (settingsRequested) { settingsRequested = false; content.showSettings(); }
+            if (updatePromptRequested) Qt.callLater(root.deliverUpdatePrompt);
         } else if (!collapsing) {
+            updatePromptRequested = false;
             content.dismiss();
             if (hostWidget) hostWidget.panelClosed();
         }
@@ -259,6 +278,7 @@ Ui.Panel {
             if (panel.hitCard(x, y) || root.hitItem(panel.popupInputItem, x, y)
                 || root.hitItem(panel.popupContainerInputItem, x, y)
                 || root.hitItem(root.anchorItem, x, y)
+                || (root.hostWidget && root.hitItem(root.hostWidget.updateBadgeItem, x, y))
                 || (root.childPreviewVisible && root.hitItem(root.hostWidget.windowPreview.cardItem, x, y))) return;
             if (root.recovery) root.recovery.suspend();
             if (content.blockingModalOpen) { content.dismissModalOutside(); return; }

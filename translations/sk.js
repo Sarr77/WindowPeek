@@ -1,11 +1,11 @@
 // UTF-8 translations: sk
 var words = {
   "notificationsOffQuestion": "Vypnúť upozornenia na aktualizácie?",
-  "notificationsOffWarning": "Už nebudete dostávať upozornenia na nové verzie. Upozornenia a automatickú inštaláciu spravujte v Aktualizáciách.",
+  "notificationsOffWarning": "Už nebudete dostávať upozornenia na nové verzie.",
   "openUpdates": "Otvoriť aktualizácie",
   "turnOffNotifications": "Vypnúť",
   "projectSupportIntro": "Páči sa vám to? Povedzte o tom ostatným",
-  "projectSupportMission": "Pomôžte ďalším ľuďom objaviť WindowPeek a prispôsobiť si ho.",
+  "projectSupportMission": "Pomôžte ďalším ľuďom objaviť WindowPeek a prispôsobiť si ho",
   "starWindowPeekCatalog": "Pošlite srdce na Omarchy Plugins",
   "starWindowPeekGitHub": "Dať hviezdičku na GitHube",
   "projectSupportThanks": "Ďakujem za vašu podporu.",

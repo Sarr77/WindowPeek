@@ -1,11 +1,11 @@
 // UTF-8 translations: vi
 var words = {
   "notificationsOffQuestion": "Tắt thông báo cập nhật?",
-  "notificationsOffWarning": "Bạn sẽ không còn nhận thông báo về phiên bản mới. Quản lý thông báo và cài đặt tự động trong Cập nhật.",
+  "notificationsOffWarning": "Bạn sẽ không còn nhận thông báo về phiên bản mới.",
   "openUpdates": "Mở Cập nhật",
   "turnOffNotifications": "Tắt",
   "projectSupportIntro": "Bạn thích chứ? Hãy chia sẻ với mọi người",
-  "projectSupportMission": "Giúp nhiều người khám phá WindowPeek và tùy chỉnh theo cách riêng.",
+  "projectSupportMission": "Giúp nhiều người khám phá WindowPeek và tùy chỉnh theo cách riêng",
   "starWindowPeekCatalog": "Gửi trái tim trên Omarchy Plugins",
   "starWindowPeekGitHub": "Tặng sao trên GitHub",
   "projectSupportThanks": "Cảm ơn bạn rất nhiều vì đã ủng hộ.",

@@ -1,11 +1,11 @@
 // UTF-8 translations: zh-TW
 var words = {
   "notificationsOffQuestion": "關閉更新通知？",
-  "notificationsOffWarning": "你將不再收到新版本通知。可在「更新」中管理通知和自動安裝。",
+  "notificationsOffWarning": "你將不再收到新版本通知。",
   "openUpdates": "開啟更新",
   "turnOffNotifications": "關閉",
   "projectSupportIntro": "喜歡嗎？讓更多人知道",
-  "projectSupportMission": "幫助更多人認識 WindowPeek，並依自己的風格自訂它。",
+  "projectSupportMission": "幫助更多人認識 WindowPeek，並依自己的風格自訂它",
   "starWindowPeekCatalog": "在 Omarchy Plugins 上送出愛心",
   "starWindowPeekGitHub": "在 GitHub 上點亮星號",
   "projectSupportThanks": "衷心感謝你的支持。",

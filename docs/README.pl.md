@@ -73,9 +73,9 @@ Ustawienia obsługują **30 języków** i pokazują zmiany na żywo.
 
 ## Aktualizacje
 
-Otwórz **Ustawienia → Sterowanie → Aktualizacje**, aby sprawdzić aktualizacje, zobaczyć zmiany i zainstalować je przez potwierdzenie w terminalu Omarchy.
+Otwórz **Ustawienia → Sterowanie → Aktualizacje**, aby sprawdzić aktualizacje, zobaczyć zmiany i wybrać moment instalacji pokazanego commita.
 
-Przełącznik **Automatyczne aktualizacje** w stopce włącza powiadomienia o nowych wersjach. Opcja **Zweryfikowane aktualizacje** może instalować w tle wydania zweryfikowane przez marketplace.
+Przełącznik **Automatyczne aktualizacje** w stopce włącza powiadomienia o nowych wydaniach GitHub. Zielona kropka oznacza **Zweryfikowano przez Omarchy**, a pomarańczowa — **Wczesne wydanie WindowPeek na GitHubie**. To samo wydanie zmieni oznaczenie na zielone, gdy Omarchy zweryfikuje jego dokładny commit. Możesz wyłączyć **Wczesne wydania GitHub**, zainstalować proponowaną wersję teraz, odłożyć ją lub pominąć. Pominięte wczesne wydanie wróci, jeśli Omarchy je później zweryfikuje.
 
 [Jak działają aktualizacje](https://github.com/Sarr77/WindowPeek/blob/main/docs/UPDATES.md)
 

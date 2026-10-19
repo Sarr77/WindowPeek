@@ -1,11 +1,11 @@
 // UTF-8 translations: hu
 var words = {
   "notificationsOffQuestion": "Kikapcsolod a frissítési értesítéseket?",
-  "notificationsOffWarning": "Nem kapsz több értesítést az új verziókról. Az értesítéseket és az automatikus telepítést a Frissítések alatt kezelheted.",
+  "notificationsOffWarning": "Nem kapsz több értesítést az új verziókról.",
   "openUpdates": "Frissítések megnyitása",
   "turnOffNotifications": "Kikapcsolás",
   "projectSupportIntro": "Tetszik? Mondd el másoknak is",
-  "projectSupportMission": "Segíts több embernek felfedezni a WindowPeeket, és a saját ízlésükre szabni.",
+  "projectSupportMission": "Segíts több embernek felfedezni a WindowPeeket, és a saját ízlésükre szabni",
   "starWindowPeekCatalog": "Küldj szívet az Omarchy Plugins oldalon",
   "starWindowPeekGitHub": "Csillagozás a GitHubon",
   "projectSupportThanks": "Köszönöm a támogatásodat.",

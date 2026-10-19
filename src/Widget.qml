@@ -14,6 +14,7 @@ import "Appearance.js" as Appearance
 import "WindowModel.js" as Model
 import "Labels.js" as Labels
 import "LogoCatalog.js" as LogoCatalog
+import "UpdateWords.js" as UpdateCopy
 
 BarWidget {
     id: root
@@ -112,6 +113,7 @@ BarWidget {
     readonly property var hints: Settings.hints(effectiveSettings)
     readonly property bool autoUpdates: !effectiveSettings || effectiveSettings.autoUpdates === undefined || effectiveSettings.autoUpdates === true
     readonly property bool updatesAvailable: runtime.updates.available
+    readonly property Item updateBadgeItem: updateBadge
     readonly property string updateStatus: runtime.updates.status
     readonly property var savedAppearance: Appearance.normalize(effectiveSettings)
     readonly property var appearance: runtime.previewOwner ? runtime.previewAppearance : savedAppearance
@@ -353,7 +355,7 @@ BarWidget {
         }
     }
     Timer {
-        interval: 60000; repeat: true; running: root.settingsReady && root.updatesAvailable
+        interval: 60000; repeat: true; running: root.settingsReady && root.runtime.updates.checksEnabled
         onTriggered: root.runtime.updates.check(root.peers())
     }
     Connections {
@@ -375,13 +377,16 @@ BarWidget {
         }
     }
 
-    implicitWidth: button.implicitWidth
+    implicitWidth: button.implicitWidth + (updateBadge.visible && !root.vertical ? updateBadge.width + Style.space(4) : 0)
     implicitHeight: button.implicitHeight
     ReadableBarButton {
         id: button
         hostWidget: root
         objectName: "windowPeekBarButton"
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.top: parent.top
+        width: root.vertical ? parent.width : implicitWidth
+        height: parent.height
         bar: root.bar
         fontSize: root.effectiveBarFont
         readonly property int count: root.inventory.windows.filter(function(w) { return root.includeSpecial || !w.workspace || !w.workspace.special; }).length
@@ -411,6 +416,45 @@ BarWidget {
                 if (!root.doubleClickExpand) return;
                 root.toggleBarExpansion();
             }
+        }
+    }
+    ReadableBarButton {
+        id: updateBadge
+        hostWidget: root; bar: root.bar
+        objectName: "windowPeekUpdateBadge"
+        visible: root.runtime.updates.offerAvailable
+        x: root.vertical ? Math.max(0, root.width - width) : button.width + Style.space(4)
+        y: 0
+        width: root.vertical ? root.width : implicitWidth
+        height: root.height
+        fontSize: Math.max(9, root.effectiveBarFont - 1)
+        horizontalMargin: root.vertical ? 0 : 7
+        text: root.vertical ? " " : "  " + UpdateCopy.words(root.language).badge
+        labelVisible: !root.vertical
+        hasVisualContent: true
+        readonly property string verificationLabel: root.runtime.updates.manualResult.verification === "verified"
+            ? UpdateCopy.words(root.language).verified
+            : root.runtime.updates.manualResult.verification === "unverified"
+                ? UpdateCopy.words(root.language).unverified : UpdateCopy.words(root.language).unknown
+        tooltipText: root.words.updateAvailable + " · " + verificationLabel
+        Accessible.role: Accessible.Button
+        Accessible.name: tooltipText
+        Accessible.onPressAction: root.showUpdatePrompt()
+        onPressed: function(code) { if (code === Qt.LeftButton) root.showUpdatePrompt(); }
+        Rectangle {
+            z: -1
+            anchors.centerIn: parent
+            width: parent.width - Style.space(2); height: Math.min(parent.height - Style.space(4), Style.space(22))
+            radius: Style.space(4)
+            color: Qt.alpha(root.accent, 0.22)
+            border.width: 1; border.color: Qt.alpha(root.accent, 0.65)
+        }
+        Rectangle {
+            objectName: "windowPeekVerificationDot"
+            width: Style.space(7); height: width; radius: width / 2
+            x: root.vertical ? (parent.width - width) / 2 : Style.space(7)
+            anchors.verticalCenter: parent.verticalCenter
+            color: root.runtime.updates.manualResult.verification === "verified" ? "#92D992" : "#EDB65C"
         }
     }
     Timer { id: tooltipDelay; interval: root.panelHoverDelay; onTriggered: root.tooltipReady = root.canShowTooltip }
@@ -486,6 +530,7 @@ BarWidget {
         }
     }
     function openSettings() { if (panelLoader.item) panelLoader.item.showSettings(); }
+    function showUpdatePrompt() { if (panelLoader.item) panelLoader.item.showUpdatePrompt(); }
     function inputStatus() {
         var p = panelLoader.item;
         var anchor = button.mapToGlobal(0, 0);

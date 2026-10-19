@@ -1,7 +1,7 @@
 // UTF-8 translations: th
 var words = {
   "notificationsOffQuestion": "ปิดการแจ้งเตือนอัปเดตไหม?",
-  "notificationsOffWarning": "คุณจะไม่ได้รับการแจ้งเตือนเวอร์ชันใหม่ จัดการการแจ้งเตือนและการติดตั้งอัตโนมัติได้ในหน้าอัปเดต",
+  "notificationsOffWarning": "คุณจะไม่ได้รับการแจ้งเตือนเวอร์ชันใหม่",
   "openUpdates": "เปิดหน้าอัปเดต",
   "turnOffNotifications": "ปิด",
   "projectSupportIntro": "ชอบไหม? บอกต่อให้คนอื่นรู้",

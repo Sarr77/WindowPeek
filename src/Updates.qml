@@ -17,33 +17,58 @@ QtObject {
     && (preferences.values.checkUpdates === undefined || preferences.values.checkUpdates === true)
   property var manualResult: ({})
   property double manualLastLaunch: 0
+  property bool installLaunchPending: false
+  property Timer installLaunchReset: Timer { interval: 5000; onTriggered: root.installLaunchPending = false }
   property bool manualReady: false
-  property bool manualLaunchFailed: false
+  property bool choiceChanged: false
+  property bool policyRefreshPending: false
   readonly property bool manualBusy: manualCheck.running
-  readonly property bool manualAvailable: manualResult.status === "available" && /^[a-f0-9]{40}$/.test(manualResult.commit || "")
+  readonly property bool includeUnverified: preferences.values.includeUnverifiedUpdates !== false
+  readonly property bool rawAvailable: manualResult.status === "available" && /^[a-f0-9]{40}$/.test(manualResult.commit || "")
     && /^\d+\.\d+\.\d+$/.test(manualResult.version || "")
-  // Native Omarchy checks the repository itself. A successful metadata check is
-  // not a prerequisite for an explicit update; known unsafe copies stay blocked.
+    && ["verified", "unverified", "unknown"].indexOf(manualResult.verification) >= 0
+  readonly property bool filteredRelease: rawAvailable && !includeUnverified && manualResult.verification !== "verified"
+  readonly property bool manualAvailable: rawAvailable && !filteredRelease
+  onIncludeUnverifiedChanged: {
+    if (!manualReady || !preferences.ready || !preferences.hasSavedValues) return;
+    if (manualBusy) policyRefreshPending = true;
+    else checkNow();
+  }
+  onManualBusyChanged: {
+    if (!manualBusy && policyRefreshPending) {
+      policyRefreshPending = false;
+      Qt.callLater(checkNow);
+    }
+  }
+  readonly property string skippedVersion: preferences.values && typeof preferences.values.skippedUpdateVersion === "string"
+    ? preferences.values.skippedUpdateVersion : ""
+  readonly property string manualStage: manualResult.verification === "verified" ? "verified" : "early"
+  // A skipped early release must be offered again if this exact commit gains catalog approval.
+  readonly property string skippedStage: preferences.values && preferences.values.skippedUpdateStage === "early"
+    ? "early" : "verified"
+  readonly property bool manualSkipped: manualAvailable && skippedVersion === manualResult.version
+    && skippedStage === manualStage
+  readonly property bool installing: manualResult.installing === true
+  readonly property bool offerAvailable: checksEnabled && manualAvailable && !manualSkipped && !installing
+    && manualResult.installError !== "local-changes"
+  // The exact checked commit is revalidated by the worker before installation.
   readonly property bool manualBlocked: manualResult.status === "local-changes" || manualResult.status === "ahead"
-  readonly property bool manualCanUpdate: runtimeAvailable && !manualBlocked && !manualBusy && !terminal.running
-    && (manualResult.status !== "available" || manualAvailable)
+  readonly property bool manualCanUpdate: runtimeAvailable && manualAvailable && !manualBlocked && !manualBusy && !installing && !installLaunchPending
+    && manualResult.installError !== "local-changes"
   readonly property string workerPath: decodeURIComponent(Qt.resolvedUrl("../update.py").toString().replace(/^file:\/\//, ""))
   property var startManualCheck: function(force) {
     manualCheck.command = ["python3", "-I", "-B", workerPath, "--check-manual"].concat(force ? ["--force"] : []);
     manualCheck.running = true;
   }
-  property var startTerminal: function() {
-    terminal.command = ["omarchy", "launch", "terminal", "python3", "-I", "-B", workerPath, "--manual-update"];
-    terminal.running = true;
+  property var startExactInstall: function(commit, version, verification) {
+    Quickshell.execDetached(["python3", "-I", "-B", workerPath, "--install-commit", commit,
+        "--install-version", version, "--expected-verification", verification]);
   }
   property Process manualCheck: Process {
     onExited: function(code) {
       manualState.reload();
       if (code !== 0) root.manualResult = {status: "failed"};
     }
-  }
-  property Process terminal: Process {
-    onExited: function(code) { root.manualLaunchFailed = code !== 0; }
   }
   property SafeFile manualState: SafeFile {
     path: preferences.directory + "/manual-updates.json"
@@ -54,7 +79,7 @@ QtObject {
       root.manualReady = true;
     }
     onLoadFailed: function(reason) {
-      if (reason !== "missing") root.manualResult = {};
+      root.manualResult = {};
       root.manualReady = true;
     }
   }
@@ -70,18 +95,24 @@ QtObject {
   }
   function checkNow() {
     if (!runtimeAvailable || manualBusy) return false;
+    choiceChanged = false;
     manualLastLaunch = Date.now() / 1000;
     startManualCheck(true);
     return true;
   }
-  function openManualUpdate() {
-    if (!manualCanUpdate) return false;
-    manualLaunchFailed = false;
-    startTerminal();
+  function openManualUpdate(commit, version, verification) {
+    if (!manualCanUpdate) { choiceChanged = true; return false; }
+    if (manualResult.commit !== commit || manualResult.version !== version
+        || manualResult.verification !== verification) { choiceChanged = true; return false; }
+    choiceChanged = false;
+    installLaunchPending = true;
+    installLaunchReset.restart();
+    startExactInstall(commit, version, verification);
     return true;
   }
+  onInstallingChanged: if (installing) { installLaunchReset.stop(); installLaunchPending = false; }
   function changesUrl() {
-    if (!manualAvailable) return "https://github.com/Sarr77/WindowPeek/commits/main/";
+    if (!manualAvailable) return "https://github.com/Sarr77/WindowPeek/releases";
     return /^[a-f0-9]{40}$/.test(manualResult.installedCommit || "")
       ? "https://github.com/Sarr77/WindowPeek/compare/" + manualResult.installedCommit + "..." + manualResult.commit
       : "https://github.com/Sarr77/WindowPeek/commit/" + manualResult.commit;
@@ -135,17 +166,7 @@ QtObject {
   }
   function check(widgets, now) {
     if (now === undefined) now = Date.now() / 1000;
-    if (!runtimeAvailable || manualBusy || terminal.running
-        || widgets.some(function(widget) { return widget.opened || widget.hoverOpened || widget.actionBusy; })) return;
-    if (!enabled || !ready) { checkManual(widgets, now); return; }
-    var startup = startupPending && !checkedToday(now);
-    startupPending = false;
-    if ((!startup && now < dueAt(now)) || (now >= lastLaunch && now - lastLaunch < 300)) {
-      checkManual(widgets, now);
-      return;
-    }
-    lastLaunch = now;
-    // A detached worker can finish its atomic install even when the shell reloads.
-    launch(startup);
+    if (!runtimeAvailable || installing) return;
+    checkManual(widgets, now);
   }
 }

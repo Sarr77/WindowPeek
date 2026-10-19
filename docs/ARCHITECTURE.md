@@ -47,7 +47,7 @@ Hyprland events → WindowState → WindowModel → Widget / PanelContent
 | `Appearance.js` and editors | Color rules, presets, preview, apply/cancel and scaling |
 | `Labels.js`, `LabelsEditor.qml`, `LabelButton.qml` | Text templates, grouped editing and bounded action labels |
 | `I18n.js`, `translations/*.js` | Locale detection and 30 local catalogs without changing Qt's global translator |
-| `Updates.qml`, `update.py` | Shared six-hour schedule, verified immutable releases and atomic replacement |
+| `Updates.qml`, `update.py` | Shared six-hour metadata checks, exact-commit installation after confirmation and atomic replacement |
 
 ## Inventory and identity
 
@@ -841,22 +841,29 @@ API reference: [ScreencopyView](https://quickshell.org/docs/v0.3.1/types/Quicksh
 
 ## Installation and updates
 
-`ManualUpdates` in `update.py` reads public upstream metadata without fetching
-objects or installing code. `Updates.qml` caches its bounded state across all
-monitors, with a separate `checkUpdates` preference and six-hour schedule. An
-explicit `Check now` runs even with scheduled checking off. `UpdatesPage` shows
-the checked SHA and exact catalog coverage, with unknown distinct from unverified.
-Checking replaces the result inside its reserved height; the button label stays
-constant. A 700 ms minimum presentation interval prevents a fast local check from
-flashing, without delaying the worker. The changes link opens the checked commit
-comparison when available, otherwise a clearly labeled public version history.
-UpdatesPage uses one primary action: Check now, then Update… for valid available
-metadata. Known local/ahead copies show their explanation and history without an
-installation button. The native worker stays independent of discovery metadata. It rechecks checkout eligibility, holds the shared updater lock
-and delegates to `omarchy plugin update sarr.windowpeek` with inherited TTY input.
-It never passes `--yes`. The native command confirms its freshly fetched upstream
-diff, which need not match the earlier metadata check. The automatic release
-verifier below retains its independent, stricter installation policy.
+`ManualUpdates` in `update.py` reads the latest published immutable GitHub Release,
+resolves its tag to one commit, and reads its manifest and catalog snapshot
+without fetching Git objects or installing code. `Updates.qml`
+caches that bounded result across monitors and schedules a metadata check every
+six hours while panels are idle. **Check now** works with scheduled checking off.
+The Updates page shows the version and catalog status; unknown is distinct from
+a confirmed absence of approval. A green dot requires an exact verified
+snapshot; an early GitHub release is amber. A checked comparison link
+identifies the offered commit. The `includeUnverifiedUpdates` preference starts
+true. If false, `Updates.qml` hides amber offers from the page and both bar
+surfaces and looks up the catalog's verified commit as a fallback release. The
+worker refuses an early-release install and rechecks the catalog before
+exchange. The same release becomes eligible after a later exact-SHA catalog
+verification.
+
+Installation starts only after the user confirms the displayed SHA in WindowPeek.
+`ManualUpdates.install_exact` checks the cached choice under the shared lock,
+rechecks the release, tag and catalog approval where applicable, fetches the exact
+tag into a fresh staging tree, validates it and atomically exchanges the
+plugin directory. A changed release or tag cannot substitute another commit.
+Development symlinks, forks, local changes and ahead copies stay protected.
+The legacy terminal updater is no longer called by the UI. Scheduled checks
+never call the older automatic release installer.
 
 Installation and removal use Omarchy's standard `plugin add` and `plugin remove`
 commands. The public source and release archive contain no separate installer.
@@ -865,26 +872,20 @@ removal and reinstall.
 
 `Runtime.qml` owns one `Preferences` and `Updates` instance across monitors.
 
-The expanded list's update button reads the cached manual-check result and opens
-the shared Updates page. It adds no row, polling or process on panel opening.
-The footer track and label are one `ActionButton` notification checkbox backed by
-`checkUpdates`. The automatic-install
-setting remains only in UpdatesPage, backed by `autoUpdates`. Saved flags and
-schedules remain independent. The expanded notice respects notification opt-out.
-`UpdateConfirmation` restores the input's focus reason to its originating setting.
-Its footer variant offers Updates or notification opt-out; its Settings variant
-confirms only automatic-install opt-out. Both keep background controls disabled,
-suppress pending preview requests and allow keyboard handoff to other apps.
-Nested editor loaders are explicitly retained before navigating to Updates, so
-the mode change cannot briefly destroy an unsaved draft; Back releases retention
-after restoring the original view. Confirmation writes false, never toggles a
-possibly changed setting from another monitor.
-`SettingsRow` tracks pointer versus keyboard cues, including mouse activation of
-an already keyboard-focused row. Navigation itself never starts an update worker.
-The HintsSupportPage loader remains active during child Troubleshooting visits so
-expanded guides survive Back; warning links retain their existing return context.
-Manual discovery reports development links separately from other local copies;
-an older blocked cache without a reason is refreshed once while idle.
+The expanded list's update notice and a separate bar badge read the same
+cached result. The badge remains after **Later** and disappears for a skipped
+version at its current verification stage or when notifications are off. An
+expanded-list visit can open one prompt per version and stage: a skipped early
+release returns and may prompt once after the same SHA becomes verified.
+Neither opening nor navigating starts installation.
+`UpdateConfirmation` freezes the shown commit, version and verification status
+for that decision. It blocks background controls and previews, offers View
+changes, Install now, Later and Skip version, and returns focus according to
+pointer or keyboard dismissal. A stale choice cannot silently install the new
+result. The footer's **Automatic updates** switch changes `checkUpdates` only;
+older saved `autoUpdates` values are accepted for compatibility but no longer
+authorize background installation. Preferences are saved before display across
+monitors. Invalid or unreadable settings block scheduled workers.
 
 Header pinning is presentation state in `PanelContent`, independent of compact
 bar-click pinning and saved typing protection. It extends outside-click retention
@@ -899,24 +900,14 @@ older revisions cannot overwrite a newer saved choice. Failed writes retain
 the last saved UI values and permit a retry. Corrupt or unreadable files block
 saving and updating until repaired and reloaded.
 
-`Updates.qml` defers starting a worker while a panel, hover popup or window
-operation is active. Each widget's minute timer shares the runtime scheduler.
-For automatic installation, the first eligible tick can request the day's first
-check via `--startup`;
-later ticks follow six hours from `lastCheck`. The worker rechecks the same
-local-calendar condition under its lock, preventing duplicate requests across
-restarts or monitors. Valid `lastCheck` migrates old 24-hour deadlines to six hours.
-Attempts, including failures, are recorded before network access.
-`update.py` owns the persistent deadline and an
-interprocess lock under WindowPeek's state directory. It uses fixed WindowPeek
-endpoints, independently checks GitHub release immutability and the official
-catalog's exact approved SHA, then verifies a fresh staged checkout. The tag,
-authorities, saved opt-in and installed bytes are checked again before atomic
-directory exchange. No cached approval or default-branch fallback is used.
-
-A successful update restarts the Omarchy shell: a plugin rescan alone can retain
-old QML components and singletons. Reload failure is recorded separately as
-`restart-pending`. See [UPDATES.md](UPDATES.md) for the trust contract, skip rules
+`Updates.qml` defers scheduled metadata checks while a panel, hover popup or
+window operation is active. A per-widget minute timer feeds the shared scheduler;
+`update.py` owns the persistent six-hour deadline and process lock. Only
+metadata is fetched on that schedule. The installer independently validates
+remote identity, Git objects, file types, manifest, Omarchy package and source
+bytes before replacement. A successful exchange restarts the Omarchy shell:
+a plugin rescan can retain old QML singletons. Reload failure is recorded as
+`restart-pending`. See [UPDATES.md](UPDATES.md) for the user flow, trust checks
 and filesystem limits. The real public update test follows publication.
 
 See [TESTING.md](TESTING.md) for executable checks and their limits.

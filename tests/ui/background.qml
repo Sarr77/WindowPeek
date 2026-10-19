@@ -77,6 +77,8 @@ ShellRoot {
                     panel.back();
                     events.mouseClick(test.find(panel, "settingsButton"), 20, 12, Qt.LeftButton, Qt.NoModifier, 0);
                     test.check(panel.mode === "settings" && test.toggles === 1, "Settings does not fall through");
+                    test.check(test.find(panel, "authorCredit").text === "v" + host.version + " · by Sarr",
+                        "Settings footer keeps the version and author");
                     panel.back(); panel.expanded = false;
                     break;
                 case 6:
@@ -98,7 +100,8 @@ ShellRoot {
                     panel.expanded = true;
                     events.mouseClick(test.list.itemAtIndex(0), 80, 12, Qt.MiddleButton, Qt.NoModifier, 0);
                     test.check(test.toggles === 4, "middle click returns the expanded list to hover");
-                    test.check(test.find(panel,"authorCredit").text === "v" + host.version + " · by Sarr", "footer shows installed version");
+                    test.check(test.find(panel,"authorCredit").text === "v" + host.version + " · 2026",
+                        "window-list footer shows the installed version and year");
                     console.info("WINDOWPEEK_TEST_PASS: background input routing"); stop(); Qt.quit();
                 }
             } catch (error) { console.error("WINDOWPEEK_TEST_FAIL: " + error); stop(); Qt.quit(); }

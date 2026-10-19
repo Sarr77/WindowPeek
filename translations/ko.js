@@ -1,7 +1,7 @@
 // UTF-8 translations: ko
 var words = {
   "notificationsOffQuestion": "업데이트 알림을 끌까요?",
-  "notificationsOffWarning": "새 버전 알림을 받지 않게 됩니다. 업데이트에서 알림과 자동 설치를 관리할 수 있습니다.",
+  "notificationsOffWarning": "새 버전 알림을 받지 않게 됩니다.",
   "openUpdates": "업데이트 열기",
   "turnOffNotifications": "끄기",
   "projectSupportIntro": "마음에 드시나요? 다른 사람들에게 알려 주세요",

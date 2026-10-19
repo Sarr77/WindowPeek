@@ -9,13 +9,13 @@ import "WindowPeek" as Plugin
 // Render the actual controls with fictional data; never capture the desktop.
 ShellRoot {
     id: fixture
-    property int pending: 2
+    property int pending: 3
     readonly property real imageScale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     function sharpen(item) {
         if (item.appId !== undefined && item.imageScale !== undefined) item.imageScale = imageScale;
         for (var child of item.children) sharpen(child);
     }
-    function save(item, suffix) {
+    function save(item, suffix, after) {
         var prefix = Quickshell.env("WINDOWPEEK_TEST_IMAGE");
         if (!prefix) { console.error("WINDOWPEEK_TEST_FAIL: --image needs a path prefix"); Qt.quit(); return; }
         item.grabToImage(function(result) {
@@ -23,6 +23,7 @@ ShellRoot {
                 console.error("WINDOWPEEK_TEST_FAIL: could not save " + suffix);
                 Qt.quit(); return;
             }
+            if (after) after();
             if (--fixture.pending === 0) { console.info("WINDOWPEEK_TEST_PASS"); Qt.quit(); }
         }, Qt.size(Math.round(item.width * imageScale), Math.round(item.height * imageScale)));
     }
@@ -88,6 +89,13 @@ ShellRoot {
     }
     Timer {
         id: capture; interval: 300
-        onTriggered: { fixture.save(card, "-panel.png"); fixture.save(hoverCard, "-hover.png"); }
+        onTriggered: {
+            fixture.save(card, "-panel.png", function() { panel.showSettings(); settingsCapture.start(); });
+            fixture.save(hoverCard, "-hover.png");
+        }
+    }
+    Timer {
+        id: settingsCapture; interval: 300
+        onTriggered: fixture.save(card, "-settings.png")
     }
 }

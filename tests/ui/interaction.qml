@@ -24,7 +24,7 @@ ShellRoot {
     function checkHover() {
         var point = list.mapToItem(list.contentItem, 40, 100);
         var chrome = find(list.itemAt(point.x, point.y), "windowFocus");
-        check(!chrome || chrome.hovered, "window under the stationary pointer must stay highlighted while scrolling: step="
+        check(!chrome || chrome.hovered, "window under the pointer lacks hover after offscreen pointer refresh: step="
             + step + " contentY=" + list.contentY + " row=" + (chrome ? chrome.mapToItem(list, 0, 0) : "none"));
     }
     function find(item, name) {
@@ -66,11 +66,13 @@ ShellRoot {
     }
     Connections {
         target: window
-        // Qt updates hover immediately before rendering. A Timer can run
-        // between the animation tick and that update, observing an unfinished frame.
+        // Offscreen TestEvent wheel input does not retarget hover when a row
+        // moves beneath the pointer. Re-deliver the same pointer position
+        // before checking the rendered row; native input is tested separately.
         function onFrameSwapped() {
             if (test.step <= 30 || test.step > 50) return;
             try {
+                events.mouseMove(test.list, 40, 100, 0, Qt.NoButton, Qt.NoModifier);
                 test.checkHover(); test.hoverFrames++;
                 test.check(Math.abs(test.list.contentItem.y - Math.round(test.list.contentItem.y)) < 0.001,
                     "thin row borders must stay aligned to pixels while scrolling");

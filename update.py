@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Check upstream updates or install a marketplace-verified immutable release.
+"""Discover WindowPeek updates and install an explicitly approved exact commit.
 
-Automatic installation independently checks GitHub releases and catalog approval.
-Manual discovery only reads metadata; installation uses Omarchy's TTY confirmation.
-No persistent service is needed. The detached installer survives a shell reload.
+Scheduled checks only read metadata. An installation starts only after a user
+chooses the displayed commit in WindowPeek; the detached worker validates the
+checkout and confirms the remote identity again before replacing the plugin.
 """
 import ctypes
 import argparse
@@ -25,9 +25,9 @@ import urllib.parse
 PLUGIN_ID = "sarr.windowpeek"
 REPOSITORY = "https://github.com/Sarr77/WindowPeek"
 RELEASE_URL = "https://api.github.com/repos/Sarr77/WindowPeek/releases/latest"
+RELEASE_TAG_URL = "https://api.github.com/repos/Sarr77/WindowPeek/releases/tags/"
 CATALOG_URL = "https://plugins.omarchy.org/catalog.json"
 CHECK_INTERVAL = 6 * 60 * 60
-UPSTREAM_URL = "https://api.github.com/repos/Sarr77/WindowPeek/commits/HEAD"
 
 
 def timestamp(value):
@@ -349,6 +349,7 @@ class Updater:
         return "updated"
 
     def run(self, now=None, startup=False):
+        """Legacy verifier retained for regression tests; UI and CLI do not call it."""
         if not self.enabled():
             return "disabled"
         self.state.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -387,7 +388,7 @@ class Updater:
 
 
 class ManualUpdates(Updater):
-    """Read-only upstream discovery; installation belongs to Omarchy's TTY prompt."""
+    """Published-release discovery and an explicitly approved exact-commit installation."""
 
     def __init__(self, home, state, source=None):
         # The native command currently uses HOME/.config, not XDG_CONFIG_HOME.
@@ -413,19 +414,87 @@ class ManualUpdates(Updater):
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             return False
 
+    def includes_unverified(self):
+        prefs = read_local_json(self.state / "preferences.json", 262144)
+        if (not isinstance(prefs, dict) or type(prefs.get("version")) is not int or prefs["version"] != 1
+                or not isinstance(prefs.get("settings"), dict)):
+            raise ValueError("invalid update preferences")
+        value = prefs["settings"].get("includeUnverifiedUpdates", True)
+        if type(value) is not bool:
+            raise ValueError("invalid release visibility preference")
+        return value
+
     def metadata(self, url, limit=256 * 1024):
         return read_json(url, limit)
+
+    def release_target(self, release):
+        """Resolve the release tag, not mutable target_commitish, to one commit."""
+        _, tag = release_identity(release)
+        if release.get("immutable") is not True:
+            raise ValueError("release is not immutable")
+        ref = self.metadata("https://api.github.com/repos/Sarr77/WindowPeek/git/ref/tags/" + tag)
+        if not isinstance(ref, dict) or ref.get("ref") != "refs/tags/" + tag:
+            raise ValueError("release tag reference mismatch")
+        obj = ref.get("object")
+        if not isinstance(obj, dict):
+            raise ValueError("release tag has no target")
+        if obj.get("type") == "tag":
+            tag_sha = obj.get("sha")
+            if not isinstance(tag_sha, str) or not re.fullmatch(r"[a-f0-9]{40}", tag_sha):
+                raise ValueError("invalid annotated release tag")
+            tag_obj = self.metadata("https://api.github.com/repos/Sarr77/WindowPeek/git/tags/" + tag_sha)
+            if not isinstance(tag_obj, dict) or tag_obj.get("tag") != tag:
+                raise ValueError("annotated release tag mismatch")
+            obj = tag_obj.get("object")
+        commit = obj.get("sha") if isinstance(obj, dict) and obj.get("type") == "commit" else None
+        if not isinstance(commit, str) or not re.fullmatch(r"[a-f0-9]{40}", commit):
+            raise ValueError("release tag does not resolve to a commit")
+        return commit
 
     def inspect(self):
         reason = self.blocked_reason()
         if reason:
             return {"status": "local-changes", "reason": reason}
         original = self.git(self.plugin, "rev-parse", "HEAD")
-        upstream = self.metadata(UPSTREAM_URL)
-        target = upstream.get("sha") if isinstance(upstream, dict) else None
-        if not isinstance(target, str) or not re.fullmatch(r"[a-f0-9]{40}", target):
-            raise ValueError("invalid upstream commit")
+        release = self.metadata(RELEASE_URL)
+        release_id, tag = release_identity(release)
+        target = self.release_target(release)
+        catalog_release = False
+        verified = False
+        if not self.includes_unverified():
+            catalog = self.metadata(CATALOG_URL, 32 * 1024 * 1024)
+            try:
+                approved = approved_commit(catalog)
+            except UnverifiedUpdate:
+                return {"status": "no-verified", "installedCommit": original}
+            if approved == original:
+                return {"status": "current", "installedCommit": original, "commit": original}
+            if approved != target:
+                try:
+                    approved_manifest = self.metadata("https://raw.githubusercontent.com/Sarr77/WindowPeek/"
+                                                      + approved + "/manifest.json")
+                    if (not isinstance(approved_manifest, dict) or approved_manifest.get("id") != PLUGIN_ID):
+                        raise ValueError("verified manifest mismatch")
+                    approved_tag = "v" + approved_manifest["version"]
+                    version(approved_tag[1:])
+                    release = self.metadata(RELEASE_TAG_URL + approved_tag)
+                    release_id, tag = release_identity(release)
+                    if tag != approved_tag or self.release_target(release) != approved:
+                        raise ValueError("verified release mismatch")
+                except (OSError, ValueError, KeyError, TypeError):
+                    return {"status": "no-verified", "installedCommit": original}
+                target = approved
+                catalog_release = True
+            verified = True
         result = {"status": "current", "installedCommit": original, "commit": target}
+        manifest = self.metadata("https://raw.githubusercontent.com/Sarr77/WindowPeek/"
+                                 + target + "/manifest.json")
+        if (not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID
+                or manifest.get("version") != tag[1:]):
+            raise ValueError("release manifest mismatch")
+        installed = read_local_json(self.plugin / "manifest.json", 16384)
+        if version(tag[1:]) < version(installed["version"]):
+            return {**result, "status": "ahead"}
         if original == target:
             return result
         comparison = self.metadata("https://api.github.com/repos/Sarr77/WindowPeek/compare/"
@@ -435,15 +504,12 @@ class ManualUpdates(Updater):
             return {**result, "status": "ahead"}
         if relation != "ahead":
             return {**result, "status": "local-changes", "reason": "different-history"}
-        manifest = self.metadata("https://raw.githubusercontent.com/Sarr77/WindowPeek/"
-                                 + target + "/manifest.json")
-        if not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID:
-            raise ValueError("wrong upstream plugin")
-        version(manifest.get("version"))
-        installed = read_local_json(self.plugin / "manifest.json", 16384)
-        if version(manifest["version"]) < version(installed["version"]):
-            raise ValueError("upstream version would downgrade this installation")
-        result.update(status="available", version=manifest["version"], verification="unknown")
+        result.update(status="available", version=tag[1:], releaseId=release_id,
+                      releaseTag=tag, verification="verified" if verified else "unknown")
+        if catalog_release:
+            result["catalogRelease"] = True
+        if verified:
+            return result
         try:
             catalog = self.metadata(CATALOG_URL, 32 * 1024 * 1024)
             result["verification"] = "verified" if approved_commit(catalog) == target else "unverified"
@@ -479,6 +545,106 @@ class ManualUpdates(Updater):
             atomic_json(self.result, result)
             return result["status"]
 
+    def install_exact(self, commit, target_version, expected_verification):
+        """Install only the checked immutable release and its exact tag commit."""
+        if (not isinstance(commit, str) or not re.fullmatch(r"[a-f0-9]{40}", commit)
+                or expected_verification not in ("verified", "unverified", "unknown")):
+            raise ValueError("invalid update choice")
+        version(target_version)
+        self.state.mkdir(parents=True, exist_ok=True, mode=0o700)
+        descriptor = os.open(self.state / "updates.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, "w") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return "busy"
+            try:
+                checked = read_local_json(self.result, 65536)
+                if (not isinstance(checked, dict) or checked.get("status") != "available"
+                        or checked.get("commit") != commit or checked.get("version") != target_version
+                        or checked.get("verification") != expected_verification
+                        or type(checked.get("releaseId")) is not int or checked["releaseId"] <= 0
+                        or checked.get("releaseTag") != "v" + target_version):
+                    return "stale"
+                if checked["verification"] != "verified" and not self.includes_unverified():
+                    return "stale"
+                if not self.eligible():
+                    checked["installError"] = "local-changes"
+                    atomic_json(self.result, checked)
+                    return "local-changes"
+                checked["installing"] = True
+                checked.pop("installError", None)
+                atomic_json(self.result, checked)
+                fresh = self.inspect()
+                if (fresh.get("status") != "available" or fresh.get("commit") != commit
+                        or fresh.get("version") != target_version
+                        or fresh.get("releaseId") != checked["releaseId"]
+                        or fresh.get("releaseTag") != checked["releaseTag"]
+                        or fresh.get("catalogRelease") != checked.get("catalogRelease")
+                        or (expected_verification == "verified" and fresh.get("verification") != "verified")):
+                    raise ValueError("update changed")
+                original = self.git(self.plugin, "rev-parse", "HEAD")
+                identity = (self.plugin.stat().st_dev, self.plugin.stat().st_ino)
+                with tempfile.TemporaryDirectory(prefix=".windowpeek-update-", dir=self.plugin.parent.parent,
+                                                 ignore_cleanup_errors=True) as temporary:
+                    stage = Path(temporary) / "plugin"
+                    stage.mkdir()
+                    self.git(stage, "init", "--quiet", "--template=", "--initial-branch=main")
+                    self.git(stage, "remote", "add", "origin", REPOSITORY)
+                    self.git(stage, "fetch", "--no-tags", REPOSITORY, "refs/tags/" + checked["releaseTag"])
+                    tag_object = self.git(stage, "rev-parse", "FETCH_HEAD")
+                    if self.git(stage, "rev-parse", "FETCH_HEAD^{commit}") != commit:
+                        raise ValueError("release tag changed during download")
+                    self.git(stage, "fsck", "--full", "--strict")
+                    self.git(stage, "merge-base", "--is-ancestor", original, commit)
+                    modes = self.git(stage, "ls-tree", "-r", "--format=%(objectmode)", commit).splitlines()
+                    if not modes or any(mode not in ("100644", "100755") for mode in modes):
+                        raise ValueError("update contains a symlink or submodule")
+                    self.git(stage, "checkout", "--quiet", "-B", "main", commit)
+                    manifest = read_local_json(stage / "manifest.json", 16384)
+                    if (not isinstance(manifest, dict) or manifest.get("id") != PLUGIN_ID
+                            or manifest.get("version") != target_version):
+                        raise ValueError("update manifest mismatch")
+                    self.validate(stage)
+                    self.verify_tree(stage, commit)
+                    release_url = (RELEASE_TAG_URL + checked["releaseTag"]
+                                   if checked.get("catalogRelease") is True else RELEASE_URL)
+                    latest = self.metadata(release_url)
+                    if (release_identity(latest) != (checked["releaseId"], checked["releaseTag"])
+                            or self.release_target(latest) != commit):
+                        raise ValueError("release changed before installation")
+                    if self.git(stage, "ls-remote", "--tags", "--refs", REPOSITORY,
+                                "refs/tags/" + checked["releaseTag"]) != tag_object + "\trefs/tags/" + checked["releaseTag"]:
+                        raise ValueError("release tag changed before installation")
+                    if expected_verification == "verified" or not self.includes_unverified():
+                        if approved_commit(self.metadata(CATALOG_URL, 32 * 1024 * 1024)) != commit:
+                            raise UnverifiedUpdate("catalog approval changed")
+                    if (not self.eligible() or (self.plugin.stat().st_dev, self.plugin.stat().st_ino) != identity
+                            or self.git(self.plugin, "rev-parse", "HEAD") != original):
+                        raise ValueError("installed copy changed")
+                    exchange(stage, self.plugin)
+                now = int(time.time())
+                atomic_json(self.result, {"status": "current", "installedCommit": commit, "commit": commit,
+                                          "lastCheck": now, "nextCheck": now + CHECK_INTERVAL})
+                try:
+                    self.reload()
+                except (OSError, subprocess.SubprocessError):
+                    atomic_json(self.result, {"status": "current", "installedCommit": commit, "commit": commit,
+                                              "lastCheck": now, "nextCheck": now + CHECK_INTERVAL,
+                                              "installError": "restart-pending"})
+                    return "restart-pending"
+                return "updated"
+            except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                try:
+                    checked = read_local_json(self.result, 65536)
+                except (OSError, ValueError, KeyError, TypeError):
+                    checked = None
+                if isinstance(checked, dict):
+                    checked.pop("installing", None)
+                    checked["installError"] = "failed"
+                    atomic_json(self.result, checked)
+                return "failed"
+
     def confirm_in_terminal(self):
         # This is only invoked by an explicit UI action in a visible terminal.
         # Hold the automatic updater's lock until the native confirmation ends.
@@ -509,10 +675,13 @@ class ManualUpdates(Updater):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--startup", action="store_true", help="Allow the first check of the local day at plugin startup")
+    parser.add_argument("--startup", action="store_true", help="Legacy flag; discovery now follows the six-hour schedule")
     manual = parser.add_mutually_exclusive_group()
-    manual.add_argument("--check-manual", action="store_true", help="Only check public upstream metadata")
-    manual.add_argument("--manual-update", action="store_true", help="Ask Omarchy to update in this terminal")
+    manual.add_argument("--check-manual", action="store_true", help="Only check published release metadata")
+    manual.add_argument("--manual-update", action="store_true", help="Legacy Omarchy terminal update")
+    manual.add_argument("--install-commit", help="Install this already checked exact commit after UI approval")
+    parser.add_argument("--install-version", help="Version displayed in the approval prompt")
+    parser.add_argument("--expected-verification", choices=("verified", "unverified", "unknown"))
     parser.add_argument("--force", action="store_true", help="Check now, ignoring the cached deadline")
     args = parser.parse_args()
     home = Path.home()
@@ -532,9 +701,18 @@ if __name__ == "__main__":
                 except (EOFError, KeyboardInterrupt):
                     pass
         raise SystemExit(result)
+    if args.install_commit:
+        if not args.install_version or not args.expected_verification:
+            raise SystemExit(1)
+        try:
+            result = ManualUpdates(home, state, Path(__file__).parent).install_exact(
+                args.install_commit, args.install_version, args.expected_verification)
+            print(result)
+        except (OSError, ValueError):
+            raise SystemExit(1)
+        raise SystemExit(0 if result in ("updated", "restart-pending") else 1)
     try:
-        print(ManualUpdates(home, state, Path(__file__).parent).check(force=args.force) if args.check_manual
-              else Updater(home, state).run(startup=args.startup))
+        print(ManualUpdates(home, state, Path(__file__).parent).check(force=args.force))
     except (OSError, ValueError):
         # An unwritable state directory must not start an unrecorded update.
         raise SystemExit(1)

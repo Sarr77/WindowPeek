@@ -1,9 +1,11 @@
 # Tests
 
 Manual updates: `python -B -m unittest discover -s tests -p test_manual_updates.py`
-checks read-only discovery, stale/local code, catalog failure, opt-out, caching,
-TTY confirmation and the shared automatic/manual lock. `python tools/test_ui.py updates`
-covers the shared page, navigation, status and deliberate terminal action.
+checks read-only discovery, exact-commit installation, stale/local code, catalog
+failure, early-release opt-out, caching and the shared lock.
+`python tools/test_ui.py updates` covers the shared page, confirmation, skip
+choice, early-release preference, verification status and all 30 update
+languages, including button fit and the confirmation dialog.
 Repeat with `--scale 2` for the larger interface.
 
 To apply the marketplace's current static scanner locally, obtain its source
@@ -150,9 +152,11 @@ change. It uses the production capture component, without changing its behavior.
   alongside Active in English and Arabic; the option persists across restarts.
 - The scrolling regression case refreshes window titles every 35 ms during
   stationary hover and consecutive wheel events in both the preview and search
-  panel. It checks persistent row controls, continuous highlighting and no
-  backward scrolling at 100% and 200% scale. It verifies the row underneath the
-  pointer remains highlighted during wheel motion. Keyboard focus stays in search.
+  panel. It checks persistent row controls, hover after pointer-event delivery and
+  no backward scrolling at 100% and 200% scale. Offscreen Qt does not retarget
+  hover when synthetic wheel input moves a row under a stationary pointer, so
+  the fixture resends the same pointer position before checking that row.
+  Keyboard focus stays in search.
   It also exercises edge overshoot, the return to rest, switching the spring
   effect off during rebound and enabling it again. Settings tests cover the
   toggle, synchronization across monitors and persistence through restart.
@@ -395,7 +399,7 @@ Language checks cover keys, placeholders, runtime switching and footer bounds;
 they are not a native-speaker review of every translation.
 
 The updater's service responses are simulated in local tests. A real public
-automatic update is reserved for an isolated profile after publication, as
+confirmed update is reserved for an isolated profile after publication, as
 described in [Publishing](PUBLISHING.md). Unplugging a physical monitor
 mid-action and other compositor versions have not been tested.
 
@@ -419,8 +423,10 @@ atomic file IO, separate-process restarts and two widget instances. It covers
 panel and Omarchy settings changes, stale monitor copies, host mirror failure,
 corrupt/unreadable files, first-save failure and successful retries. These cases
 and `python3 tools/test_ui.py updates` are included in `tools/check.py`. The
-update UI test checks deferral, the shared launch throttle, saved opt-in and
-Cancel/Escape/default Enter. No native keyboard or pointer events are sent.
+update UI test checks metadata-only scheduling, the shared page and footer
+preference, both badge colors, exact-commit confirmation, Later and Skip, and
+stale/local-copy rejection. It uses offscreen Qt pointer events and fictional
+update data; it does not install code or interact with the live desktop.
 
 Run `python3 -B tools/test_lifecycle.py` separately on Omarchy with Bubblewrap.
 It uses the real plugin CLI and registry inside a private home/config/state
@@ -490,8 +496,10 @@ and the scrollbar trace records hover, press, size and color changes. In manual
 traces the cached cursor position can lag a real mouse move; an `inside` exit
 alone is not proof of incorrect input delivery.
 
-Automated interaction checks sample hover after `frameSwapped`, because Qt
-updates hover before rendering, after a timer can observe a new scroll position.
+Offscreen interaction checks sample hover after `frameSwapped` and a synthetic
+mouse move at the same coordinates. Their wheel events alone do not retarget
+hover as rows move beneath the pointer; the native fixture separately exercises
+pointer behavior without that offscreen workaround.
 They also check that scrolling does not change the thumb size and that rendered
 content offsets are pixel-aligned at 100% and 200% scale.
 
@@ -1431,10 +1439,13 @@ button label, and offers public history for development installations.
 
 ### Update and support navigation
 
-`updates` at 100% and 200% exercises the single Check now/Update action, uniform
+`updates` at 100% and 200% exercises the single Check now/Install now action,
 font sizes, English/Polish layout without scrolling, stable checking status,
-notification opt-out, footer/page preference synchronization and independent
-automatic-install confirmation with real mouse and keyboard events.
+notification opt-out, footer/page preference synchronization, bar badge input,
+and the WindowPeek confirmation before a manual install. It checks the green
+and amber source labels with offscreen Qt pointer events. It also checks that
+skipping an early version suppresses its amber reminder, while verification of
+the same version and SHA restores a green reminder and one fresh prompt.
 Footer notification opt-out covers Open Updates, explicit Turn off, immediate
 enabling, Escape/close/outside dismissal, pointer/keyboard focus restoration,
 concurrent preference changes, failed saves and preserving nested editor drafts.

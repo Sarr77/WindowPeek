@@ -1,11 +1,11 @@
 // UTF-8 translations: tr
 var words = {
   "notificationsOffQuestion": "Güncelleme bildirimleri kapatılsın mı?",
-  "notificationsOffWarning": "Yeni sürümler hakkında bildirim almayacaksınız. Bildirimleri ve otomatik kurulumu Güncellemeler bölümünden yönetin.",
+  "notificationsOffWarning": "Yeni sürümler hakkında bildirim almayacaksınız.",
   "openUpdates": "Güncellemeleri aç",
   "turnOffNotifications": "Kapat",
   "projectSupportIntro": "Beğendiniz mi? Başkalarına da söyleyin",
-  "projectSupportMission": "Daha fazla kişinin WindowPeek’i keşfetmesine ve kendine göre uyarlamasına yardımcı olun.",
+  "projectSupportMission": "Daha fazla kişinin WindowPeek’i keşfetmesine ve kendine göre uyarlamasına yardımcı olun",
   "starWindowPeekCatalog": "Omarchy Plugins üzerinde kalp gönder",
   "starWindowPeekGitHub": "GitHub üzerinde yıldız ver",
   "projectSupportThanks": "Desteğiniz için çok teşekkürler.",

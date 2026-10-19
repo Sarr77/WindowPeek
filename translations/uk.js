@@ -1,11 +1,11 @@
 // UTF-8 translations: uk
 var words = {
   "notificationsOffQuestion": "Вимкнути сповіщення про оновлення?",
-  "notificationsOffWarning": "Ви більше не отримуватимете сповіщень про нові версії. Керуйте сповіщеннями й автоматичним встановленням у розділі Оновлення.",
+  "notificationsOffWarning": "Ви більше не отримуватимете сповіщень про нові версії.",
   "openUpdates": "Відкрити Оновлення",
   "turnOffNotifications": "Вимкнути",
   "projectSupportIntro": "Подобається? Розкажіть іншим",
-  "projectSupportMission": "Допоможіть більшій кількості людей відкрити WindowPeek і налаштувати його під себе.",
+  "projectSupportMission": "Допоможіть більшій кількості людей відкрити WindowPeek і налаштувати його під себе",
   "starWindowPeekCatalog": "Надіслати сердечко на Omarchy Plugins",
   "starWindowPeekGitHub": "Поставити зірочку на GitHub",
   "projectSupportThanks": "Щиро дякую за вашу підтримку.",

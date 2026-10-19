@@ -38,7 +38,7 @@ ShellRoot {
         }
     }
     TestEvent { id: events }
-    FakeHost { id: host; property var runtime: ({updates:{manualAvailable:false}}) }
+    FakeHost { id: host; property var runtime: ({updates:{manualAvailable:false,offerAvailable:false}}) }
     Window {
         id: window; visible: true; width: 540 * test.scale; height: 660 * test.scale
         Plugin.PanelContent {
@@ -148,7 +148,7 @@ ShellRoot {
                     host.setLanguage("en"); test.key(Qt.Key_P);
                     test.check(panel.searchField.activeFocus && panel.searchField.text === "p", "typing immediately resumes after Tab and popup dismissal");
                     panel.searchField.text = "";
-                    host.runtime = {updates:{manualAvailable:true}};
+                    host.runtime = {updates:{manualAvailable:true,offerAvailable:true}};
                     panel.closingFocusNotice = {shown:true, attention:false, label:"Review", text:"Typing protection", canDisable:true, stopLabel:"Turn off"};
                     break;
                 case 11:
