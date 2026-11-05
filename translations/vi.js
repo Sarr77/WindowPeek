@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "Mở Cập nhật",
   "turnOffNotifications": "Tắt",
   "projectSupportIntro": "Bạn thích chứ? Hãy chia sẻ với mọi người",
-  "projectSupportMission": "Giúp nhiều người khám phá WindowPeek và tùy chỉnh theo cách riêng",
+  "projectSupportMission": "Cùng giữ Omarchy luôn đẹp\nđến từng cửa sổ nhỏ nhất",
   "starWindowPeekCatalog": "Gửi trái tim trên Omarchy Plugins",
   "starWindowPeekGitHub": "Tặng sao trên GitHub",
   "projectSupportThanks": "Cảm ơn bạn rất nhiều vì đã ủng hộ.",

@@ -74,10 +74,10 @@ BarWidget {
     readonly property bool barClickPending: barDoubleClick.running && !barDoubleClick.closePending
     readonly property bool hoverLogo: preference("hoverLogo", true) === true
     readonly property bool settingsLogo: preference("settingsLogo", true) === true
-    readonly property bool hoverLogoLoop: preference("hoverLogoLoop", true) === true
+    readonly property bool hoverLogoLoop: preference("hoverLogoLoop", LogoCatalog.artworkDefaults("hover").hoverLogoLoop) === true
     readonly property bool settingsLogoLoop: preference("settingsLogoLoop", true) === true
     readonly property real hoverLogoLoopDelay: Settings.logoLoopDelay(preference("hoverLogoLoopDelay", 4.2))
-    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(preference("settingsLogoLoopDelay", 4.2))
+    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(preference("settingsLogoLoopDelay", LogoCatalog.artworkDefaults("settings").settingsLogoLoopDelay))
     readonly property real hoverLogoCooldown: Settings.logoCooldown(preference("hoverLogoCooldown", LogoCatalog.artworkDefaults("hover").hoverLogoCooldown))
     readonly property real settingsLogoCooldown: Settings.logoCooldown(preference("settingsLogoCooldown", 0))
     readonly property bool sharedLogoCooldownEnabled: preference("sharedLogoCooldownEnabled", false) === true

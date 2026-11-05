@@ -170,8 +170,8 @@ ShellRoot {
                     test.check(test.named("projectSupportHeading").text==="Like this? Let people know",
                         "requested heading without a final period");
                     test.check(test.named("projectSupportMission").text===
-                        "Help more users discover WindowPeek\nand make it fit their style",
-                        "support message invites discovery and customization");
+                        "Help keep Omarchy beautiful\ndown to the smallest window",
+                        "approved support message keeps its line break and has no final period");
                     test.capture("project");
                     test.click(test.named("starWindowPeekCatalog")); break;
                 case 17:

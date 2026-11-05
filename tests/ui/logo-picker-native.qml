@@ -32,7 +32,7 @@ ShellRoot {
         id: host; bar: test.widget ? test.widget.bar : null
         readonly property var focusRecovery: test.protectedMode && test.widget ? test.widget.focusRecovery : null
         windowPreview: thumbnail
-        settings: ({hoverLogoCooldownUnit:"s",settingsLogoCooldownUnit:"s",keepSearchFocus:test.protectedMode,hintsMode:"off", doubleClickExpand:true, windowPreviews:false,panelStyle:"wallpaper",hoverLogoImage:"builtin:omarchy-pixel",settingsLogoImage:"builtin:omarchy-pixel"})
+        settings: ({hoverLogoLoop:true,hoverLogoCooldownUnit:"s",settingsLogoCooldownUnit:"s",keepSearchFocus:test.protectedMode,hintsMode:"off", doubleClickExpand:true, windowPreviews:false,panelStyle:"wallpaper",hoverLogoImage:"builtin:omarchy-pixel",settingsLogoImage:"builtin:omarchy-pixel"})
         Component.onCompleted: {
             savedAppearance = Appearance.normalize({uiScale:test.scale});
             wallpaperSource = Qt.resolvedUrl("dropdown-wallpaper.svg");
@@ -244,7 +244,7 @@ ShellRoot {
                     hoverDelay.forceActiveFocus();hoverDelay.text="0.3";
                     test.click(test.named("hoverLogoLoopToggle"));break;
                 case 20:
-                    test.check(host.hoverLogoLoopDelay===0.3 && host.settingsLogoLoopDelay===4.2,"outside click saves decimal delay independently");
+                    test.check(host.hoverLogoLoopDelay===0.3 && host.settingsLogoLoopDelay===3,"outside click saves decimal delay independently");
                     test.check(!test.named("hoverLogoLoopDelay").focus && !test.named("hoverLogoLoopDelay").cursorVisible,"outside click ends compact delay editing");
                     test.check(!host.hoverLogoLoop && host.settingsLogoLoop,"compact mini switch changes only compact playback");
                     test.check(test.named("hoverLogoLoopToggle").text===host.words.loopAnimation,"loop label stays constant when off");
@@ -301,7 +301,7 @@ ShellRoot {
                     test.body.ensureVisible(test.named("settingsLogoLoopDelayReset"));break;
                 case 33: test.click(test.named("settingsLogoLoopDelayReset"));break;
                 case 34:
-                    test.check(host.settingsLogoLoopDelay===4.2,"Settings loop delay resets independently");
+                    test.check(host.settingsLogoLoopDelay===3,"Settings loop delay resets to three seconds independently");
                     test.body.ensureVisible(test.named("sharedLogoCooldownToggle"));break;
                 case 35: test.click(test.named("sharedLogoCooldownToggle"));break;
                 case 36:

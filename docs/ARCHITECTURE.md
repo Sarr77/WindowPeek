@@ -151,14 +151,14 @@ empty for the wordmark, `builtin:omarchy-pixel` for a stepped accent glint,
 allowlisted `builtin:ttfx-*` animations, or a validated local file URL. Missing values fall back to the legacy `logoImage`;
 an explicit empty value resets only that slot. `hoverLogo` and `settingsLogo`
 remain separate visibility switches. Independent `hoverLogoLoop` and
-`settingsLogoLoop` default to true; their mini switches keep a constant label and
+`settingsLogoLoop` default to false and true respectively; their mini switches keep a constant label and
 appear for animated sources or an enabled motion preset. `hoverLogoLoopDelay` and
-`settingsLogoLoopDelay` store seconds separately, defaulting to 4.2; normalize to
+`settingsLogoLoopDelay` store seconds separately, defaulting to 4.2 and 3 respectively; normalize to
 milliseconds in the range 0–86400 seconds. The input accepts decimal dots or commas
 and commits on Enter or editingFinished. Pauses are canceled while hidden.
 Independent `hoverLogoCooldown` and `settingsLogoCooldown` default to 60 and zero seconds;
 the `...CooldownUnit` fields select seconds or minutes without changing duration.
-Timing reset buttons restore 4.2 seconds for loop delay and the corresponding cooldown default.
+Timing reset buttons restore each slot's loop pause and corresponding cooldown default.
 `Runtime.logoAnimationHistory` records each slot's source and last playback
 start across monitors for this shell session. Hiding an animated logo marks its
 session inactive without restarting the interval; a blocked reopening stays

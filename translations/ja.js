@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "更新を開く",
   "turnOffNotifications": "オフにする",
   "projectSupportIntro": "気に入りましたか？みんなに教えよう",
-  "projectSupportMission": "より多くの人にWindowPeekを知ってもらい、自分好みにカスタマイズしてもらいましょう",
+  "projectSupportMission": "Omarchyの美しさを一緒に守ろう\nいちばん小さなウィンドウまで",
   "starWindowPeekCatalog": "Omarchy Plugins でハートを送る",
   "starWindowPeekGitHub": "GitHubでスターを付ける",
   "projectSupportThanks": "応援ありがとうございます。",

@@ -140,8 +140,10 @@ leaves the other unchanged. Each has its own visibility switch.
 #### Playback timing
 
 For animations, each view has a **Loop animation** switch and
-**Pause between repeats** field. Looping is on by default; the pause between repetitions
-defaults to 4.2 seconds. Enter whole or fractional seconds (`0.3` or `0,3`), then
+**Pause between repeats** field. The window-list logo plays once by default;
+it does not repeat while the panel stays open. Settings loops with a 3-second
+pause between repetitions. The window-list pause is 4.2 seconds if you enable
+looping there. Enter whole or fractional seconds (`0.3` or `0,3`), then
 press Enter or leave the field to save. Zero removes the extra pause. Switching
 looping off plays once and holds a GIF's last frame. In Settings, returning from
 a submenu resumes the same animation rather than replaying it; a new Settings
@@ -152,8 +154,9 @@ minutes, including fractions. During that interval the logo stays still. Each
 logo keeps its own interval, counted from the start of its last playback. Hiding
 the logo does not restart the interval.
 The defaults are one minute for hover and zero for Settings; zero allows animation
-on every opening. The timing reset arrows restore those values and the 4.2-second
-loop delay, without changing the other logo.
+on every opening. The timing reset arrows restore those values and each view's
+default loop pause (4.2 seconds for the list, 3 seconds for Settings), without
+changing the other logo.
 Enable **Shared cooldown** to use one interval for both logos. Playing either
 animation then delays both, even when they use different images. Turning sharing
 off restores the separate cooldown values.
@@ -370,7 +373,8 @@ not reset an existing setup. Missing preferences use the corresponding defaults.
 | Artwork colors / extra motion / opening effect | Theme colors / None / None in both views |
 | GIF transparency | 50%; still images and the pixel wordmark keep their own opacity |
 | Artwork zoom, width and height / offsets | 100% / centered (0, 0) |
-| Animation looping / pause between loops | On / 4.2 seconds in both views |
+| Window-list animation | Once per eligible opening; looping off (saved loop pause: 4.2 seconds) |
+| Settings animation | Looping on; 3-second pause between repetitions |
 | Hover / Settings cooldown | 1 minute / 0; shared cooldown off |
 | Hints | Automatic for 100 displays; manually re-enabling removes the limit |
 | Update notifications | On; installation always requires confirmation |

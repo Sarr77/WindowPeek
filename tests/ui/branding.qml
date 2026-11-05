@@ -29,7 +29,7 @@ ShellRoot {
     function hover(item) { var p=point(item);events.mouseMove(window.contentItem,p.x,p.y,0,Qt.NoButton,Qt.NoModifier); }
     function click(item) { panel.ensureVisible(item);events.mouseClick(item,item.width/2,item.height/2,Qt.LeftButton,Qt.NoModifier,0); }
     TestEvent { id: events }
-    FakeHost { id: host; settings:({hintsMode:"auto",hintsUsed:98,windowPreviews:false,hoverLogoLoopDelay:0,settingsLogoLoopDelay:0}) }
+    FakeHost { id: host; settings:({hintsMode:"auto",hintsUsed:98,windowPreviews:false,hoverLogoLoop:true,hoverLogoLoopDelay:0,settingsLogoLoopDelay:0}) }
     Window {
         id: window; visible:true; width:560*test.scale; height:760*test.scale
         Plugin.PanelContent {

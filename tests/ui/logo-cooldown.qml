@@ -8,6 +8,7 @@ ShellRoot {
     property int step: 0
     property int waits: 0
     property real hiddenAt: 0
+    property real finishedAt: 0
     function check(ok, message) { if (!ok) throw new Error(message); }
     function wait(ok, message) { if (ok) { waits=0; return false; } if (++waits>50) throw new Error(message); step--; return true; }
     function find(item, name) {
@@ -20,7 +21,7 @@ ShellRoot {
         id: window; visible: true; width: 460; height: 360
         Plugin.PanelLogo {
             id: compact; hostWidget: host; x:20; y:20; width:320; height:75
-            source:"builtin:omarchy-pixel"; cooldownSlot:"hover"; cooldown:0.6; loopAnimation:false
+            source:"builtin:omarchy-pixel"; cooldownSlot:"hover"; cooldown:0.6; loopAnimation:host.hoverLogoLoop
         }
         Plugin.PanelLogo {
             id: settings; hostWidget: host; x:20; y:120; width:320; height:75
@@ -98,6 +99,19 @@ ShellRoot {
                 case 22: compact.visible=true;settings.visible=true;break;
                 case 23:
                     test.check(compact.playbackGranted && settings.playbackGranted,"shared zero permits both logos every opening");
+                    compact.visible=false; settings.visible=false; peer.visible=false;
+                    host.persistSettings({sharedLogoCooldownEnabled:false});test.hiddenAt=Date.now();break;
+                case 24:
+                    if(Date.now()-test.hiddenAt<700){test.step--;break;}
+                    compact.visible=true;break;
+                case 25:
+                    if(test.wait(test.find(compact,"pixelPanelLogo").progress===1 && !test.find(compact,"pixelPanelLogo").animating,
+                        "default window-list greeting finishes after one sweep"))break;
+                    test.finishedAt=Date.now();break;
+                case 26:
+                    test.check(test.find(compact,"pixelPanelLogo").progress===1 && !test.find(compact,"pixelPanelLogo").animating,
+                        "default window-list logo remains still beyond the former repeat pause");
+                    if(Date.now()-test.finishedAt<4500){test.step--;break;}
                     console.log("WINDOWPEEK_TEST_PASS");stop();Qt.quit();break;
                 }
             } catch(error) { console.error("WINDOWPEEK_TEST_FAIL step "+(test.step-1)+": "+error);stop();Qt.quit(); }

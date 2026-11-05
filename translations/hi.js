@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "अपडेट खोलें",
   "turnOffNotifications": "बंद करें",
   "projectSupportIntro": "पसंद आया? दूसरों को बताएँ",
-  "projectSupportMission": "और लोगों को WindowPeek खोजने और इसे अपने अनुसार ढालने में मदद करें",
+  "projectSupportMission": "Omarchy को सुंदर बनाए रखने में मदद करें\nसबसे छोटी विंडो तक",
   "starWindowPeekCatalog": "Omarchy Plugins पर दिल भेजें",
   "starWindowPeekGitHub": "GitHub पर स्टार दें",
   "projectSupportThanks": "आपके सहयोग के लिए बहुत धन्यवाद।",

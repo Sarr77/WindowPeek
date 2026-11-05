@@ -95,7 +95,8 @@ Column {
             readonly property bool reveal: Catalog.reveal(root.hostWidget.effectiveSettings[modelData + "LogoReveal"]) !== "none"
             readonly property var layout: Catalog.layout(root.hostWidget.effectiveSettings[modelData + "LogoLayout"])
             readonly property var defaults: Catalog.artworkDefaults(modelData)
-            readonly property real loopDelay: !root.hostWidget ? 4.2
+            readonly property real defaultLoopDelay: defaults[modelData + "LogoLoopDelay"]
+            readonly property real loopDelay: !root.hostWidget ? defaultLoopDelay
                 : modelData === "hover" ? root.hostWidget.hoverLogoLoopDelay : root.hostWidget.settingsLogoLoopDelay
             readonly property real cooldown: !root.hostWidget ? 0
                 : modelData === "hover" ? root.hostWidget.hoverLogoCooldown : root.hostWidget.settingsLogoCooldown
@@ -218,7 +219,8 @@ Column {
                     anchors.right: loopReset.left; anchors.rightMargin: Style.space(4)
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(implicitWidth, parent.width * 0.4)
-                    checked: !root.hostWidget || (group.modelData === "hover" ? root.hostWidget.hoverLogoLoop : root.hostWidget.settingsLogoLoop)
+                    checked: root.hostWidget ? (group.modelData === "hover" ? root.hostWidget.hoverLogoLoop : root.hostWidget.settingsLogoLoop)
+                        : group.defaults[group.modelData + "LogoLoop"]
                     highlightWhenChecked: true
                     text: root.words.loopAnimation
                     accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
@@ -234,12 +236,12 @@ Column {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     width: Style.space(24); height: Style.space(26)
                     hostWidget: root.hostWidget; words: root.words
-                    label: root.words.delayLoop; valueText: "4.2 s"
-                    modified: group.loopDelay !== 4.2
+                    label: root.words.delayLoop; valueText: String(group.defaultLoopDelay) + " s"
+                    modified: group.loopDelay !== group.defaultLoopDelay
                     accent: root.hostWidget ? root.hostWidget.accent : Commons.Color.accent
                     onResetRequested: {
-                        delay.text = "4.2";
-                        var values = {}; values[group.modelData + "LogoLoopDelay"] = 4.2;
+                        delay.text = String(group.defaultLoopDelay);
+                        var values = {}; values[group.modelData + "LogoLoopDelay"] = group.defaultLoopDelay;
                         root.hostWidget.persistSettings(values);
                     }
                 }

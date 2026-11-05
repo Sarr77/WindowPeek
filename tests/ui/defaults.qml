@@ -10,7 +10,7 @@ import "WindowPeek/src/I18n.js" as I18n
 
 ShellRoot {
     id: test
-    property int step: 0
+    property int step: -3
     property int locale: 0
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     function check(ok, message) { if (!ok) throw new Error(message); }
@@ -55,6 +55,19 @@ ShellRoot {
         onTriggered: {
             try {
                 switch (test.step++) {
+                case -3:
+                    host.persistSettings({hoverLogoImage:"builtin:omarchy-pixel", settingsLogoImage:"builtin:omarchy-pixel",
+                        hoverLogoLoop:true, settingsLogoLoop:false, hoverLogoLoopDelay:9, settingsLogoLoopDelay:9});
+                    panel.begin(); panel.showSettings(); panel.mode = "pictures"; break;
+                case -2:
+                    panel.ensureVisible(test.named("settingsLogoLoopDelayReset")); break;
+                case -1:
+                    test.click(test.named("settingsLogoLoopDelayReset"));
+                    test.check(host.settingsLogoLoopDelay === 3 && host.hoverLogoLoopDelay === 9,
+                        "Settings timing reset restores three seconds and preserves the window-list pause");
+                    test.check(!test.named("settingsLogoLoopDelayReset").modified && host.hoverLogoLoop && !host.settingsLogoLoop,
+                        "timing reset clears its modified state without changing explicit playback switches");
+                    panel.showSettings(); break;
                 case 0:
                     host.persistSettings({panelHoverDelay: 0, previewHoverDelay: 1250,
                         hintsMode: "on", hintsUsed: 200, autoUpdates: false, scrollBounce: false});

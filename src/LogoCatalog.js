@@ -73,7 +73,7 @@ function layout(value) {
 function artworkDefaults(target) {
     var hover = target === "hover", prefix = (hover ? "hover" : "settings") + "Logo";
     var fields = {Image:hover ? "builtin:omarchy-pixel" : randomChoice, ThemeColors:true, Opacity:null, Motion:"none", Reveal:"none",
-        Layout:layout({}), Loop:true, LoopDelay:4.2, Cooldown:hover ? 60 : 0, CooldownUnit:"min"};
+        Layout:layout({}), Loop:!hover, LoopDelay:hover ? 4.2 : 3, Cooldown:hover ? 60 : 0, CooldownUnit:"min"};
     var values = {};
     Object.keys(fields).forEach(function(key) { values[prefix + key] = fields[key]; });
     return values;

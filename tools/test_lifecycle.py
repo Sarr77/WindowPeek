@@ -89,6 +89,10 @@ def inside(base):
             assert initial['hintsRemaining'] == 100 and initial['hintsEnabled'] is True
             assert initial['wheelScrollSpeed'] == 102
             print('PASS fresh install follows bar style, preserves Wallpaper/grain and starts automatic hints at zero', flush=True)
+            assert initial['hoverLogoLoop'] is False and initial['hoverLogoCooldown'] == 60
+            assert initial['settingsLogoLoop'] is True and initial['settingsLogoLoopDelay'] == 3
+            assert initial['settingsLogoCooldown'] == 0
+            print('PASS fresh install uses one window-list greeting and three-second Settings repeats', flush=True)
             preferences = {'language':'pl','accentColor':'#EF98F5','hintsUsed':37,'hintsMode':'auto','autoUpdates':False,
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
                            'uiScale':1.25,'barScale':1.1,'customLabels':{'barText':'My windows'},
@@ -97,6 +101,7 @@ def inside(base):
                                                           'catppuccin-latte':{'value':64,'defaultValue':70}},
                            'glassTransparency':9,'backgroundBlur':True,'backgroundTexture':True,
                            'previewBackdrop':False,'previewFit':False,'wheelScrollSpeed':180,
+                           'hoverLogoLoop':True,'settingsLogoLoop':False,'settingsLogoLoopDelay':8,
                            'shortcuts':{'open':'Alt+Super+K','numbers':'Alt','privacy':'Ctrl'},
                            'surfaceColors':{'windows':{'scope':'theme','themes':{
                                'kanagawa':{'color':'#112233','brightness':12,'opacity':63}}}},

@@ -5,7 +5,7 @@ var words = {
   "openUpdates": "Güncellemeleri aç",
   "turnOffNotifications": "Kapat",
   "projectSupportIntro": "Beğendiniz mi? Başkalarına da söyleyin",
-  "projectSupportMission": "Daha fazla kişinin WindowPeek’i keşfetmesine ve kendine göre uyarlamasına yardımcı olun",
+  "projectSupportMission": "Omarchy’nin güzel kalmasına yardım edin\nen küçük pencereye kadar",
   "starWindowPeekCatalog": "Omarchy Plugins üzerinde kalp gönder",
   "starWindowPeekGitHub": "GitHub üzerinde yıldız ver",
   "projectSupportThanks": "Desteğiniz için çok teşekkürler.",

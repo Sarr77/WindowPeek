@@ -93,6 +93,9 @@ ShellRoot {
           wallpaperTransparency:widget.item.wallpaperTransparency,
           wallpaperInitialized:widget.item.wallpaperTransparencyRule.initialized,
           hintsMode:widget.item.hints.mode, hintsUsed:widget.item.hints.used,
+          hoverLogoLoop:widget.item.hoverLogoLoop, hoverLogoCooldown:widget.item.hoverLogoCooldown,
+          settingsLogoLoop:widget.item.settingsLogoLoop,
+          settingsLogoLoopDelay:widget.item.settingsLogoLoopDelay, settingsLogoCooldown:widget.item.settingsLogoCooldown,
           wheelScrollSpeed:widget.item.wheelScrollSpeed,
           hintsRemaining:widget.item.hints.remaining, hintsEnabled:widget.item.hints.enabled} : null});
     }

@@ -96,7 +96,9 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   including GIF. Preserve legacy shared images until each choice is edited.
   Each logo has its own visibility switch and mini Loop animation on/off switch,
   with a constant label. Put an independent Delay loop input on the same line;
-  accept whole/fractional seconds, default 4.2 to preserve the original pixel pause.
+  accept whole/fractional seconds. The window-list logo defaults to one greeting
+  per eligible opening, with looping off and a saved loop pause of 4.2 seconds.
+  Settings defaults to looping with a 3-second pause between repetitions.
   Zero adds no delay; disabled looping preserves the configured delay.
   Play once holds the GIF's final frame. Settings starts a new playback visit
   on entry; returning from its submenus resumes that visit without restarting

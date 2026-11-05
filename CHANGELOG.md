@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.2
+
+- Fix the artwork defaults for new installations: the window-list logo plays
+  once per eligible opening, with a one-minute minimum interval. Settings
+  animations repeat with a three-second pause.
+- Make artwork resets restore those defaults while preserving saved preferences.
+- Refresh the support popup message in all 30 languages.
+
 ## 1.0.1
 
 - Make the update prompt easier to read, with a clear changes link and

@@ -43,10 +43,10 @@ QtObject {
     readonly property bool barClickPending: false
     readonly property bool hoverLogo: setting("hoverLogo", true) === true
     readonly property bool settingsLogo: setting("settingsLogo", true) === true
-    readonly property bool hoverLogoLoop: setting("hoverLogoLoop", true) === true
+    readonly property bool hoverLogoLoop: setting("hoverLogoLoop", false) === true
     readonly property bool settingsLogoLoop: setting("settingsLogoLoop", true) === true
     readonly property real hoverLogoLoopDelay: Settings.logoLoopDelay(setting("hoverLogoLoopDelay", 4.2))
-    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(setting("settingsLogoLoopDelay", 4.2))
+    readonly property real settingsLogoLoopDelay: Settings.logoLoopDelay(setting("settingsLogoLoopDelay", 3))
     readonly property real hoverLogoCooldown: Settings.logoCooldown(setting("hoverLogoCooldown", 0))
     readonly property real settingsLogoCooldown: Settings.logoCooldown(setting("settingsLogoCooldown", 0))
     readonly property bool sharedLogoCooldownEnabled: setting("sharedLogoCooldownEnabled", false) === true

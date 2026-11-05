@@ -54,6 +54,18 @@ ShellRoot {
                     console.info("WINDOWPEEK_TEST_PASS"); stop(); Qt.quit(); return;
                 }
                 test.check(a.language === "pl" && b.language === "pl", "startup restores both monitors");
+                for (var widget of [a, b]) {
+                    test.check(!widget.hoverLogoLoop && widget.hoverLogoCooldown === 60,
+                        "fresh window-list logo greets once with a one-minute minimum interval");
+                    test.check(widget.settingsLogoLoop && widget.settingsLogoLoopDelay === 3 && widget.settingsLogoCooldown === 0,
+                        "fresh Settings logo starts on every visit and repeats with a three-second pause");
+                }
+                test.check(test.saved(a,"persistSettings",{hoverLogoLoop:true,settingsLogoLoopDelay:1.5})
+                    && a.hoverLogoLoop && b.hoverLogoLoop && b.settingsLogoLoopDelay === 1.5,
+                    "explicit playback choices override defaults and synchronize both monitors");
+                test.check(test.saved(b,"persistSettings",{hoverLogoLoop:false,settingsLogoLoopDelay:3})
+                    && !a.hoverLogoLoop && a.settingsLogoLoopDelay === 3,
+                    "greeting defaults can be selected without resetting other preferences");
                 test.check(a.doubleClickExpand && b.doubleClickExpand, "missing setting defaults to double-click on both monitors");
                 test.check(test.saved(a,"persistSettings",{doubleClickExpand:false}) && !a.doubleClickExpand && !b.doubleClickExpand,
                     "saved single-click choice overrides the new default on both monitors");
@@ -87,8 +99,8 @@ ShellRoot {
                 test.saved(a,"persistSettings",{hoverLogoImage:""});
                 test.check(b.hoverLogoImage==="" && b.settingsLogoImage==="builtin:omarchy-pixel","explicit reset overrides only one legacy logo");
                 test.check(a.runtime.preferences.values.hoverLogoImage==="" && a.runtime.preferences.values.settingsLogoImage==="builtin:omarchy-pixel","both choices are durable");
-                test.check(a.hoverLogoLoop && b.settingsLogoLoop,"both logo animations loop by default");
-                test.check(a.hoverLogoLoopDelay===4.2 && b.settingsLogoLoopDelay===4.2,"default delay preserves the original pixel pause");
+                test.check(!a.hoverLogoLoop && b.settingsLogoLoop,"window-list logo greets once while Settings loops by default");
+                test.check(a.hoverLogoLoopDelay===4.2 && b.settingsLogoLoopDelay===3,"each view keeps its own default loop pause");
                 test.saved(a,"persistSettings",{hoverLogoLoopDelay:0.3,settingsLogoLoopDelay:2});
                 test.check(b.hoverLogoLoopDelay===0.3 && b.settingsLogoLoopDelay===2,"fractional and whole logo delays are independent and shared");
                 test.saved(a,"persistSettings",{hoverLogoLoop:false});

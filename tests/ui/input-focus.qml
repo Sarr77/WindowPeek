@@ -45,7 +45,7 @@ ShellRoot {
         onTriggered:{
             try {
                 switch(test.step++) {
-                case 0:panel.begin();break;
+                case 0:host.persistSettings({hoverLogoLoop:true});panel.begin();break;
                 case 1:
                     test.prepare(test.named("windowSearch"));test.edit();
                     test.click(panel,2,2);
