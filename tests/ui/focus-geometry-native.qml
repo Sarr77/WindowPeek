@@ -132,6 +132,15 @@ ShellRoot {
         }}
     }
     Timer{interval:8;repeat:true;running:test.measuring;onTriggered:if(!geometry.running)geometry.running=true}
+    Timer { id: finish; interval: 300; onTriggered: Qt.quit(); }
+    function finishTest() {
+        measuring=false;
+        widget.close();
+        pointer.running=false; keys.running=false; app.running=false;
+        // Release the protected surface and its owner before destroying the
+        // fixture's object tree; teardown is not another active search visit.
+        finish.restart();
+    }
     Timer {
         interval:350;running:true;repeat:true
         onTriggered: {
@@ -168,9 +177,9 @@ ShellRoot {
                     test.measuring=false;
                     console.log("MAX_DRIFT:"+test.drift+" SAMPLES:"+test.samples);
                     test.check(test.samples>50 && test.drift<=1,"protected panel must stay anchored throughout resize: drift="+test.drift);
-                    console.log("WINDOWPEEK_TEST_PASS");stop();Qt.quit();break;
+                    console.log("WINDOWPEEK_TEST_PASS");stop();test.finishTest();break;
                 }
-            }catch(e){console.error("WINDOWPEEK_TEST_FAIL step "+(test.step-1)+": "+e);stop();Qt.quit();}
+            }catch(e){console.error("WINDOWPEEK_TEST_FAIL step "+(test.step-1)+": "+e);stop();test.finishTest();}
         }
     }
 }

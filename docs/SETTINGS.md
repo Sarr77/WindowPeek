@@ -73,11 +73,16 @@ This section contains background controls followed by **Text shadow**,
 ### Panel background
 
 With **Wallpaper** selected, **Follow bar style** sits beside its default label.
-It is on by default. It uses Solid while the bar is opaque and restores
-Wallpaper when the bar is transparent, including changes made by double-clicking
-the bar. The saved Wallpaper colors, transparency, blur and grain stay unchanged.
-The list, previews and menus follow the same effective style. Selecting Solid or
-Transparent uses that choice directly; following the bar applies only to Wallpaper.
+It is on by default. Choose a panel background separately for an **Opaque bar**,
+**Glassy bar** and **Clear bar**. The defaults are Solid, Wallpaper and
+Wallpaper, respectively. Every row offers all three panel backgrounds;
+selecting Transparency reveals that row's own transparency slider and reset,
+starting at 65% independently of the saved manual Transparency setting.
+Changes made by double-clicking the bar take effect immediately. The list,
+previews and menus follow the same effective style. The saved Wallpaper colors,
+transparency, blur and grain, and the separate manual Transparency value stay
+unchanged. Selecting Solid or Transparency directly bypasses bar following;
+turning following off restores the selected Wallpaper appearance.
 
 Choose a background under **Settings → Personalization**:
 
@@ -282,6 +287,10 @@ the available screen height is too small for the selected scale.
 
 Choose the full label, compact label or name only. The default shows WindowPeek
 and the window count. For your own wording, open Custom text.
+These text choices apply to horizontal bars. On a left or right bar, a window
+icon sits above the count so the label fits the narrow strip. The update button
+has its own space below the count. Returning to a horizontal bar restores the
+saved text choice without changing it.
 
 ### Custom text
 

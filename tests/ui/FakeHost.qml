@@ -62,10 +62,15 @@ QtObject {
     readonly property bool shortcutNumbersRight: setting("shortcutNumbersRight", false) === true
     readonly property string selectedPanelStyle: Settings.panelStyle(setting("panelStyle", "solid"))
     readonly property bool followBarStyle: setting("followBarStyle", false) === true
+    readonly property string barBackground: Settings.barBackground(bar && bar.shell ? bar.shell.barConfig : null,
+        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined,
+        bar && typeof bar.glassy === "boolean" ? bar.glassy : undefined)
+    readonly property var barStyleRules: Settings.barStyleRules(setting("barStyleRules", null))
     readonly property string panelStyle: Settings.effectivePanelStyle(selectedPanelStyle, followBarStyle,
-        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined)
+        barBackground, barStyleRules)
     readonly property bool glassPanels: panelStyle !== "solid"
-    readonly property int glassTransparency: Settings.backgroundTransparency(setting("glassTransparency", 8), 8)
+    readonly property int glassTransparency: Settings.effectiveGlassTransparency(setting("glassTransparency", 8),
+        selectedPanelStyle, followBarStyle, barBackground, barStyleRules)
     readonly property var wallpaperTransparencyRule: Settings.wallpaperRule(settings, themeId)
     readonly property int wallpaperTransparency: wallpaperTransparencyRule.value
     readonly property int wallpaperTransparencyDefault: wallpaperTransparencyRule.defaultValue

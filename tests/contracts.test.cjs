@@ -396,6 +396,55 @@ test('following the local bar changes only the rendered Wallpaper style', () => 
     assert.equal(settings.effectivePanelStyle('wallpaper',true,undefined),'wallpaper');
 });
 
+test('bar backgrounds recognize new config and older scoped APIs', () => {
+    for (const state of ['opaque','glassy','none']) {
+        assert.equal(settings.barBackground({background:state},true,false),state);
+    }
+    assert.equal(settings.barBackground({},false,true),'glassy');
+    assert.equal(settings.barBackground(null,true,true),'none');
+    assert.equal(settings.barBackground(null,false),'opaque');
+    assert.equal(settings.barBackground({background:'invalid'},undefined),'');
+});
+
+test('each bar state has its own appearance without replacing manual choices', () => {
+    const defaults={opaque:'solid',glassy:'wallpaper',none:'wallpaper'};
+    for (const [state,style] of Object.entries(defaults)) {
+        assert.equal(settings.effectivePanelStyle('wallpaper',true,state),style);
+        assert.equal(settings.effectivePanelStyle('wallpaper',false,state),'wallpaper');
+        for (const manual of ['solid','glass']) {
+            assert.equal(settings.effectivePanelStyle(manual,true,state),manual);
+        }
+    }
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'glassy'),8);
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'glassy',{glassy:{style:'glass'}}),65);
+    assert.equal(settings.effectiveGlassTransparency(8,'glass',true,'glassy'),8);
+    assert.equal(settings.effectivePanelStyle('wallpaper',true,'unknown'),'wallpaper');
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'unknown'),8);
+});
+
+test('editing one bar appearance preserves other rules and saved manual settings', () => {
+    const original={glassTransparency:8,wallpaperTransparency:41,custom:'keep',
+        barStyleRules:{opaque:{style:'wallpaper',glassTransparency:100},glassy:{style:'glass',glassTransparency:72}}};
+    const before=JSON.stringify(original);
+    let prefs=settings.merge(original,settings.setBarStyleRule(original,'none',{style:'glass',glassTransparency:0}));
+    assert.equal(JSON.stringify(original),before);
+    assert.equal(prefs.glassTransparency,8);
+    assert.equal(prefs.wallpaperTransparency,41);
+    assert.equal(prefs.custom,'keep');
+    assert.equal(settings.effectivePanelStyle('wallpaper',true,'opaque',prefs.barStyleRules),'wallpaper');
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'glassy',prefs.barStyleRules),72);
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'none',prefs.barStyleRules),0);
+    prefs=settings.merge(prefs,settings.setBarStyleRule(prefs,'none',{style:'solid'}));
+    assert.equal(prefs.barStyleRules.none.glassTransparency,0);
+    prefs=settings.merge(prefs,settings.setBarStyleRule(prefs,'none',{style:'glass'}));
+    assert.equal(settings.effectiveGlassTransparency(8,'wallpaper',true,'none',prefs.barStyleRules),0);
+    assert.equal(Object.keys(settings.setBarStyleRule(prefs,'__proto__',{style:'solid'})).length,0);
+    for (const malformed of [null,[],false,42,{glassy:{style:'bad',glassTransparency:'65'}}]) {
+        assert.equal(settings.barStyleRule(malformed,'glassy').style,'wallpaper');
+        assert.equal(settings.barStyleRule(malformed,'glassy').glassTransparency,65);
+    }
+});
+
 
 test('updates, artwork and recovery copy cover every declared language', () => {
     const languages = Array.from(i18n.languages, ({code}) => code).sort();

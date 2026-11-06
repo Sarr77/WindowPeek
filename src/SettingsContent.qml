@@ -62,7 +62,7 @@ Column {
         target.forceActiveFocus(reason);
         if (reason === Qt.TabFocusReason || reason === Qt.BacktabFocusReason) ensureVisible(target);
     }
-    function closePickers() { languages.close(); density.close(); barLabels.close(); panelStyle.close(); textShadow.close(); }
+    function closePickers() { languages.close(); density.close(); barLabels.close(); panelStyle.close(); barRules.closePickers(); textShadow.close(); }
 
     Choice.SearchableDropdown {
         id: languages; objectName: "languages"
@@ -269,12 +269,19 @@ Column {
                 onClicked: if (root.hostWidget) root.hostWidget.persistSettings({followBarStyle: !checked})
             }
         }
+        BarStyleRules {
+            id: barRules; objectName: "barStyleRulesEditor"
+            width: parent.width; hostWidget: root.hostWidget
+            visible: root.selectedPanelStyle === "wallpaper" && !!root.hostWidget && root.hostWidget.followBarStyle
+            onEnsureVisible: function(item) { root.ensureVisible(item); }
+        }
         TransparencyControl {
             hostWidget: root.hostWidget
             id: transparency; objectName: "backgroundTransparencyControl"
             width: parent.width; visible: !!root.hostWidget && root.selectedPanelStyle !== "solid"
             words: root.words; accent: root.accent
             readonly property bool wallpaper: !!root.hostWidget && root.selectedPanelStyle === "wallpaper"
+            label: wallpaper ? root.words.wallpaperTransparency : root.words.transparency
             enabled: !wallpaper || !!root.hostWidget.themeId
             defaultValue: wallpaper && root.hostWidget ? root.hostWidget.wallpaperTransparencyDefault : 8
             value: root.hostWidget ? (wallpaper ? root.hostWidget.wallpaperTransparency : root.hostWidget.glassTransparency) : defaultValue

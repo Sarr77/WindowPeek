@@ -434,7 +434,10 @@ namespace, with no network or desktop sockets. It installs, enables, changes
 host settings, restarts, updates, removes and reinstalls the fixture while
 checking saved preferences and unchanged live configuration. The saved values
 include distinct per-theme Wallpaper levels, surface colors and presets,
-custom shortcuts, preview choices, labels and scaling. A fresh install checks
+custom shortcuts, preview choices, labels, scaling and per-bar-style background
+rules. The fixture includes all six bar-layout sections used by Omarchy 4.5,
+so an empty section added by host normalization is not mistaken for lost data.
+A fresh install checks
 following the bar style while preserving the Wallpaper choice, grain, no blur,
 a pending per-theme contrast assessment and the
 full automatic hint budget starting at zero displays. A system sandbox
@@ -820,6 +823,10 @@ single-click pinning with hover disabled, a Qt double-click sequence, collapse,
 Escape, later-click dismissal, and the unchanged default opening behavior.
 It first sends an actual Wayland double-click to the bar, with a 30 ms gap, so the
 second click tests compositor hit-testing after the compact panel maps.
+The fixture explicitly selects Wallpaper for its readability assertions and
+records Omarchy 4.5's background-cycle command without changing desktop settings.
+Its empty-bar gesture targets the painted strip, even when the bar window is
+full-screen; a fresh hover first exits the native label to re-arm dismissal.
 It also requires intermediate expansion frames from a freshly pinned panel for
 both bar and header double-clicks, and immediate expansion with animations off.
 An actual Wayland bar double-click also collapses the expanded panel through
@@ -830,6 +837,35 @@ With pinning disabled, real bar clicks and bar/header double-click collapse must
 leave a passive compact view; real pointer exit closes it. Check explicit compact
 opening with hover opening disabled, re-enabling pinning, releasing an existing
 pin, and contextual bar-name hints below the panel without background overlap.
+
+`bar-geometry-native` requires a private compositor (`WINDOWPEEK_ISOLATED=1`).
+Run it with `--scale 1` and `--scale 2`. It exercises the production `WindowPanel`
+with both the strip-sized bar windows used before Omarchy 4.5 and the full-screen
+bar surfaces introduced in 4.5. For every available output it checks all four
+edges, centered and widget-anchored cards, ordinary and screen-specific strip
+sizes, size limits and the hover bridge. Compositor pixel probes verify both the
+visible card and the bar anchor at the input proxy's actual screen coordinates;
+mapped/open flags alone cannot pass this test. Two side-by-side private outputs
+also exercise nonzero screen offsets. Run `bar-compact-native` separately to
+check gestures through the installed Omarchy Bar.
+
+`bar-edges-native` uses the real Omarchy Bar on private outputs at all four
+edges. Run at 100% and 200%. It checks painted glyph bounds, separated update
+and window-list targets, the inward active mark, native Wayland clicks and
+Escape, and final compositor pixels at the opened panel. Saved horizontal
+labels are retained when orientation changes. Run only in a private compositor;
+its background CLI stub must not change the user's bar or compositor settings.
+
+`bar-style-rules` checks the three appearance pickers using actual Qt mouse and
+keyboard events, including independent Glass sliders, failed saves and all 30
+languages. Run at 100% and 200%. `widget` additionally checks reactive scoped-bar
+configuration, durable preferences and synchronization across widget instances.
+`bar-style-native` requires a private compositor and the installed Omarchy Bar.
+It cycles all three real bar backgrounds, checks rendered card alpha and blur
+requests, applies a custom mapping and verifies the Settings controls. Bar
+cycles must leave saved preferences unchanged. Run at both scales; `--image`
+saves a fictional Settings screenshot. Background CLI calls are recorded by a
+fixture stub and never change the user's compositor or configuration.
 
 After the 2026-09-22 compositor crash, native acceptance used a private nested
 Hyprland session inside bubblewrap, with a headless output, private runtime

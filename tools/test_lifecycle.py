@@ -28,8 +28,8 @@ def inside(base):
     profile = Path.home()
     config = profile / '.config/omarchy/shell.json'
     baseline = {'version': 1, 'bar': {'layout': {
-        'left': [{'id': 'omarchy.workspaces'}], 'center': [],
-        'right': [{'id': 'omarchy.clock', 'format': 'HH:mm'}]}}, 'plugins': [],
+        'left': [{'id': 'omarchy.workspaces'}], 'centerBegin': [], 'center': [], 'centerEnd': [],
+        'right': [{'id': 'omarchy.clock', 'format': 'HH:mm'}], 'tray': []}}, 'plugins': [],
         'idle': {'lock': 900}, 'testSentinel': 'keep-me'}
     config.parent.mkdir(parents=True, exist_ok=True)
     config.write_text(json.dumps(baseline))
@@ -66,7 +66,7 @@ def inside(base):
         while time.monotonic() < deadline:
             if predicate(): return
             time.sleep(.1)
-        raise AssertionError('Configuration was not persisted')
+        raise AssertionError('Configuration was not persisted; current isolated config: ' + json.dumps(read(), sort_keys=True))
     with log_path.open('w') as log:
         try:
             boot()
@@ -97,6 +97,9 @@ def inside(base):
                            'panelHoverDelay':0,'previewHoverDelay':1250,'popupAnimations':False, 'openOnHover':False,
                            'uiScale':1.25,'barScale':1.1,'customLabels':{'barText':'My windows'},
                            'panelStyle':'wallpaper','wallpaperTransparency':70,
+                           'barStyleRules':{'opaque':{'style':'glass','glassTransparency':42},
+                                            'glassy':{'style':'wallpaper','glassTransparency':79},
+                                            'none':{'style':'solid','glassTransparency':23}},
                            'wallpaperThemeTransparencies':{'kanagawa':{'value':12,'defaultValue':10},
                                                           'catppuccin-latte':{'value':64,'defaultValue':70}},
                            'glassTransparency':9,'backgroundBlur':True,'backgroundTexture':True,

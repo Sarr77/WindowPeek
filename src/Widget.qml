@@ -93,10 +93,17 @@ BarWidget {
     readonly property bool shortcutNumbersRight: preference("shortcutNumbersRight", false) === true
     readonly property string selectedPanelStyle: Settings.panelStyle(preference("panelStyle", "wallpaper"))
     readonly property bool followBarStyle: preference("followBarStyle", true) === true
+    // The scoped shell facade exposes a reactive, detached bar configuration.
+    // Its three-state background fills the gap in PluginBarApi.transparent.
+    readonly property string barBackground: Settings.barBackground(bar && bar.shell ? bar.shell.barConfig : null,
+        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined,
+        bar && typeof bar.glassy === "boolean" ? bar.glassy : undefined)
+    readonly property var barStyleRules: Settings.barStyleRules(preference("barStyleRules", null))
     readonly property string panelStyle: Settings.effectivePanelStyle(selectedPanelStyle, followBarStyle,
-        bar && typeof bar.transparent === "boolean" ? bar.transparent : undefined)
+        barBackground, barStyleRules)
     readonly property bool glassPanels: panelStyle !== "solid"
-    readonly property int glassTransparency: Settings.backgroundTransparency(preference("glassTransparency", 8), 8)
+    readonly property int glassTransparency: Settings.effectiveGlassTransparency(preference("glassTransparency", 8),
+        selectedPanelStyle, followBarStyle, barBackground, barStyleRules)
     readonly property var wallpaperTransparencyRule: Settings.wallpaperRule(effectiveSettings, themeId)
     readonly property int wallpaperTransparency: wallpaperTransparencyRule.value
     readonly property int wallpaperTransparencyDefault: wallpaperTransparencyRule.defaultValue
@@ -126,7 +133,9 @@ BarWidget {
     }
     readonly property real uiScale: appearance.uiScale
     readonly property real requestedBarFont: Style.font.body * appearance.barScale
-    readonly property real effectiveBarFont: vertical ? requestedBarFont
+    readonly property real effectiveBarFont: vertical ? Math.min(requestedBarFont,
+        requestedBarFont * Math.max(1, root.width - Style.space(4))
+            / Math.max(1, barIconMetrics.advanceWidth, barCountMetrics.advanceWidth))
         : Math.min(requestedBarFont, requestedBarFont * Math.max(1, barSize - Style.space(4)) / Math.max(1, metrics.height))
     readonly property real effectiveBarScale: effectiveBarFont / Style.font.body
     readonly property bool actionBusy: runtime.actions.busy
@@ -154,6 +163,8 @@ BarWidget {
     signal moveCompleted()
 
     FontMetrics { id: metrics; font.family: root.bar ? root.bar.fontFamily : Style.font.family; font.pixelSize: root.requestedBarFont }
+    TextMetrics { id: barIconMetrics; font: metrics.font; text: "▣" }
+    TextMetrics { id: barCountMetrics; font: metrics.font; text: button.countText }
 
     function observeWallpaper(owner, enabled) { runtime.wallpaper.observe(owner, enabled); }
     function beginLogoAnimation(slot, source, cooldown) { return runtime.beginLogoAnimation(slot, source, sharedLogoCooldownEnabled ? sharedLogoCooldown : cooldown, sharedLogoCooldownEnabled); }
@@ -377,8 +388,10 @@ BarWidget {
         }
     }
 
-    implicitWidth: button.implicitWidth + (updateBadge.visible && !root.vertical ? updateBadge.width + Style.space(4) : 0)
-    implicitHeight: button.implicitHeight
+    implicitWidth: root.vertical ? root.barSize
+        : button.implicitWidth + (updateBadge.visible ? updateBadge.implicitWidth + Style.space(4) : 0)
+    implicitHeight: root.vertical
+        ? button.implicitHeight + (updateBadge.visible ? root.barSize + Style.space(4) : 0) : root.barSize
     ReadableBarButton {
         id: button
         hostWidget: root
@@ -386,12 +399,13 @@ BarWidget {
         anchors.left: parent.left
         anchors.top: parent.top
         width: root.vertical ? parent.width : implicitWidth
-        height: parent.height
+        height: root.vertical ? implicitHeight : parent.height
         bar: root.bar
         fontSize: root.effectiveBarFont
         readonly property int count: root.inventory.windows.filter(function(w) { return root.includeSpecial || !w.workspace || !w.workspace.special; }).length
         readonly property string countText: root.inventory.status === "ready" ? String(count) : "?"
-        text: Labels.render(root.textTemplates.barText, {count: countText, monitor: root.screenName || "?"})
+        text: root.vertical ? "▣\n" + countText
+            : Labels.render(root.textTemplates.barText, {count: countText, monitor: root.screenName || "?"})
         tooltipText: ""
         activeColor: root.accent
         // Osaka Jade's bright yellow separates the active label from its green
@@ -423,10 +437,10 @@ BarWidget {
         hostWidget: root; bar: root.bar
         objectName: "windowPeekUpdateBadge"
         visible: root.runtime.updates.offerAvailable
-        x: root.vertical ? Math.max(0, root.width - width) : button.width + Style.space(4)
-        y: 0
+        x: root.vertical ? 0 : button.width + Style.space(4)
+        y: root.vertical ? button.height + Style.space(4) : 0
         width: root.vertical ? root.width : implicitWidth
-        height: root.height
+        height: root.vertical ? root.barSize : root.height
         fontSize: Math.max(9, root.effectiveBarFont - 1)
         horizontalMargin: root.vertical ? 0 : 7
         text: root.vertical ? " " : "  " + UpdateCopy.words(root.language).badge
@@ -464,9 +478,10 @@ BarWidget {
     }
     Rectangle {
         objectName: "windowPeekActiveUnderline"
-        height: Style.space(2); width: root.width
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: root.bar && root.bar.position === "bottom" ? 2 : parent.height - height - 2
+        height: root.vertical ? root.height : Style.space(2)
+        width: root.vertical ? Style.space(2) : root.width
+        x: root.vertical ? (root.bar.position === "left" ? parent.width - width - 2 : 2) : 0
+        y: root.vertical ? 0 : (root.bar && root.bar.position === "bottom" ? 2 : parent.height - height - 2)
         color: root.accent
         visible: root.opened && !(panelLoader.item && panelLoader.item.body
             && panelLoader.item.body.installConfirmationOpen)
@@ -516,7 +531,9 @@ BarWidget {
                     customLogo: w.hoverLogoImage.indexOf("file:") === 0 || w.settingsLogoImage.indexOf("file:") === 0,
                     hoverLogoAnimated: LogoCatalog.animated(w.hoverLogoImage),
                     settingsLogoAnimated: LogoCatalog.animated(w.settingsLogoImage), wheelScrollSpeed: w.wheelScrollSpeed,
-                    followBarStyle: w.followBarStyle, keepSearchFocus: w.keepSearchFocus,
+                    followBarStyle: w.followBarStyle, selectedPanelStyle: w.selectedPanelStyle,
+                    panelStyle: w.panelStyle, barBackground: w.barBackground, glassTransparency: w.glassTransparency,
+                    keepSearchFocus: w.keepSearchFocus,
                     actionBusy: w.actionBusy, actionError: w.actionError, hints: w.hints,
                     autoUpdates: w.autoUpdates, updatesAvailable: w.updatesAvailable,
                     preview: {

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.3
+
+- Fix panels opening outside the screen after upgrading to Omarchy 4.5.
+- Fit the bar label to vertical bars with a window icon above the count. Keep
+  the update button separate and place the active mark on the inward edge.
+- Choose a panel background separately for Opaque, Glassy and Clear bar styles:
+  Solid, Wallpaper or Glass, with independent Glass transparency for each.
+- Use Wallpaper by default with Glassy and Clear bars, and Solid with Opaque.
+  Keep saved appearance preferences and explicit background choices.
+- Translate the new background controls into all 30 supported languages and
+  update the guides.
+
 ## 1.0.2
 
 - Fix the artwork defaults for new installations: the window-list logo plays

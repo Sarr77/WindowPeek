@@ -21,6 +21,7 @@ ShellRoot {
         id: shell
         property var saved: ({})
         property bool rejectSave: false
+        property var barConfig: ({})
         function updateEntryInline(id, values) { if (rejectSave) return false; saved = values; return true; }
     }
     Ui.PluginBarApi {
@@ -114,6 +115,19 @@ ShellRoot {
                     "bar following preserves the selected background");
                 bar.transparent = true;
                 test.check(a.panelStyle === "wallpaper" && b.panelStyle === "wallpaper", "bar transparency changes react immediately");
+                var beforeBarChange=JSON.stringify(a.runtime.preferences.values);
+                shell.barConfig={background:"glassy"};
+                test.check(a.panelStyle === "wallpaper" && b.panelStyle === "wallpaper",
+                    "Glassy config preserves Wallpaper by default on both monitors");
+                test.check(JSON.stringify(a.runtime.preferences.values)===beforeBarChange,
+                    "bar changes never write preferences or replace saved Wallpaper values");
+                test.saved(b,"persistSettings",{barStyleRules:{glassy:{style:"glass",glassTransparency:79},opaque:{style:"wallpaper"}}});
+                test.check(a.glassTransparency===79 && b.glassTransparency===79,
+                    "per-state choices synchronize across monitors");
+                shell.barConfig={background:"opaque"};
+                test.check(a.panelStyle==="wallpaper" && b.panelStyle==="wallpaper","custom opaque-bar mapping is used");
+                shell.barConfig={};
+                test.saved(a,"persistSettings",{barStyleRules:{}});
                 bar.transparent = false;
                 test.saved(a,"persistSettings",{followBarStyle:false});
                 test.check(a.panelStyle === "wallpaper", "turning follow off restores the chosen background");

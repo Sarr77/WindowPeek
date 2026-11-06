@@ -139,11 +139,22 @@ close or promotion so background applications retain their navigation keys.
 Keypad navigation aliases never override the configured modifier's ordinal keys.
 Tab and side actions promote via the host widget to preserve its focus lifecycle.
 
-`selectedPanelStyle` retains the stored choice. The enabled-by-default `followBarStyle` resolves
-Wallpaper to Solid only when the invoking `PluginBarApi.transparent` is false;
-unknown bar state preserves Wallpaper. The effective `panelStyle` feeds all
-surfaces. Settings edits still target the selected style, without saving any bar
-state changes or altering Wallpaper appearance values.
+`selectedPanelStyle` retains the stored choice. With Wallpaper selected, the
+enabled-by-default `followBarStyle` applies `barStyleRules` for `opaque`, `glassy`
+and `none`. Defaults are Solid, Wallpaper and Wallpaper, respectively.
+Each rule stores its own chosen style and Glass transparency (65% when first selected).
+The scoped `bar.shell.barConfig.background` supplies the reactive three-state
+value; older hosts fall back to their `transparent` / `glassy` flags. Unknown
+bar state preserves Wallpaper. Manual Solid/Glass choices bypass these rules.
+The effective `panelStyle` and `glassTransparency` feed every surface, preview
+and readability decision. Bar changes never write preferences. The existing
+manual Glass transparency and theme-specific Wallpaper appearance stay saved.
+
+Vertical bar slots render a window glyph above the count, fitting the font to
+the strip width. The separate update target extends the slot along the bar,
+below the main target; horizontal slots retain their saved text templates and
+side-by-side buttons. Position changes do not write label preferences. The
+active mark follows the inward edge at all four bar positions.
 
 `PanelLogo` replaces the expanded search/footer space and uses the same translucent
 accent in Settings. `hoverLogoImage` and `settingsLogoImage` hold separate choices:
@@ -550,7 +561,12 @@ the secondary-click overlay is their sibling, outside that layout. This keeps
 the overlay's fill anchors from disabling the column's positioning.
 
 `WindowPanel` adapts Omarchy's `KeyboardPanel` focus acquisition, bar coordination
-and outside-click dismissal. It retains the upstream layer namespace so Omarchy
+and outside-click dismissal. Bar clearance, size limits and the hover bridge use
+the painted strip's thickness (`barSizeFor(screen.name)` when available, otherwise
+`barSize`), following [Omarchy 4.5's geometry change](https://github.com/omacom/omarchy/commit/e2d618ac298f08518e9974ade8025c35fed2a770).
+Raw bar-window dimensions are used only to map bottom/right input coordinates;
+they may describe either a strip-sized window or a full-screen surface.
+It retains the upstream layer namespace so Omarchy
 disables compositor animations around the QML transition. Hover and search share one mapped layer surface,
 rounded card and list. Hover accepts pointer input inside the card and the transparent gap to the bar,
 receives keyboard input and creates no dismissal surfaces on other monitors.

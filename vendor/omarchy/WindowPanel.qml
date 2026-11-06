@@ -315,24 +315,20 @@ PanelWindow {
     right: true
   }
 
-  readonly property real _barStripSize: {
-    if (!bar) return 0
-    var actual = (root.barPos === "top" || root.barPos === "bottom") ? root.barH : root.barW
-    return Math.max(bar.barSize, actual) + root.gap
-  }
+  readonly property real _barStripSize: bar ? barThickness + gap : 0
   // The gap belongs to this surface, but the bar itself remains clickable.
   // Cover the full adjoining card edge, including diagonal pointer crossings.
   readonly property rect barBridgeBounds: {
     if (!anchorWindow || !anchorItem || !bar) return Qt.rect(0, 0, 0, 0)
     if (barPos === "bottom")
       return Qt.rect(card.x, card.y + card.height, card.width,
-        Math.max(0, screenH - barH - card.y - card.height))
+        Math.max(0, screenH - barThickness - card.y - card.height))
     if (barPos === "left")
-      return Qt.rect(barW, card.y, Math.max(0, card.x - barW), card.height)
+      return Qt.rect(barThickness, card.y, Math.max(0, card.x - barThickness), card.height)
     if (barPos === "right")
       return Qt.rect(card.x + card.width, card.y,
-        Math.max(0, screenW - barW - card.x - card.width), card.height)
-    return Qt.rect(card.x, barH, card.width, Math.max(0, card.y - barH))
+        Math.max(0, screenW - barThickness - card.x - card.width), card.height)
+    return Qt.rect(card.x, barThickness, card.width, Math.max(0, card.y - barThickness))
   }
   readonly property bool barBridgeHovered: barBridge.containsMouse
   readonly property rect hoverHandoffBounds: hoverFootprint.bounds
@@ -376,6 +372,7 @@ PanelWindow {
   // including clicks that straddle mapping or a native double-click sequence.
   MouseArea {
     id: barInput
+    objectName: "windowPeekBarInput"
     x: (root.barPos === "right" ? root.screenW - root.barW : 0) + root.anchorScreenPos.x
     y: (root.barPos === "bottom" ? root.screenH - root.barH : 0) + root.anchorScreenPos.y
     width: visible ? root.anchorW : 0; height: visible ? root.anchorH : 0
@@ -416,10 +413,10 @@ PanelWindow {
   readonly property real screenW: screen ? screen.width : 0
   readonly property real screenH: screen ? screen.height : 0
   readonly property real availableCardWidth: screenW > 0
-    ? Math.max(120, screenW - ((barPos === "left" || barPos === "right") ? barW + gap + margin : margin * 2))
+    ? Math.max(120, screenW - ((barPos === "left" || barPos === "right") ? barThickness + gap + margin : margin * 2))
     : 0
   readonly property real availableCardHeight: screenH > 0
-    ? Math.max(120, screenH - ((barPos === "top" || barPos === "bottom") ? barH + gap + margin : margin * 2))
+    ? Math.max(120, screenH - ((barPos === "top" || barPos === "bottom") ? barThickness + gap + margin : margin * 2))
     : 0
   readonly property real verticalContentInset: padding * 2 + Border.top(borderSpec) + Border.bottom(borderSpec)
 
@@ -443,6 +440,11 @@ PanelWindow {
     return Math.round(Math.min(desired, maxHeight))
   }
 
+  // Omarchy 4.5 keeps the bar window full-screen. Place UI against the
+  // painted strip, using the same per-screen thickness API as KeyboardPanel.
+  readonly property real barThickness: !bar ? 0
+    : (typeof bar.barSizeFor === "function" && screen ? bar.barSizeFor(screen.name) : bar.barSize)
+  // Keep raw window dimensions for barInput's bottom/right coordinate mapping.
   readonly property real barW: anchorWindow ? anchorWindow.width : screenW
   readonly property real barH: anchorWindow ? anchorWindow.height : 0
   readonly property point cardOrigin: {
@@ -450,31 +452,31 @@ PanelWindow {
     var x = 0, y = 0
     if (centerOnBar && (barPos === "top" || barPos === "bottom")) {
       x = screenW / 2 - contentWidth / 2
-      y = barPos === "bottom" ? screenH - barH - contentHeight - gap : barH + gap
+      y = barPos === "bottom" ? screenH - barThickness - contentHeight - gap : barThickness + gap
     } else if (centerOnBar) {
-      x = barPos === "left" ? barW + gap : screenW - barW - contentWidth - gap
+      x = barPos === "left" ? barThickness + gap : screenW - barThickness - contentWidth - gap
       y = screenH / 2 - contentHeight / 2
     } else if (barPos === "bottom") {
       x = anchorScreenPos.x + anchorW / 2 - contentWidth / 2
-      y = screenH - barH - contentHeight - gap
+      y = screenH - barThickness - contentHeight - gap
     } else if (barPos === "left") {
-      x = barW + gap
+      x = barThickness + gap
       y = anchorScreenPos.y + anchorH / 2 - contentHeight / 2
     } else if (barPos === "right") {
-      x = screenW - barW - contentWidth - gap
+      x = screenW - barThickness - contentWidth - gap
       y = anchorScreenPos.y + anchorH / 2 - contentHeight / 2
     } else { // "top" (default)
       x = anchorScreenPos.x + anchorW / 2 - contentWidth / 2
-      y = barH + gap
+      y = barThickness + gap
     }
     if (pinOrigin) {
       x = retainedOrigin.x
       y = retainedOrigin.y
     }
-    var minX = barPos === "left" ? barW + gap : margin
-    var minY = barPos === "top" ? barH + gap : margin
-    var maxX = screenW - contentWidth - (barPos === "right" ? barW + gap : margin)
-    var maxY = screenH - contentHeight - (barPos === "bottom" ? barH + gap : margin)
+    var minX = barPos === "left" ? barThickness + gap : margin
+    var minY = barPos === "top" ? barThickness + gap : margin
+    var maxX = screenW - contentWidth - (barPos === "right" ? barThickness + gap : margin)
+    var maxY = screenH - contentHeight - (barPos === "bottom" ? barThickness + gap : margin)
     x = Math.max(minX, Math.min(x, maxX))
     y = Math.max(minY, Math.min(y, maxY))
     return Qt.point(Math.round(x), Math.round(y))

@@ -13,6 +13,15 @@ ShellRoot {
     property int waits: 0
     property int expansionFrames: 0
     property int collapseTicks: 0
+    readonly property var backgroundCommands: JSON.parse(backgroundLog.text() || "[]")
+        .filter(function(args) { return args[0] === "background"; })
+    readonly property int backgroundCycles: backgroundCommands.length
+    FileView {
+        id: backgroundLog
+        path: Quickshell.env("WINDOWPEEK_TEST_PROFILE") + "/bar-background.json"
+        watchChanges: true
+        onFileChanged: reload()
+    }
     readonly property var widget: hostBar.moduleWidgets("sarr.windowpeek")[0] || null
     readonly property real scale: Number(Quickshell.env("WINDOWPEEK_TEST_SCALE")) || 1
     readonly property var panel: find(widget,"windowPeekController")
@@ -69,7 +78,10 @@ ShellRoot {
         property var config: {
             var layout={left:[],center:[],right:[]};
             layout[Quickshell.env("WINDOWPEEK_TEST_BAR_SECTION") || "center"]=[{id:"sarr.windowpeek",autoUpdates:false,
-                windowPreviews:false,openOnHover:false,uiScale:test.scale}];
+                windowPreviews:false,openOnHover:false,uiScale:test.scale,
+                // The readability assertion needs a translucent panel even
+                // when the installed host bar selects solid popup styling.
+                panelStyle:"wallpaper",followBarStyle:false}];
             return {bar:{position:"top",transparent:false,layout:layout}};
         }
         function updateEntryInline(id,entry) { return true; }
@@ -109,7 +121,7 @@ ShellRoot {
                     if(test.wait(!pointer.pending,"pointer over real bar surface"))break;
                     pointer.write("double\n");break;
                 case -1:
-                    test.check(shell.styleChanges===0,"WindowPeek double-click must not toggle the host bar style");
+                    test.check(shell.styleChanges===0 && test.backgroundCycles===0,"WindowPeek double-click must not toggle the host bar style: changes="+shell.styleChanges+" commands="+JSON.stringify(test.backgroundCommands));
                     if(test.wait(widget.opened && test.panel.body.expanded,"rapid real double-click crosses panel mapping and expands from the bar"))break;
                     widget.close();break;
                 case 0: test.click();break;
@@ -180,11 +192,13 @@ ShellRoot {
                     test.check(test.panel.expansion===1 && test.expansionFrames===0,"disabled header expansion remains immediate");
                     widget.close();break;
                 case 18:
-                    test.check(shell.styleChanges===0,"all widget double-clicks leave the bar style unchanged");
+                    test.check(shell.styleChanges===0 && test.backgroundCycles===0,"all widget double-clicks leave the bar style unchanged");
                     var barSurface=widget.QsWindow.window.contentItem;
-                    events.mouseDoubleClickSequence(barSurface,barSurface.width/2+300,barSurface.height/2,Qt.LeftButton,Qt.NoModifier,20);break;
+                    var stripPoint=widget.mapToItem(barSurface,0,widget.height/2);
+                    events.mouseDoubleClickSequence(barSurface,barSurface.width/2+300,stripPoint.y,Qt.LeftButton,Qt.NoModifier,20);break;
                 case 19:
-                    test.check(shell.styleChanges===1,"double-click on empty bar space still toggles its style");
+                    if(test.wait(shell.styleChanges + test.backgroundCycles === 1,"double-click on empty bar space still toggles its style"))break;
+                    if(test.backgroundCycles) test.check(JSON.stringify(test.backgroundCommands)==='[["background","cycle"]]',"Omarchy 4.5 background command");
                     test.changeSettings({openOnHover:true,panelHoverDelay:0});
                     var hoverPoint=widget.mapToGlobal(widget.width+100,widget.height/2);
                     mover.command=["hyprctl","eval","hl.dispatch(hl.dsp.cursor.move({x="+Math.round(hoverPoint.x)+",y="+Math.round(hoverPoint.y)+"}))"];
@@ -199,7 +213,7 @@ ShellRoot {
                     pointer.write("double\n");break;
                 case 22:
                     if(test.wait(widget.opened && test.panel.body.expanded,"bar double-click expands an existing hover panel"))break;
-                    test.check(shell.styleChanges===1,"hover promotion does not change bar style");
+                    test.check(shell.styleChanges + test.backgroundCycles === 1,"hover promotion does not change bar style");
                     test.changeSettings({hintsMode:"on",pinByTitleClick:false});
                     var header=test.find(test.panel.body,"panelHeader");
                     var headerPoint=header.mapToGlobal(20,10);
@@ -246,10 +260,17 @@ ShellRoot {
                 case 33:
                     test.check(!widget.opened && !test.panel.compactPinned,"disabling pinning releases an already pinned compact panel");
                     widget.close();test.changeSettings({openOnHover:true,panelHoverDelay:0});
+                    // Re-arm with an actual exit. A synthetic click can leave
+                    // Qt's hover on the label while the native cursor is away.
+                    pointer.pending=true;
+                    mover.command=["hyprctl","eval","hl.dispatch(hl.dsp.cursor.move({x=1800,y=1040}))"];
+                    mover.running=true;test.step=331;break;
+                case 331:
+                    if(test.wait(!pointer.pending && !widget.barLabelHovered && !widget.hoverDismissed,"fresh hover is re-armed after pointer exit"))break;
                     var rehover=widget.mapToGlobal(widget.width/2,widget.height/2);
                     pointer.pending=true;
                     mover.command=["hyprctl","eval","hl.dispatch(hl.dsp.cursor.move({x="+Math.round(rehover.x)+",y="+Math.round(rehover.y)+"}))"];
-                    mover.running=true;break;
+                    mover.running=true;test.step=34;break;
                 case 34:
                     if(!keys.running){keys.ready=false;keys.running=true;}
                     if(test.wait(test.panel.hoverOpened && keys.running && keys.ready,"fresh bar hover and virtual keyboard ready"))break;

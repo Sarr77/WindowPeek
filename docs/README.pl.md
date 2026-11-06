@@ -63,9 +63,9 @@ Ustawienia obsługują **30 języków** i pokazują zmiany na żywo.
 
 | Obszar | Możliwości |
 |----|----|
-| Panel | Tło z tapety, jednolite lub przezroczyste; opcjonalny blur i grain; dopasowanie do aktywnego stylu bara |
+| Panel | Tło z tapety, jednolite lub przezroczyste; opcjonalny blur i grain; osobny wygląd dla nieprzezroczystego, szklanego i przezroczystego paska |
 | Kolory | Kolory motywu Omarchy albo własna paleta z zapisywanymi presetami |
-| Układ | Skala panelu i tekstu bara, przestronne lub kompaktowe wiersze, własne etykiety |
+| Układ | Wszystkie cztery położenia paska, skala panelu i tekstu bara, przestronne lub kompaktowe wiersze, własne etykiety |
 | Obrazy i animacje | Grafiki Omarchy, 37 wbudowanych efektów albo własne lokalne pliki z pozycjonowaniem i skalowaniem |
 | Zachowanie | Czas podglądów, hover, przewijanie, skróty, podpowiedzi i akcje na oknach |
 

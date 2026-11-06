@@ -88,8 +88,10 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
   one left click does the same. Returning clears the search filter. Controls retain
   their own actions; settings and move forms do not collapse on background clicks.
 - With Wallpaper selected, offer a small Follow bar style switch, enabled by default, beside
-  the default label. Use Solid with an opaque bar and Wallpaper with a transparent
-  bar; preserve the saved choice and appearance, and update all popup surfaces.
+  the default label. Offer separate background choices for Opaque, Glassy and
+  Clear bars, defaulting to Solid, Wallpaper and Wallpaper respectively. Each
+  choice can use Solid, Wallpaper or Glass with its own Glass transparency.
+  Preserve saved choices and appearance, and update all popup surfaces.
 - Show a switchable, theme-colored Omarchy logo below the hover list by default.
   Reserve the expanded search/footer height for it. Allow independent compact
   and Settings choices: static Omarchy, theme-colored pixel glint, or local image
@@ -139,6 +141,10 @@ a group on workspace 4, and arrive at that window with the correct tab selected.
 - Include special workspaces, including the scratchpad, with a setting to hide them.
 - Keep the familiar ScratchPeek appearance: compact panels, application icons,
   configurable colors, scaling, translations and durable settings.
+- Support all four bar positions. On vertical bars, show a window icon above
+  the window count and put the update button below it, with separate click
+  targets. The active mark faces the desktop. Horizontal bars keep the saved
+  text label; changing bar position does not rewrite that preference.
 
 The tab scope is Hyprland window groups. Browser tabs and editor documents would
 require separate integrations and are outside this first product scope.

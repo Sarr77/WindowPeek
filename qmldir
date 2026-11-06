@@ -47,6 +47,7 @@ AuthorCredit 1.0 src/AuthorCredit.qml
 UpdateSwitch 1.0 src/UpdateSwitch.qml
 UpdateConfirmation 1.0 src/UpdateConfirmation.qml
 SettingsContent 1.0 src/SettingsContent.qml
+BarStyleRules 1.0 src/BarStyleRules.qml
 TroubleshootingSettings 1.0 src/TroubleshootingSettings.qml
 ControlsHelp 1.0 src/ControlsHelp.qml
 HintsSupportPage 1.0 src/HintsSupportPage.qml

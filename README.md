@@ -63,9 +63,9 @@ Settings includes **30 languages** and live previews while you customize.
 
 | Customize | Options |
 |----|----|
-| Panel | Wallpaper, solid or transparent backgrounds; optional blur and grain; panel can follow the current bar style |
+| Panel | Wallpaper, solid or transparent backgrounds; optional blur and grain; separate choices for opaque, glassy and transparent bar styles |
 | Colors | Omarchy theme colors or your own palette, with saved appearance presets |
-| Layout | Panel and bar scaling, spacious or compact rows, custom labels |
+| Layout | All four bar positions, panel and bar scaling, spacious or compact rows, custom labels |
 | Pictures & animations | Omarchy artwork, 37 built-in effects or your own local files, with positioning and scaling |
 | Behavior | Preview timing, hover behavior, scrolling, shortcuts, hints and window actions |
 

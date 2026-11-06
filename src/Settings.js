@@ -40,9 +40,48 @@ function hoverDelay(value) {
 function panelStyle(value) {
     return value === "glass" || value === "wallpaper" ? value : "solid";
 }
-function effectivePanelStyle(value, followBar, barTransparent) {
+function barBackground(config, transparent, glassy) {
+    var value = config && config.background;
+    if (value === "opaque" || value === "glassy" || value === "none") return value;
+    if (transparent === true) return "none";
+    if (glassy === true) return "glassy";
+    return transparent === false ? "opaque" : "";
+}
+function barState(value) {
+    return value === true ? "none" : value === false ? "opaque"
+        : value === "opaque" || value === "glassy" || value === "none" ? value : "";
+}
+function barStyleRule(rules, state) {
+    var fallback = state === "opaque" ? "solid" : "wallpaper";
+    var rule = rules && typeof rules === "object" && !Array.isArray(rules)
+        && Object.prototype.hasOwnProperty.call(rules, state) ? rules[state] : null;
+    var style = rule && rule.style;
+    return {style: style === "solid" || style === "wallpaper" || style === "glass" ? style : fallback,
+        glassTransparency: backgroundTransparency(rule && rule.glassTransparency, 65)};
+}
+function barStyleRules(value) {
+    var result = {};
+    ["opaque", "glassy", "none"].forEach(function(state) { result[state] = barStyleRule(value, state); });
+    return result;
+}
+function setBarStyleRule(settings, state, values) {
+    if (["opaque", "glassy", "none"].indexOf(state) < 0) return {};
+    var rules = barStyleRules(settings && settings.barStyleRules);
+    var updated = {};
+    updated[state] = merge(rules[state], values);
+    rules[state] = barStyleRule(updated, state);
+    return {barStyleRules: rules};
+}
+function effectivePanelStyle(value, followBar, background, rules) {
     var selected = panelStyle(value);
-    return selected === "wallpaper" && followBar === true && barTransparent === false ? "solid" : selected;
+    var state = barState(background);
+    return selected === "wallpaper" && followBar === true && state
+        ? barStyleRule(rules, state).style : selected;
+}
+function effectiveGlassTransparency(value, selected, followBar, background, rules) {
+    var state = barState(background);
+    return selected === "wallpaper" && followBar === true && state && barStyleRule(rules, state).style === "glass"
+        ? barStyleRule(rules, state).glassTransparency : backgroundTransparency(value, 8);
 }
 function wheelScrollSpeed(value) {
     return typeof value === "number" && Number.isFinite(value)

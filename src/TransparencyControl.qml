@@ -8,6 +8,7 @@ Column {
     id: root
     property var hostWidget: null
     required property var words
+    property string label: words.transparency
     property color accent: Commons.Color.accent
     property int value: 8
     property int defaultValue: 8
@@ -24,7 +25,7 @@ Column {
             id: label
             anchors.left: parent.left; anchors.right: percent.left; anchors.rightMargin: Style.space(12)
             anchors.verticalCenter: parent.verticalCenter
-            text: root.words.transparency; textFormat: Text.PlainText; wrapMode: Text.Wrap
+            text: root.label; textFormat: Text.PlainText; wrapMode: Text.Wrap
             textColor: Commons.Color.popups.text; font.family: Style.font.family; font.pixelSize: Style.font.body
         }
         ReadableText {
@@ -37,7 +38,7 @@ Column {
             hostWidget: root.hostWidget
             id: reset
             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-            words: root.words; valueText: root.defaultValue + "%"; label: root.words.transparency; accent: root.accent
+            words: root.words; valueText: root.defaultValue + "%"; label: root.label; accent: root.accent
             modified: root.value !== root.defaultValue
             onResetRequested: root.choose(root.defaultValue)
             onEnsureVisible: root.ensureVisible()
@@ -51,7 +52,7 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             from: 0; to: 100; stepSize: 1; snapMode: QQC.Slider.SnapAlways
             value: root.value; palette.highlight: root.accent
-            Accessible.name: root.words.transparency
+            Accessible.name: root.label
             onMoved: root.choose(value)
             onActiveFocusChanged: if (activeFocus) root.ensureVisible()
         }
